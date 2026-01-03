@@ -5,6 +5,7 @@ from typing import Literal
 from pathlib import Path
 from cadquery import exporters
 import pyvista as pv
+import subprocess
 
 m: float = 2.0  # Module, Modul
 z: int = 20  # Number of teeth, Zähnezahl
@@ -12,6 +13,41 @@ x: float = 0.0  # Profile shift, Profilverschiebung
 alpha: float = 20.0  # [degree] Pressure angle, Eingriffswinkel
 thickness: float = 10
 c_star: float = 0.167
+
+
+def render_to_image(
+    gear: cq.Workplane,
+    rack: cq.Workplane | None,
+    output_path: Path,
+    window_size: tuple[int, int] = (1920, 1080),
+    camera_position: tuple | None = None,
+) -> None:
+    temp_gear_stl = output_path.parent / "temp_gear.stl"
+    exporters.export(gear, str(temp_gear_stl))
+
+    plotter = pv.Plotter(off_screen=True, window_size=list(window_size))
+
+    gear_mesh = pv.read(str(temp_gear_stl))
+    plotter.add_mesh(gear_mesh, color='lightblue', smooth_shading=True) # type: ignore
+
+    if rack is not None:
+        temp_rack_stl = output_path.parent / "temp_rack.stl"
+        exporters.export(rack, str(temp_rack_stl))
+        rack_mesh = pv.read(str(temp_rack_stl))
+        plotter.add_mesh(rack_mesh, color='orange', smooth_shading=True) # type: ignore
+        temp_rack_stl.unlink()
+
+    if camera_position is not None:
+        plotter.camera_position = camera_position
+    else:
+        plotter.camera_position = 'iso'
+        plotter.camera.zoom(1.2)
+
+    plotter.screenshot(str(output_path))
+    plotter.close()
+
+    temp_gear_stl.unlink()
+
 
 def create_rack_cutter_sketch(
     m: float,
@@ -70,7 +106,7 @@ def simulate_gear_cutting(
     alpha: float,
     num_cut_positions: int,
     extrude_depth: float,
-    visualize: Literal[None, "show", "step"],
+    visualize: Literal[None, "show", "step", "img"],
 ) -> cq.Workplane:
     d: float = m * z
     r: float = d / 2
@@ -95,9 +131,26 @@ def simulate_gear_cutting(
 
     cut_counter = [0]
     output_dir: Path = Path("output")
+    fixed_camera_position = [None]  # Will be set on first render
+
     if visualize == "step":
         output_dir = Path("output_step")
         output_dir.mkdir(exist_ok=True)
+    elif visualize == "img":
+        output_dir = Path("output_img")
+        output_dir.mkdir(exist_ok=True)
+
+        # Setup fixed camera by rendering gear once to get camera position
+        temp_stl = output_dir / "temp_setup.stl"
+        exporters.export(gear_blank, str(temp_stl))
+        plotter = pv.Plotter(off_screen=True)
+        mesh = pv.read(str(temp_stl))
+        plotter.add_mesh(mesh)
+        plotter.camera_position = 'iso'
+        plotter.camera.zoom(1.2)
+        fixed_camera_position[0] = plotter.camera_position
+        plotter.close()
+        temp_stl.unlink()
 
     def visualize_fun(rack: cq.Workplane | None =None) -> None:
         if visualize == "show":
@@ -120,6 +173,11 @@ def simulate_gear_cutting(
                 cq.exporters.export(result, str(filename))
             cut_counter[0] += 1
             print(f"Saved: {filename}")
+        elif visualize == "img":
+            filename: Path = output_dir / f"frame_{cut_counter[0]:03d}.png"
+            render_to_image(result, rack, filename, camera_position=fixed_camera_position[0])
+            cut_counter[0] += 1
+            print(f"Saved: {filename}")
 
     result: cq.Workplane = gear_blank
     visualize_fun()
@@ -136,11 +194,46 @@ def simulate_gear_cutting(
         result = result.cut(positioned_rack)
         visualize_fun(positioned_rack)
 
+    if visualize == "img":
+        print("\nGenerating videos...")
+
+        total_frames: int = cut_counter[0]
+        target_duration: float = 4.0  # [s]
+        framerate: float = float(total_frames) / target_duration
+
+        print(f"Total frames: {total_frames}, Framerate: {framerate:.2f} fps for {target_duration}s video")
+
+        video_path_mp4 = output_dir / "gear_cutting.mp4"
+        try:
+            subprocess.run(
+                [
+                    "ffmpeg",
+                    "-y",
+                    "-framerate", str(framerate),
+                    "-i", str(output_dir / "frame_%03d.png"),
+                    "-c:v", "libx264",
+                    "-profile:v", "baseline",
+                    "-level", "3.0",
+                    "-pix_fmt", "yuv420p",
+                    "-preset", "medium",
+                    "-crf", "23",
+                    str(video_path_mp4)
+                ],
+                check=True,
+                capture_output=True,
+                text=True
+            )
+            print(f"✓ MP4 video created: {video_path_mp4}")
+        except subprocess.CalledProcessError as e:
+            print(f"✗ MP4 creation failed: {e.stderr}")
+        except FileNotFoundError:
+            print("✗ ffmpeg not found")
+
     return result
 
 
 result = simulate_gear_cutting(
-    z=z, m=m, alpha=alpha, num_cut_positions=10, extrude_depth=thickness, visualize="show"
+    z=z, m=m, alpha=alpha, num_cut_positions=10, extrude_depth=thickness, visualize="img"
 )
 
 show(result)

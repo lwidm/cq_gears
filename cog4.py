@@ -7,7 +7,7 @@ import pyvista as pv
 from helpers import setup_visualization, visualize_step, create_video
 
 m: float = 2.0  # Module, Modul
-z: int = 20  # Number of teeth, Zähnezahl
+z: int = 4  # Number of teeth, Zähnezahl
 x: float = 0.0  # Profile shift, Profilverschiebung
 alpha: float = 20.0  # [degree] Pressure angle, Eingriffswinkel
 thickness: float = 10
@@ -60,8 +60,12 @@ def create_rack_cutter_sketch(
         .rarray(p, 1, z + 4, 1)
         .trapezoid(toothwidth_at_base, ha + hf, 90 - alpha, mode="a")
         .clean()
+    )
+
+    rack_sketch = (
+        rack_sketch
         .reset()
-        .vertices("not (<Y or >Y)")
+        .vertices("not (<Y or >Y or <X or >X)")
         .fillet(rho_f)
         .clean()
     )
@@ -134,7 +138,7 @@ result = simulate_gear_cutting(
     z=z,
     m=m,
     alpha=alpha,
-    num_cut_positions=20,
+    num_cut_positions=50,
     extrude_depth=thickness,
     visualize=None,
 )
@@ -142,6 +146,7 @@ result = simulate_gear_cutting(
 # create_video(
 #     input_dir=Path("output/img"),
 #     output_path=Path("output/gear_cutting.mp4"),
+#     delete_frames=True,
 #     video_length=10.0
 # )
 

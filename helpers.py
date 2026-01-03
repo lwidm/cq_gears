@@ -32,7 +32,7 @@ def render_to_image(
     exporters.export(gear, str(temp_gear_stl), tolerance=0.01, angularTolerance=0.1)
 
     plotter = pv.Plotter(off_screen=True, window_size=list(window_size))
-    plotter.set_background("#E8E8E8")
+    plotter.set_background("#E8E8E8") # type: ignore
 
     gear_mesh = pv.read(str(temp_gear_stl))
     gear_mesh = gear_mesh.clean(tolerance=1e-6)
@@ -115,7 +115,7 @@ def setup_visualization(
     image_dir: Path,
     tmp_dir: Path,
     gear_blank: cq.Workplane | None = None,
-) -> tuple | None:
+) -> pv.CameraPosition | None:
     """
     Setup directories and camera position for visualization.
 
@@ -131,10 +131,12 @@ def setup_visualization(
     """
     if visualize == "step":
         step_dir.mkdir(parents=True, exist_ok=True)
-        # Clean directory except .gitignore
         for file in step_dir.iterdir():
             if file.name != ".gitignore":
-                file.unlink()
+                try:
+                    file.unlink()
+                except OSError as e:
+                    print(f"Warning: Could not delete {file}: {e}")
         return None
 
     elif visualize == "img":
@@ -144,12 +146,17 @@ def setup_visualization(
         # Clean directories except .gitignore
         for file in image_dir.iterdir():
             if file.name != ".gitignore":
-                file.unlink()
+                try:
+                    file.unlink()
+                except OSError as e:
+                    print(f"Warning: Could not delete {file}: {e}")
         for file in tmp_dir.iterdir():
             if file.name != ".gitignore":
-                file.unlink()
+                try:
+                    file.unlink()
+                except OSError as e:
+                    print(f"Warning: Could not delete {file}: {e}")
 
-        # Setup fixed camera position
         if gear_blank is None:
             raise ValueError("gear_blank required for img visualization mode")
 
@@ -157,7 +164,7 @@ def setup_visualization(
         exporters.export(gear_blank, str(temp_stl))
         plotter = pv.Plotter(off_screen=True)
         mesh = pv.read(str(temp_stl))
-        plotter.add_mesh(mesh)
+        plotter.add_mesh(mesh) # type: ignore
         plotter.camera_position = "iso"
         plotter.camera.zoom(1.2)
         fixed_camera_position = plotter.camera_position
@@ -177,7 +184,7 @@ def visualize_step(
     step_dir: Path,
     image_dir: Path,
     tmp_dir: Path,
-    camera_position: tuple | None = None,
+    camera_position: pv.CameraPosition | None = None,
 ) -> int:
     """
     Visualize a single step of the gear cutting process.
@@ -236,6 +243,7 @@ def visualize_step(
 def create_video(
     input_dir: Path,
     output_path: Path,
+    delete_frames: bool,
     video_length: float = 10.0,
     frame_pattern: str = "frame_%05d.png",
 ) -> None:
@@ -247,6 +255,7 @@ def create_video(
         output_path: Path where the MP4 video will be saved
         video_length: Desired length of video in seconds
         frame_pattern: Printf-style pattern for frame filenames (default: frame_%05d.png)
+        delete_frames: If True, delete frame images after video is created successfully
     """
     # Count frames to calculate framerate
     frame_files = sorted(input_dir.glob("frame_*.png"))
@@ -289,6 +298,16 @@ def create_video(
             text=True,
         )
         print(f"✓ Video created: {output_path}")
+
+        if delete_frames:
+            print(f"Deleting {total_frames} frame images...")
+            for frame_file in frame_files:
+                try:
+                    frame_file.unlink()
+                except OSError as e:
+                    print(f"Warning: Could not delete {frame_file}: {e}")
+            print("✓ Frames deleted")
+
     except subprocess.CalledProcessError as e:
         print(f"✗ Video creation failed: {e.stderr}")
     except FileNotFoundError:

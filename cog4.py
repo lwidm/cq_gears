@@ -18,11 +18,13 @@ c_star: float = 0.167
 def render_to_image(
     gear: cq.Workplane,
     rack: cq.Workplane | None,
-    output_path: Path,
+    image_dir: Path,
+    tmp_dir: Path,
+    filename: str,
     window_size: tuple[int, int] = (1920, 1080),
     camera_position: tuple | None = None,
 ) -> None:
-    temp_gear_stl = output_path.parent / "temp_gear.stl"
+    temp_gear_stl: Path = tmp_dir / "temp_gear.stl"
     exporters.export(gear, str(temp_gear_stl), tolerance=0.01, angularTolerance=0.1)
 
     plotter = pv.Plotter(off_screen=True, window_size=list(window_size))
@@ -51,7 +53,7 @@ def render_to_image(
     )
 
     if rack is not None:
-        temp_rack_stl = output_path.parent / "temp_rack.stl"
+        temp_rack_stl: Path = tmp_dir / "temp_rack.stl"
         exporters.export(rack, str(temp_rack_stl), tolerance=0.01, angularTolerance=0.1)
 
         rack_mesh = pv.read(str(temp_rack_stl))
@@ -98,7 +100,7 @@ def render_to_image(
 
     plotter.enable_anti_aliasing("fxaa")
 
-    plotter.screenshot(str(output_path), transparent_background=False)
+    plotter.screenshot(str(image_dir / filename), transparent_background=False)
     plotter.close()
     temp_gear_stl.unlink()
 
@@ -160,7 +162,8 @@ def simulate_gear_cutting(
     alpha: float,
     num_cut_positions: int,
     extrude_depth: float,
-    visualize: Literal[None, "show", "step", "img"],
+    visualize: Literal[None, "show", "step", "img", "video"],
+    video_length: float = 10.0,
 ) -> cq.Workplane:
     d: float = m * z
     r: float = d / 2
@@ -185,24 +188,25 @@ def simulate_gear_cutting(
 
     cut_counter = [0]
     output_dir: Path = Path("output")
+    step_dir: Path = output_dir / "step"
+    image_dir: Path = output_dir / "img"
+    tmp_dir: Path = output_dir / "tmp"
     fixed_camera_position = [None]  # Will be set on first render
 
     if visualize == "step":
-        output_dir = Path("output_step")
-        output_dir.mkdir(exist_ok=True)
-    elif visualize == "img":
-        output_dir = Path("output_img")
-        output_dir.mkdir(exist_ok=True)
+        step_dir.mkdir(exist_ok=True)
+    elif visualize == "img" or visualize == "video":
+        image_dir.mkdir(exist_ok=True)
+        tmp_dir.mkdir(exist_ok=True)
 
-        # Setup fixed camera by rendering gear once to get camera position
-        temp_stl = output_dir / "temp_setup.stl"
+        temp_stl: Path = tmp_dir / "temp_setup.stl"
         exporters.export(gear_blank, str(temp_stl))
         plotter = pv.Plotter(off_screen=True)
         mesh = pv.read(str(temp_stl))
-        plotter.add_mesh(mesh)
+        plotter.add_mesh(mesh)  # type: ignore
         plotter.camera_position = "iso"
         plotter.camera.zoom(1.2)
-        fixed_camera_position[0] = plotter.camera_position
+        fixed_camera_position[0] = plotter.camera_position  # type: ignore
         plotter.close()
         temp_stl.unlink()
 
@@ -220,20 +224,25 @@ def simulate_gear_cutting(
                 assy: cq.Assembly = cq.Assembly()
                 assy.add(result, name="gear", color=cq.Color("lightblue"))
                 assy.add(rack, name="rack", color=cq.Color("orange"))
-                filename: Path = output_dir / f"step_{cut_counter[0]:03d}.step"
+                filename: Path = step_dir / f"step_{cut_counter[0]:05d}.step"
                 assy.save(str(filename))
             else:
-                filename: Path = output_dir / f"step_{cut_counter[0]:03d}.step"
+                filename: Path = image_dir / f"step_{cut_counter[0]:05d}.step"
                 cq.exporters.export(result, str(filename))
             cut_counter[0] += 1
             print(f"Saved: {filename}")
         elif visualize == "img":
-            filename: Path = output_dir / f"frame_{cut_counter[0]:03d}.png"
+            name: str = f"frame_{cut_counter[0]:03d}.png"
             render_to_image(
-                result, rack, filename, camera_position=fixed_camera_position[0]
+                result,
+                rack,
+                image_dir,
+                tmp_dir,
+                name,
+                camera_position=fixed_camera_position[0],
             )
             cut_counter[0] += 1
-            print(f"Saved: {filename}")
+            print(f"Saved: {name}")
 
     result: cq.Workplane = gear_blank
     visualize_fun()
@@ -250,15 +259,14 @@ def simulate_gear_cutting(
         result = result.cut(positioned_rack)
         visualize_fun(positioned_rack)
 
-    if visualize == "img":
+    if visualize == "video":
         print("\nGenerating videos...")
 
         total_frames: int = cut_counter[0]
-        target_duration: float = 4.0  # [s]
-        framerate: float = float(total_frames) / target_duration
+        framerate: float = float(total_frames) / video_length
 
         print(
-            f"Total frames: {total_frames}, Framerate: {framerate:.2f} fps for {target_duration}s video"
+            f"Total frames: {total_frames}, Framerate: {framerate:.2f} fps for {video_length}s video"
         )
 
         video_path_mp4 = output_dir / "gear_cutting.mp4"
@@ -304,7 +312,8 @@ result = simulate_gear_cutting(
     alpha=alpha,
     num_cut_positions=100,
     extrude_depth=thickness,
-    visualize="img",
+    visualize="video",
+    video_length=10,
 )
 
 show(result)

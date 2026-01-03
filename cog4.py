@@ -138,17 +138,17 @@ result = simulate_gear_cutting(
     z=z,
     m=m,
     alpha=alpha,
-    num_cut_positions=50,
+    num_cut_positions=300,
     extrude_depth=thickness,
-    visualize=None,
+    visualize="img",
 )
 
-# create_video(
-#     input_dir=Path("output/img"),
-#     output_path=Path("output/gear_cutting.mp4"),
-#     delete_frames=True,
-#     video_length=10.0
-# )
+create_video(
+    input_dir=Path("output/img"),
+    output_path=Path("output/gear_cutting.mp4"),
+    delete_frames=True,
+    video_length=10.0
+)
 
 # result = create_rack_cutter_sketch(
 #         m=m,

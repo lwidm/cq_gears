@@ -1,6 +1,6 @@
-# CadQuery Gear Cutting Simulation
+# CadQuery Gear Design 
 
-A CadQuery-based simulation of the gear cutting process using a rack cutter. Generates gears through hobbing simulation and (optionally) creates a video of the cutting process.
+A CadQuery-based design of the gear. Generates a gear through a hobbing simulation and (optionally) creates a video of the cutting process.
 
 ## Setup
 

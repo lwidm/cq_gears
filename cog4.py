@@ -60,6 +60,10 @@ def create_rack_cutter_sketch(
         .rarray(p, 1, z + 4, 1)
         .trapezoid(toothwidth_at_base, ha + hf, 90 - alpha, mode="a")
         .clean()
+        .reset()
+        .vertices("not (<Y or >Y)")
+        .fillet(rho_f)
+        .clean()
     )
 
     return rack_sketch
@@ -132,13 +136,22 @@ result = simulate_gear_cutting(
     alpha=alpha,
     num_cut_positions=20,
     extrude_depth=thickness,
-    visualize="img",
+    visualize=None,
 )
 
-create_video(
-    input_dir=Path("output/img"),
-    output_path=Path("output/gear_cutting.mp4"),
-    video_length=10.0
-)
+# create_video(
+#     input_dir=Path("output/img"),
+#     output_path=Path("output/gear_cutting.mp4"),
+#     video_length=10.0
+# )
+
+# result = create_rack_cutter_sketch(
+#         m=m,
+#         alpha=alpha,
+#         ha_star=1.0,
+#         c_star=c_star,
+#         rho_f_star=0.3,
+#         z=z,
+#     )
 
 show(result)

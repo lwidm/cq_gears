@@ -1,7 +1,7 @@
 import cadquery as cq
 import numpy as np
 
-from core import GearData
+from .core import GearData
 
 
 def _create_single_rack_cutter(

@@ -1,6 +1,6 @@
-from core import GearData, Gear, GearList, compute_gear_data
-from api import initialize_gears, create_racks, cut_gears
-from visualization import create_video
+from .core import GearData, Gear, GearList, compute_gear_data
+from .api import initialize_gears, create_racks, cut_gears
+from .visualization import create_video
 
 __all__ = [
     "GearData",

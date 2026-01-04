@@ -4,8 +4,8 @@ from typing import Literal
 from pathlib import Path
 import pyvista as pv
 
-from core import Gear
-from visualization import setup_visualization, visualize_step
+from .core import Gear
+from .visualization import setup_visualization, visualize_step
 
 
 def _simulate_gear_cutting(

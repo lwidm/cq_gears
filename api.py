@@ -1,9 +1,9 @@
 import cadquery as cq
 from typing import Literal
 
-from core import GearData, Gear, GearList, _find_compatible_groups
-from rack import _create_rack_cutter_for_group
-from hobbing import _simulate_gear_cutting
+from .core import GearData, Gear, GearList, _find_compatible_groups
+from .rack import _create_rack_cutter_for_group
+from .hobbing import _simulate_gear_cutting
 
 
 def initialize_gears(gear_data_list: list[GearData]) -> GearList:

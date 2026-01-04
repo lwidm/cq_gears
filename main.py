@@ -8,7 +8,7 @@ alpha: float = 20.0  # [degree] Pressure angle, Eingriffswinkel
 thickness: float = 10
 c_star: float = 0.167
 
-import cog4 as gears
+import gears
 from helpers import create_video
 
 result = gears.simulate_gear_cutting(

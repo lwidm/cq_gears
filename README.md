@@ -16,10 +16,10 @@ conda activate cqdev
 Run the main script:
 
 ```bash
-python cog4.py
+python main.py
 ```
 
-Edit parameters in `cog4.py`:
+Edit parameters in `main.py`:
 - `m` - module
 - `z` - number of teeth
 - `alpha` - pressure angle

@@ -1,6 +1,6 @@
-# CadQuery Gear Design 
+# CadQuery Gear Design
 
-A CadQuery-based design of the gear. Generates a gear through a hobbing simulation and (optionally) creates a video of the cutting process.
+A CadQuery-based gear design tool. Generates gears through a hobbing simulation and (optionally) creates a video of the cutting process.
 
 ## Setup
 

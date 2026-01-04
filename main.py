@@ -1,25 +1,34 @@
 import cadquery as cq
 from pathlib import Path
 
-m: float = 2.0  # Module, Modul
-z: int = 4  # Number of teeth, Zähnezahl
-x: float = 0.0  # Profile shift, Profilverschiebung
-alpha: float = 20.0  # [degree] Pressure angle, Eingriffswinkel
-thickness: float = 10
+m: float = 2.0
+z: int = 4
+x: float = 0.0
+alpha: float = 20.0
+b: float = 10.0
+ha_star: float = 1.0
 c_star: float = 0.167
+rho_f_star: float = 0.1
 
-import gears
+from gears import GearData, Gear, GearList, compute_gear_data, initialize_gears, create_racks, cut_gears
 from helpers import create_video
 
-result = gears.simulate_gear_cutting(
-    z=z,
+gear_data: GearData = compute_gear_data(
     m=m,
-    c_star=c_star,
+    z=z,
+    b=b,
     alpha=alpha,
-    num_cut_positions=100,
-    extrude_depth=thickness,
-    visualize=None,
+    beta=0.0,
+    ha_star=ha_star,
+    c_star=c_star,
+    rho_f_star=rho_f_star,
 )
+
+gear_list: GearList = initialize_gears([gear_data])
+
+create_racks(gear_list)
+
+cut_gears(gear_list, num_cut_positions=100, visualize=None)
 
 # create_video(
 #     input_dir=Path("output/img"),
@@ -38,5 +47,5 @@ result = gears.simulate_gear_cutting(
 #     )
 
 
-show_object(result)
+show_object(gear_list.gears[0].workplane)
 # show(result)

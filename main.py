@@ -10,8 +10,9 @@ ha_star: float = 1.0
 c_star: float = 0.167
 rho_f_star: float = 0.1
 
-from gears import GearData, Gear, GearList, compute_gear_data, initialize_gears, create_racks, cut_gears
-from helpers import create_video
+from core import GearData, Gear, GearList, compute_gear_data
+from api import initialize_gears, create_racks, cut_gears
+from visualization import create_video
 
 gear_data: GearData = compute_gear_data(
     m=m,

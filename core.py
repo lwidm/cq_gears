@@ -11,11 +11,17 @@ class GearData:
     z: int
     # face width (DE: Zahnbreite) - the axial/z-direction thickness
     b: float
+    # profile shift coefficient (DE: Profilverschiebung)
+    x: float
 
-    # pressure angle [degrees] (DE: Eingriffswinkel [grad])
-    alpha: float
-    # pressure angle [radian] (DE: Eingriffswinkel [radian])
-    alpha_r: float
+    # transverse pressure angle [degrees] (DE: Stirneingriffswinkel [grad])
+    alpha_t: float
+    # transverse pressure angle [radian] (DE: Stirneingriffswinkel [radian])
+    alpha_t_r: float
+    # normal pressure angle [degrees] (DE: Normaleingriffswinkel [grad])
+    alpha_n: float
+    # normal pressure angle [radian] (DE: Normaleingriffswinkel [radian])
+    alpha_n_r: float
     # helix angle at pitch circle [degrees] (DE: Schrägungswinkel am Teilkreis [raidan])
     beta: float
     # helix angle at pitch circle [radian] (DE: Schrägungswinkel am Teilkreis [radian])
@@ -31,8 +37,6 @@ class GearData:
     c_star: float
     # fillet radius coefficent (DE: Fussrundingsfaktor)
     rho_f_star: float
-    # profile shift coefficient (DE: Profilverschiebung)
-    x: float
 
     # addendum (DE: Zahnkopfhöhe)
     ha: float
@@ -71,19 +75,22 @@ def compute_gear_data(
     m: float,
     z: int,
     b: float,
-    alpha: float,
+    x: float,
+    alpha_t: float,
     beta: float,
     ha_star: float,
     c_star: float,
     rho_f_star: float,
-    x: float,
 ) -> GearData:
-    alpha_r: float = np.radians(alpha)
+    alpha_t_r: float = np.radians(alpha_t)
     beta_r: float = np.radians(beta)
+
+    alpha_n_r: float = np.arctan(np.tan(alpha_t_r) * np.cos(beta))
+    alpha_n: float = np.degrees(alpha_n_r)
 
     p: float = np.pi * m
 
-    beta_b_r: float = np.arctan(np.tan(beta_r) * np.cos(alpha_r))
+    beta_b_r: float = np.arctan(np.tan(beta_r) * np.cos(alpha_t_r))
     beta_b: float = np.degrees(beta_b_r)
 
     ha: float = (ha_star + x) * m
@@ -91,7 +98,7 @@ def compute_gear_data(
     rho_f: float = abs(rho_f_star) * m
 
     d: float = m * float(z)
-    db: float = d * np.cos(alpha_r)
+    db: float = d * np.cos(alpha_t_r)
     df: float = d - 2 * hf
     da: float = d + 2 * ha
 
@@ -99,8 +106,11 @@ def compute_gear_data(
         m=m,
         z=z,
         b=b,
-        alpha=alpha,
-        alpha_r=alpha_r,
+        x=x,
+        alpha_t=alpha_t,
+        alpha_t_r=alpha_t_r,
+        alpha_n=alpha_n,
+        alpha_n_r=alpha_n_r,
         beta=beta,
         beta_r=beta_r,
         beta_b=beta_b,
@@ -108,7 +118,6 @@ def compute_gear_data(
         ha_star=ha_star,
         c_star=c_star,
         rho_f_star=rho_f_star,
-        x=x,
         ha=ha,
         hf=hf,
         rho_f=rho_f,
@@ -125,10 +134,11 @@ def _are_compatible(
 ) -> bool:
     return (
         abs(gear_data_a.m - gear_data_b.m) < tolerance
-        and abs(gear_data_a.alpha - gear_data_b.alpha) < tolerance
+        and abs(gear_data_a.alpha_t - gear_data_b.alpha_t) < tolerance
         and abs(abs(gear_data_a.beta) - abs(gear_data_b.beta)) < tolerance
         and abs(gear_data_a.ha_star - gear_data_b.ha_star) < tolerance
         and abs(gear_data_a.c_star - gear_data_b.c_star) < tolerance
+        and abs(gear_data_a.x - gear_data_b.x) < tolerance
     )
 
 

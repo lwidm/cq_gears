@@ -34,7 +34,7 @@ def _create_single_rack_cutter(
         rack_sketch.reset().vertices("not (<Y or >Y or <X or >X)").fillet(rho_f).clean()
     )
     rack: cq.Workplane = (
-        cq.Workplane("XY").placeSketch(rack_sketch).extrude(b, both=True)
+        cq.Workplane("XY").placeSketch(rack_sketch).extrude(b/2, both=True)
     )
 
     return rack

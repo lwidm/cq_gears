@@ -29,4 +29,4 @@ def cut_gears(
     visualize: Literal[None, "show", "step", "img"],
 ) -> None:
     for i, gear in enumerate(gear_list.gears):
-        gear_list.gears[i].workplane = _simulate_gear_cutting(gear, num_cut_positions, visualize)
+        gear_list.gears[i].workplane = _simulate_gear_cutting(gear, num_cut_positions, visualize, i)

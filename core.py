@@ -85,12 +85,12 @@ def compute_gear_data(
     alpha_t_r: float = np.radians(alpha_t)
     beta_r: float = np.radians(beta)
 
-    alpha_n_r: float = np.arctan(np.tan(alpha_t_r) * np.cos(beta))
+    alpha_n_r: float = np.arctan(np.tan(alpha_t_r) * np.sin(beta_r))
     alpha_n: float = np.degrees(alpha_n_r)
 
     p: float = np.pi * m
 
-    beta_b_r: float = np.arctan(np.tan(beta_r) * np.cos(alpha_t_r))
+    beta_b_r: float = np.arctan(np.cos(alpha_t_r) / np.tan(beta_r)) if beta != 0 else 0.0
     beta_b: float = np.degrees(beta_b_r)
 
     ha: float = (ha_star + x) * m
@@ -135,6 +135,7 @@ def _are_compatible(
     return (
         abs(gear_data_a.m - gear_data_b.m) < tolerance
         and abs(gear_data_a.alpha_t - gear_data_b.alpha_t) < tolerance
+        and abs(gear_data_a.alpha_n - gear_data_b.alpha_n) < tolerance
         and abs(abs(gear_data_a.beta) - abs(gear_data_b.beta)) < tolerance
         and abs(gear_data_a.ha_star - gear_data_b.ha_star) < tolerance
         and abs(gear_data_a.c_star - gear_data_b.c_star) < tolerance

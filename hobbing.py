@@ -12,6 +12,7 @@ def _simulate_gear_cutting(
     gear: Gear,
     num_cut_positions: int,
     visualize: Literal[None, "show", "step", "img"],
+    gear_index: int,
 ) -> cq.Workplane:
 
     if gear.rack is None:
@@ -32,9 +33,10 @@ def _simulate_gear_cutting(
     gear_blank: cq.Workplane = cq.Workplane("XY").circle(d_blank / 2).extrude(b/2, both=True)
     cut_counter: int = 0
     output_dir: Path = Path("output")
-    step_dir: Path = output_dir / "step"
-    image_dir: Path = output_dir / "img"
-    tmp_dir: Path = output_dir / "tmp"
+    gear_subdir: str = str(gear_index)
+    step_dir: Path = output_dir / "step" / gear_subdir
+    image_dir: Path = output_dir / "img" / gear_subdir
+    tmp_dir: Path = output_dir / "tmp" / gear_subdir
 
     fixed_camera_position: pv.CameraPosition | None = setup_visualization(
         visualize, step_dir, image_dir, tmp_dir, gear_blank

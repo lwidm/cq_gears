@@ -30,7 +30,6 @@ def _simulate_gear_cutting(
     d_blank: float = d + 3 * m
 
     gear_blank: cq.Workplane = cq.Workplane("XY").circle(d_blank / 2).extrude(b)
-
     cut_counter: int = 0
     output_dir: Path = Path("output")
     step_dir: Path = output_dir / "step"
@@ -42,6 +41,7 @@ def _simulate_gear_cutting(
     )
 
     result: cq.Workplane = gear_blank
+    result.faces("|Z").tag("axis")
     cut_counter = visualize_step(
         result,
         None,
@@ -74,4 +74,7 @@ def _simulate_gear_cutting(
             fixed_camera_position,
         )
 
+    result.faces("|Z").tag("tooth_flanks")
+    result.faces(">Z").tag("top_face")
+    result.faces("<Z").tag("bottom_face")
     return result

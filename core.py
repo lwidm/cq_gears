@@ -30,6 +30,10 @@ class GearData:
     beta_b: float
     # helix angle at base circle [radian] (DE: Schrägungswinkel am Grundkreis [radian])
     beta_b_r: float
+    # pitch cone angle [degrees] (DE: Teilkegelwinkel)
+    delta: float
+    # pitch cone angle [radian] (DE: Teilkegelwinkel)
+    delta_r: float
 
     # addendum coefficient (DE: Kopfhöhenfaktor)
     ha_star: float
@@ -78,12 +82,19 @@ def compute_gear_data(
     x: float,
     alpha_t: float,
     beta: float,
+    delta: float,
     ha_star: float,
     c_star: float,
     rho_f_star: float,
 ) -> GearData:
+
+    if not np.isclose(beta, 0.0) and not np.isclose(delta, 90.0):
+            raise NotImplementedError(
+                "Can't create rack with both a helix angle beta!=0 and bevel angle delta!=90"
+            )
     alpha_t_r: float = np.radians(alpha_t)
     beta_r: float = np.radians(beta)
+    delta_r: float = np.radians(delta)
 
     alpha_n_r: float = np.arctan(np.tan(alpha_t_r) * np.sin(beta_r))
     alpha_n: float = np.degrees(alpha_n_r)
@@ -115,6 +126,8 @@ def compute_gear_data(
         beta_r=beta_r,
         beta_b=beta_b,
         beta_b_r=beta_b_r,
+        delta=delta,
+        delta_r=delta_r,
         ha_star=ha_star,
         c_star=c_star,
         rho_f_star=rho_f_star,
@@ -137,6 +150,7 @@ def _are_compatible(
         and abs(gear_data_a.alpha_t - gear_data_b.alpha_t) < tolerance
         and abs(gear_data_a.alpha_n - gear_data_b.alpha_n) < tolerance
         and abs(abs(gear_data_a.beta) - abs(gear_data_b.beta)) < tolerance
+        and abs(gear_data_a.delta - gear_data_b.delta) < tolerance
         and abs(gear_data_a.ha_star - gear_data_b.ha_star) < tolerance
         and abs(gear_data_a.c_star - gear_data_b.c_star) < tolerance
         and abs(gear_data_a.x - gear_data_b.x) < tolerance

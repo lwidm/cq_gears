@@ -5,6 +5,38 @@ from typing import Literal
 from .core import GearData
 
 
+def _create_single_rack_sketch(
+    m: float,
+    z: int,
+    ha: float,
+    hf: float,
+    alpha_t: float,
+    alpha_t_r: float,
+    rho_f: float,
+    p: float,
+) -> cq.Sketch:
+    base_height: float = 3 * m
+    rack_length: float = (z + 4) * p
+    n_rack_teeth: int = int(rack_length / p)
+    toothwidth_at_base: float = p / 2 + 2 * hf * np.tan(alpha_t_r)
+
+    rack_sketch: cq.Sketch = (
+        cq.Sketch()
+        .push([(0, -base_height / 2 - hf)])
+        .rect(rack_length, base_height)
+        .push([(0, (ha + hf) / 2 - hf)])
+        .rarray(p, 1, n_rack_teeth, 1)
+        .trapezoid(toothwidth_at_base, ha + hf, 90 - alpha_t, mode="a")
+        .clean()
+        .reset()
+        .vertices("not (<Y or >Y or <X or >X)")
+        .fillet(rho_f)
+        .clean()
+    )
+
+    return rack_sketch
+
+
 def _create_single_rack_cutter(
     m: float,
     z: int,
@@ -16,39 +48,40 @@ def _create_single_rack_cutter(
     hf: float,
     rho_f: float,
     p: float,
+    delta_r: float,
 ) -> cq.Workplane:
 
-    base_height: float = 3 * m
-    rack_length: float
-
-    rack_length: float = (z + 4) * p
-
-    n_rack_teeth: int = int(rack_length / p)
-
-    toothwidth_at_base: float = p / 2 + 2 * hf * np.tan(alpha_t_r)
-
-    rack_sketch: cq.Sketch = (
-        cq.Sketch()
-        .push([(0, -base_height / 2 - hf)])
-        .rect(rack_length, base_height)
-        .push([(0, (ha + hf) / 2 - hf)])
-        .rarray(p, 1, n_rack_teeth, 1)
-        .trapezoid(toothwidth_at_base, ha + hf, 90 - alpha_t, mode="a")
-        .clean()
-    )
-    rack_sketch = (
-        rack_sketch.reset().vertices("not (<Y or >Y or <X or >X)").fillet(rho_f).clean()
+    rack_sketch = _create_single_rack_sketch(
+        m=m, z=z, ha=ha, hf=hf, alpha_t=alpha_t, alpha_t_r=alpha_t_r, rho_f=rho_f, p=p
     )
 
-    rack: cq.Workplane = cq.Workplane("XY").placeSketch(rack_sketch)
-    start_x: float = -b / 2 * np.tan(beta_r) if beta_r != 0 else 0.0
-    start_y: float = -b / 2
-    end_x: float = -start_x
-    end_y: float = -start_y
-    sweep_path: cq.Workplane = (
-        cq.Workplane("XZ").moveTo(start_x, start_y).lineTo(end_x, end_y)
-    )
-    rack = rack.sweep(sweep_path)
+    rack: cq.Workplane
+
+    if np.isclose(delta_r, np.pi / 2):
+        base: cq.Workplane = cq.Workplane("XY").placeSketch(rack_sketch)
+
+        if np.isclose(beta_r, 0.0):
+            rack = base.extrude(b / 2, both=True)
+        else:
+            start_x: float = -b / 2 * np.tan(beta_r)
+            start_y: float = -b / 2
+            end_x: float = -start_x
+            end_y: float = -start_y
+
+            sweep_path: cq.Workplane = (
+                cq.Workplane("XZ")
+                .moveTo(start_x, start_y)
+                .lineTo(end_x, end_y)
+            )
+
+            rack = base.sweep(sweep_path)
+
+    else:
+        if not np.isclose(beta_r, 0.0):
+            raise NotImplementedError(
+                "Can't create rack with both a helix angle beta!=0 and pitch cone angle delta!=90"
+            )
+        raise NotImplementedError("Pitch cone angle not implemented yet")
 
     return rack
 
@@ -74,4 +107,5 @@ def _create_rack_cutter_for_group(
         first.hf,
         first.rho_f,
         first.p,
+        first.delta_r,
     )

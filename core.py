@@ -88,10 +88,6 @@ def compute_gear_data(
     rho_f_star: float,
 ) -> GearData:
 
-    if not np.isclose(beta, 0.0) and not np.isclose(delta, 90.0):
-            raise NotImplementedError(
-                "Can't create rack with both a helix angle beta!=0 and bevel angle delta!=90"
-            )
     alpha_t_r: float = np.radians(alpha_t)
     beta_r: float = np.radians(beta)
     delta_r: float = np.radians(delta)

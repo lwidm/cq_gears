@@ -1,6 +1,5 @@
 import cadquery as cq
 import numpy as np
-from typing import Literal
 
 from .core import GearData
 
@@ -69,19 +68,13 @@ def _create_single_rack_cutter(
             end_y: float = -start_y
 
             sweep_path: cq.Workplane = (
-                cq.Workplane("XZ")
-                .moveTo(start_x, start_y)
-                .lineTo(end_x, end_y)
+                cq.Workplane("XZ").moveTo(start_x, start_y).lineTo(end_x, end_y)
             )
 
             rack = base.sweep(sweep_path)
 
     else:
-        if not np.isclose(beta_r, 0.0):
-            raise NotImplementedError(
-                "Can't create rack with both a helix angle beta!=0 and pitch cone angle delta!=90"
-            )
-        raise NotImplementedError("Pitch cone angle not implemented yet")
+        raise NotImplementedError("No beval gear rack cutter implemented")
 
     return rack
 

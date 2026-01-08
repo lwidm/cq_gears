@@ -71,7 +71,7 @@ def _arc_points(
     type: Literal["degree", "radian"] = "degree",
     dir: Literal["clockwise", "counterclockwise"] = "counterclockwise",
     n: int = 200,
-) -> tuple[np.ndarray, np.ndarray]:
+) -> np.ndarray:
     if type == "degree":
         phi_start = np.radians(phi_start)
         phi_end = np.radians(phi_end)
@@ -92,49 +92,129 @@ def _arc_points(
     else:
         y = r * np.sin(theta)
 
-    return x, y
+    return np.vstack([x, y])
 
 
-def involute_plot(ax: Axes, phi: float, show_arrows: bool, show_angle: bool) -> Axes:
+def involute_plot_compute(
+    r: float, phi: float, rotate: float, phi_max: float | None = None
+) -> dict[str, np.ndarray]:
+    phi_r: float = np.radians(phi)
+    phi_r_arr: np.ndarray = np.linspace(0, phi_r, 500)
+    points_inv: np.ndarray = math.involute(r, phi_r_arr, direction="counterclockwise")
+    inv_start: np.ndarray = np.vstack([points_inv[0, 0], points_inv[1, 0]])
+    inv_end: np.ndarray = np.vstack([points_inv[0, -1], points_inv[1, -1]])
+
+    points_arc: np.ndarray = _arc_points(
+        r=r,
+        phi_start=0.0,
+        phi_end=360 - np.abs(phi),
+        dir="clockwise" if phi > 0 else "counterclockwise",
+    )
+
+    unrolling_string: np.ndarray = np.hstack([points_arc, inv_end])
+
+    line_length: float
+    line_padding: float
+    if phi_max is None:
+        line_length = phi_r * r * 1.2
+        line_padding: float = (line_length - phi_r * r) / 2
+    else:
+        phi_r_max: float = np.radians(phi_max)
+        line_length = phi_r_max * r * 1.2
+        line_padding: float = (line_length - phi_r_max * r) / 2
+
+    rolling_line_contact: np.ndarray = np.vstack([r * np.cos(phi_r), r * np.sin(phi_r)])
+    rolling_line_tangent: np.ndarray = np.vstack([np.sin(phi_r), -np.cos(phi_r)])
+    rolling_line_start: np.ndarray = rolling_line_contact + (
+        rolling_line_tangent * (r * phi_r + line_padding)
+    )
+    rolling_line_inv: np.ndarray = rolling_line_contact + (
+        rolling_line_tangent * r * phi_r
+    )
+    rolling_line_end: np.ndarray = rolling_line_contact - (
+        rolling_line_tangent * (line_length - r * phi_r - line_padding)
+    )
+
+    def transform(points: np.ndarray) -> np.ndarray:
+        return math.rotate(points, rotate)
+
+    result: dict[str, np.ndarray] = {
+        "points_inv": transform(points_inv),
+        "points_arc": transform(points_arc),
+        "inv_start": transform(inv_start),
+        "inv_end": transform(inv_end),
+        "unrolling_string": transform(unrolling_string),
+        "rolling_line_contact": transform(rolling_line_contact),
+        "rolling_line_tangent": transform(rolling_line_tangent),
+        "rolling_line_start": transform(rolling_line_start),
+        "rolling_line_inv": transform(rolling_line_inv),
+        "rolling_line_end": transform(rolling_line_end),
+    }
+
+    return result
+
+
+def involute_plot(
+    ax: Axes,
+    phi: float,
+    show_arrows: bool,
+    show_angle: bool,
+    type: Literal["string", "line"],
+    phi_max: float | None = None
+) -> Axes:
     lw: float = 3.0
     r: float = 1.0
 
-    phi_r: float = np.radians(phi)
-    phi_r_arr: np.ndarray = np.linspace(0, phi_r, 500)
-
-    points_inv: np.ndarray = math.involute(r, phi_r_arr)
-    x_inv: np.ndarray = points_inv[0, :]
-    y_inv: np.ndarray = points_inv[1, :]
-
-    x_arc_end: float = r * np.cos(phi_r)
-    y_arc_end: float = r * np.sin(phi_r)
+    involute_dict: dict[str, np.ndarray] = involute_plot_compute(r, phi, rotate=0.0, phi_max=phi_max)
 
     zorder: int = 100
 
     circle = Circle((0, 0), r, color="gray", alpha=1, zorder=zorder)
     zorder += 1
     ax.add_patch(circle)
-    x_arc, y_arc = _arc_points(
-        r=r,
-        phi_start=0.0,
-        phi_end=360 - phi,
-        dir="clockwise",
-    )
-    # zorder += 1
+
+    if type == "string":
+        ax.plot(
+            involute_dict["unrolling_string"][0, :],
+            involute_dict["unrolling_string"][1, :],
+            color="red",
+            lw=lw,
+            ls="--",
+            zorder=zorder,
+        )
+        zorder += 1
+    else:
+        ax.plot(
+            [
+                involute_dict["rolling_line_start"][0, 0],
+                involute_dict["rolling_line_end"][0, 0],
+            ],
+            [
+                involute_dict["rolling_line_start"][1, 0],
+                involute_dict["rolling_line_end"][1, 0],
+            ],
+            color="red",
+            lw=lw,
+            ls="--",
+            zorder=zorder,
+        )
+        zorder += 1
+        circle = Circle(
+            (
+                involute_dict["rolling_line_inv"][0, 0],
+                involute_dict["rolling_line_inv"][1, 0],
+            ),
+            0.04,
+            color="yellow",
+            alpha=1,
+            zorder=zorder,
+        )
+        zorder += 1
+        ax.add_patch(circle)
 
     ax.plot(
-        np.concatenate((x_arc, np.array([x_arc_end, x_inv[-1]]))),
-        np.concatenate((y_arc, np.array([y_arc_end, y_inv[-1]]))),
-        color="red",
-        lw=lw,
-        ls="--",
-        zorder=zorder,
-    )
-    zorder += 1
-
-    ax.plot(
-        x_inv,
-        y_inv,
+        involute_dict["points_inv"][0, :],
+        involute_dict["points_inv"][1, :],
         color="white",
         linewidth=lw,
         zorder=zorder,
@@ -142,8 +222,8 @@ def involute_plot(ax: Axes, phi: float, show_arrows: bool, show_angle: bool) -> 
     zorder += 1
     if show_angle:
         ax.plot(
-            [r, 0, x_arc_end],
-            [0, 0, y_arc_end],
+            [r, 0, involute_dict["rolling_line_contact"][0, 0]],
+            [0, 0, involute_dict["rolling_line_contact"][1, 0]],
             color="white",
             linewidth=lw / 3,
             zorder=zorder,
@@ -184,18 +264,18 @@ def involute_plot(ax: Axes, phi: float, show_arrows: bool, show_angle: bool) -> 
             ax,
             x1=0.0,
             y1=0.0,
-            x2=x_arc_end,
-            y2=y_arc_end,
+            x2=involute_dict["rolling_line_contact"][0, 0],
+            y2=involute_dict["rolling_line_contact"][1, 0],
             color="yellow",
             zorder=zorder,
         )
         zorder += 1
         ax = _plot_arrow(
             ax,
-            x1=x_arc_end,
-            y1=y_arc_end,
-            x2=x_inv[-1],
-            y2=y_inv[-1],
+            x1=involute_dict["rolling_line_contact"][0, 0],
+            y1=involute_dict["rolling_line_contact"][1, 0],
+            x2=involute_dict["inv_end"][0, 0],
+            y2=involute_dict["inv_end"][1, 0],
             color="blue",
             zorder=zorder,
         )
@@ -215,10 +295,11 @@ def create_involute_video(output_dir: Path, video_length: float):
     temp_dir = output_dir / "involute"
     temp_dir.mkdir(exist_ok=True)
 
-    phi_arr: np.ndarray = np.arange(15, 180, 1)
+    phi_max: float = 180
+    phi_arr: np.ndarray = np.arange(15, phi_max, 1)
     for i, phi in enumerate(phi_arr):
         fig, ax = plt.subplots(figsize=(5, 5))
-        involute_plot(ax=ax, phi=phi, show_arrows=False, show_angle=True)
+        involute_plot(ax=ax, phi=phi, show_arrows=True, show_angle=True, type="line", phi_max=phi_max)
         fig.savefig(temp_dir / f"involute_{i:03d}.png", dpi=300)
         plt.close(fig)
 
@@ -260,7 +341,9 @@ def create_involute_video(output_dir: Path, video_length: float):
     temp_dir.rmdir()
 
 
-def hypotrochoid_plot(ax: Axes, phi: float, show_arrows: bool, show_angle: bool) -> Axes:
+def hypotrochoid_plot(
+    ax: Axes, phi: float, show_arrows: bool, show_angle: bool
+) -> Axes:
     lw: float = 1.0
     geardata: core.GearData = core.compute_gear_data(
         m=1.0,
@@ -275,16 +358,18 @@ def hypotrochoid_plot(ax: Axes, phi: float, show_arrows: bool, show_angle: bool)
         c_star=0.0,
         rho_f_star=0.3,
     )
-    rf: float = geardata.df /2
-    rb: float = geardata.db /2
-    rp: float = geardata.d /2
+    rf: float = geardata.df / 2
+    rb: float = geardata.db / 2
+    rp: float = geardata.d / 2
 
     phi_r: float = np.radians(phi)
     phi_r_arr: np.ndarray = np.linspace(0, phi_r, 500)
 
     zorder: int = 100
 
-    dedendum_circle = Circle((0, 0), rf, color="gray", alpha=1, fill=False, zorder=zorder)
+    dedendum_circle = Circle(
+        (0, 0), rf, color="gray", alpha=1, fill=False, zorder=zorder
+    )
     ax.add_patch(dedendum_circle)
     zorder += 1
     pitch_circle = Circle((0, 0), rp, color="gray", alpha=1, fill=False, zorder=zorder)
@@ -307,7 +392,9 @@ def hypotrochoid_plot(ax: Axes, phi: float, show_arrows: bool, show_angle: bool)
     )
     zorder += 1
 
-    points_hypo: np.ndarray = math.hypotrochoid(rp, rf, geardata.alpha_t_r, phi_r_arr, flank="right")
+    points_hypo: np.ndarray = math.hypotrochoid(
+        rp, rf, geardata.alpha_t_r, phi_r_arr, flank="right"
+    )
     ax.plot(
         points_hypo[0, :],
         points_hypo[1, :],
@@ -316,7 +403,9 @@ def hypotrochoid_plot(ax: Axes, phi: float, show_arrows: bool, show_angle: bool)
         zorder=zorder,
     )
     zorder += 1
-    points_hypo: np.ndarray = math.hypotrochoid(rp, rf, geardata.alpha_t_r, -phi_r_arr, flank="right")
+    points_hypo: np.ndarray = math.hypotrochoid(
+        rp, rf, geardata.alpha_t_r, -phi_r_arr, flank="right"
+    )
     ax.plot(
         points_hypo[0, :],
         points_hypo[1, :],

@@ -1,3 +1,44 @@
+# Temporary files
 *~
-__pycache__
+*.swp
+*.swo
 
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDEs
+.vscode/
+.idea/
+*.code-workspace
+
+# Project-specific outputs
+output/
+export/
+
+# CAD files (generated)
+*.step
+*.stl
+
+# Media files (generated)
+*.mp4
+*.avi
+
+# Virtual environments
+venv/
+env/
+ENV/

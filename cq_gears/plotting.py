@@ -380,7 +380,7 @@ def create_involute_video(output_dir: Path, video_length: float):
     temp_dir.rmdir()
 
 
-def hypotrochoid_plot_compute(phi_0: float, phi: float) -> dict[str, np.ndarray]:
+def hypotrochoid_plot_compute(phi_0: float, phi: float, phi_inv: float) -> dict[str, np.ndarray | dict]:
     geardata: core.GearData = core.compute_gear_data(
         m=1.0,
         z=7,
@@ -396,28 +396,37 @@ def hypotrochoid_plot_compute(phi_0: float, phi: float) -> dict[str, np.ndarray]
     rf: float = geardata.df / 2
     rb: float = geardata.db / 2
     rp: float = geardata.d / 2
+    alpha_t_r: float = geardata.alpha_t_r
 
     phi_r: float = np.radians(phi)
     phi_0_r: float = np.radians(phi_0)
     phi_r_arr: np.ndarray = np.linspace(phi_0_r, phi_r, 500)
     phi_r_arr = math.ensure_has_zero(phi_r_arr)
 
-    points_inv: np.ndarray = math.involute(rb, phi_r_arr, direction="counterclockwise")
-    points_inv = math.rotate(points_inv, geardata.alpha_t_r)
-
-    points_inv_hypo: np.ndarray = math.involute(rp, phi_r_arr, direction="counterclockwise")
+    phi_r_arr_inv: np.ndarray = np.linspace(0.0, np.radians(phi_inv), 500)
+    points_inv: np.ndarray = math.involute(rb, phi_r_arr_inv, direction="counterclockwise")
+    points_inv = math.rotate(points_inv, alpha_t_r)
 
     points_hypo: np.ndarray = math.hypotrochoid(
-        rp, rf, geardata.alpha_t_r, phi_r_arr, flank="right"
+        rp, rf, alpha_t_r, phi_r_arr, flank="right"
+    )
+
+    hypo_inv_dict: dict[str, np.ndarray] = involute_plot_compute(
+        r=rp,
+        phi_0=phi_0,
+        phi=phi,
+        rotate=0.0
     )
 
     result: dict[str, np.ndarray] = {
         "rf": rf,
         "rb": rb,
         "rp": rp,
+        "alpha_t_r": alpha_t_r,
         "points_inv": points_inv,
         "points_hypo": points_hypo,
-        "points_inv_hypo": points_inv_hypo,
+        "geardata": geardata,
+        "hypo_inv_dict": hypo_inv_dict,
     }
 
     return result
@@ -430,7 +439,9 @@ def hypotrochoid_plot(
 
     zorder: int = 100
 
-    hypotrochoid_dict: dict[str, np.ndarray] = hypotrochoid_plot_compute(phi_0, phi)
+    hypotrochoid_dict: dict[str, np.ndarray] = hypotrochoid_plot_compute(phi_0, phi, 30)
+    involute_dict: dict[str, np.ndarray] = hypotrochoid_dict["hypo_inv_dict"]
+
 
     dedendum_circle = Circle(
         (0, 0), hypotrochoid_dict["rf"], color="gray", alpha=1, fill=False, zorder=zorder
@@ -454,8 +465,8 @@ def hypotrochoid_plot(
     zorder += 1
 
     ax.plot(
-        hypotrochoid_dict["points_inv_hypo"][0, :],
-        hypotrochoid_dict["points_inv_hypo"][1, :],
+        involute_dict["points_inv"][0, :],
+        involute_dict["points_inv"][1, :],
         color="red",
         linewidth=lw,
         zorder=zorder,
@@ -474,8 +485,28 @@ def hypotrochoid_plot(
     if show_arrows:
         ax = _plot_arrow(
             ax,
-            x1=hypotrochoid_dict["points_inv_hypo"][0, -1],
-            y1=hypotrochoid_dict["points_inv_hypo"][1, -1],
+            x1=0.0,
+            y1=0.0,
+            x2=involute_dict["rolling_line_contact"][0, 0],
+            y2=involute_dict["rolling_line_contact"][1, 0],
+            color="yellow",
+            zorder=zorder,
+        )
+        zorder += 1
+        ax = _plot_arrow(
+            ax,
+            x1=involute_dict["rolling_line_contact"][0, 0],
+            y1=involute_dict["rolling_line_contact"][1, 0],
+            x2=involute_dict["inv_end"][0, 0],
+            y2=involute_dict["inv_end"][1, 0],
+            color="blue",
+            zorder=zorder,
+        )
+        zorder += 1
+        ax = _plot_arrow(
+            ax,
+            x1=involute_dict["points_inv"][0, -1],
+            y1=involute_dict["points_inv"][1, -1],
             x2=hypotrochoid_dict["points_hypo"][0, -1],
             y2=hypotrochoid_dict["points_hypo"][1, -1],
             color="orange",
@@ -484,11 +515,13 @@ def hypotrochoid_plot(
         zorder += 1
 
 
-    rp: float = hypotrochoid_dict["rp"]
+    geardata: core.GearData = hypotrochoid_dict["geardata"]
     ax.set_aspect("equal")
-    # ax.set_xlim(-1.5 * rp, 3 * rp)
-    # ax.set_ylim(-1.5 * rp, 3 * rp)
-    ax = add_background_rect(ax, (-1.5 * rp, 3 * rp), (-1.5 * rp, 3 * rp))
+    xlim: tuple[float, float] = (0.0, 0.6 * geardata.da)
+    ylim: tuple[float, float] = (-0.1 * geardata.da, 0.5 * geardata.da)
+    ax.set_xlim(*xlim)
+    ax.set_ylim(*ylim)
+    ax = add_background_rect(ax, xlim, ylim)
     ax.set_position((0, 0, 1, 1))
     ax.set_axis_off()
 

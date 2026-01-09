@@ -100,13 +100,12 @@ def involute_plot_compute(
     phi_0: float,
     phi: float,
     rotate: float,
-    direction: Literal["clockwise", "counterclockwise"],
     phi_max: float | None = None,
 ) -> dict[str, np.ndarray]:
     phi_0_r: float = np.radians(phi_0)
     phi_r: float = np.radians(phi)
     phi_r_arr: np.ndarray = np.linspace(phi_0_r, phi_r, 500)
-    points_inv: np.ndarray = math.involute(r, phi_r_arr, direction=direction)
+    points_inv: np.ndarray = math.involute(r, phi_r_arr, direction="counterclockwise")
     inv_start: np.ndarray = np.vstack([points_inv[0, 0], points_inv[1, 0]])
     inv_end: np.ndarray = np.vstack([points_inv[0, -1], points_inv[1, -1]])
 
@@ -114,23 +113,23 @@ def involute_plot_compute(
         r=r,
         phi_start=0.0,
         phi_end=360 - np.abs(phi_r),
-        dir="clockwise" if direction == "clockwise" else "counterclockwise",
+        dir="counterclockwise",
     )
 
     unrolling_string: np.ndarray = np.hstack([points_arc, inv_end])
 
-    line_length: float
-    line_padding: float
     phi_r_max: float
     if phi_max is None:
         phi_r_max = phi_r
     else:
         phi_r_max = np.radians(phi_max)
+
     line_length: float = (phi_r_max - phi_0_r) * r * 1.2
+    padding: float = (phi_r_max - phi_0_r) * r * 0.1
 
     rolling_line_contact: np.ndarray = np.vstack([r * np.cos(phi_r), r * np.sin(phi_r)])
     rolling_line_tangent: np.ndarray = np.vstack([np.sin(phi_r), -np.cos(phi_r)])
-    start_line_distance: float = (r * phi_r + line_length/2)
+    start_line_distance: float = (r * (phi_r-phi_0_r) + padding)
     rolling_line_start: np.ndarray = rolling_line_contact + (
         rolling_line_tangent * start_line_distance
     )
@@ -177,7 +176,6 @@ def involute_plot(
         phi_0=phi_0,
         phi=phi,
         rotate=0.0,
-        direction="counterclockwise",
         phi_max=phi_max,
     )
 
@@ -200,11 +198,11 @@ def involute_plot(
     else:
         ax.plot(
             [
-                involute_dict["rolling_line_contact"][0, 0],
+                involute_dict["rolling_line_inv"][0, 0],
                 involute_dict["rolling_line_end"][0, 0],
             ],
             [
-                involute_dict["rolling_line_contact"][1, 0],
+                involute_dict["rolling_line_inv"][1, 0],
                 involute_dict["rolling_line_end"][1, 0],
             ],
             color="red",
@@ -216,11 +214,11 @@ def involute_plot(
         zorder += 1
         ax.plot(
             [
-                involute_dict["rolling_line_contact"][0, 0],
+                involute_dict["rolling_line_inv"][0, 0],
                 involute_dict["rolling_line_start"][0, 0],
             ],
             [
-                involute_dict["rolling_line_contact"][1, 0],
+                involute_dict["rolling_line_inv"][1, 0],
                 involute_dict["rolling_line_start"][1, 0],
             ],
             color="red",
@@ -326,16 +324,17 @@ def create_involute_video(output_dir: Path, video_length: float):
     temp_dir = output_dir / "involute"
     temp_dir.mkdir(exist_ok=True)
 
-    phi_min: float = -180
-    phi_max: float = 180
-    phi_arr: np.ndarray = np.arange(phi_min, phi_max, 1)
+    phi_min: float = -90
+    phi_max: float = 140
+    step: float = 1 if phi_max > phi_min else -1
+    phi_arr: np.ndarray = np.arange(phi_min, phi_max, step)
     for i, phi in enumerate(phi_arr):
         fig, ax = plt.subplots(figsize=(5, 5))
         involute_plot(
             ax=ax,
             phi_0=phi_min,
             phi=phi,
-            show_arrows=True,
+            show_arrows=False,
             show_angle=True,
             type="line",
             phi_max=phi_max,

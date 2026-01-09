@@ -129,7 +129,7 @@ def involute_plot_compute(
 
     rolling_line_contact: np.ndarray = np.vstack([r * np.cos(phi_r), r * np.sin(phi_r)])
     rolling_line_tangent: np.ndarray = np.vstack([np.sin(phi_r), -np.cos(phi_r)])
-    start_line_distance: float = (r * (phi_r-phi_0_r) + padding)
+    start_line_distance: float = r * (phi_r - phi_0_r) + padding
     rolling_line_start: np.ndarray = rolling_line_contact + (
         rolling_line_tangent * start_line_distance
     )
@@ -380,10 +380,7 @@ def create_involute_video(output_dir: Path, video_length: float):
     temp_dir.rmdir()
 
 
-def hypotrochoid_plot(
-    ax: Axes, phi: float, show_arrows: bool, show_angle: bool
-) -> Axes:
-    lw: float = 1.0
+def hypotrochoid_plot_compute(phi_0: float, phi: float) -> dict[str, np.ndarray]:
     geardata: core.GearData = core.compute_gear_data(
         m=1.0,
         z=7,
@@ -393,8 +390,7 @@ def hypotrochoid_plot(
         beta=0.0,
         delta=90.0,
         ha_star=1.0,
-        # c_star=0.167,
-        c_star=0.0,
+        c_star=0.167,
         rho_f_star=0.3,
     )
     rf: float = geardata.df / 2
@@ -402,58 +398,93 @@ def hypotrochoid_plot(
     rp: float = geardata.d / 2
 
     phi_r: float = np.radians(phi)
-    phi_r_arr: np.ndarray = np.linspace(0, phi_r, 500)
+    phi_0_r: float = np.radians(phi_0)
+    phi_r_arr: np.ndarray = np.linspace(phi_0_r, phi_r, 500)
+    phi_r_arr = math.ensure_has_zero(phi_r_arr)
+
+    points_inv: np.ndarray = math.involute(rb, phi_r_arr, direction="counterclockwise")
+    points_inv = math.rotate(points_inv, geardata.alpha_t_r)
+
+    points_inv_hypo: np.ndarray = math.involute(rp, phi_r_arr, direction="counterclockwise")
+
+    points_hypo: np.ndarray = math.hypotrochoid(
+        rp, rf, geardata.alpha_t_r, phi_r_arr, flank="right"
+    )
+
+    result: dict[str, np.ndarray] = {
+        "rf": rf,
+        "rb": rb,
+        "rp": rp,
+        "points_inv": points_inv,
+        "points_hypo": points_hypo,
+        "points_inv_hypo": points_inv_hypo,
+    }
+
+    return result
+
+
+def hypotrochoid_plot(
+    ax: Axes, phi_0: float, phi: float, show_arrows: bool, show_angle: bool
+) -> Axes:
+    lw: float = 1.0
 
     zorder: int = 100
 
+    hypotrochoid_dict: dict[str, np.ndarray] = hypotrochoid_plot_compute(phi_0, phi)
+
     dedendum_circle = Circle(
-        (0, 0), rf, color="gray", alpha=1, fill=False, zorder=zorder
+        (0, 0), hypotrochoid_dict["rf"], color="gray", alpha=1, fill=False, zorder=zorder
     )
     ax.add_patch(dedendum_circle)
     zorder += 1
-    pitch_circle = Circle((0, 0), rp, color="gray", alpha=1, fill=False, zorder=zorder)
+    pitch_circle = Circle((0, 0), hypotrochoid_dict["rp"], color="gray", alpha=1, fill=False, zorder=zorder)
     ax.add_patch(pitch_circle)
     zorder += 1
-    base_circle = Circle((0, 0), rb, color="gray", alpha=1, fill=False, zorder=zorder)
+    base_circle = Circle((0, 0), hypotrochoid_dict["rb"], color="gray", alpha=1, fill=False, zorder=zorder)
     ax.add_patch(base_circle)
     zorder += 1
 
-    phi_r: float = np.radians(phi)
-    phi_r_arr: np.ndarray = np.linspace(0, phi_r, 500)
-    points_inv: np.ndarray = math.involute(rb, phi_r_arr, direction="counterclockwise")
-    points_inv = math.rotate(points_inv, geardata.alpha_t_r)
     ax.plot(
-        points_inv[0, :],
-        points_inv[1, :],
+        hypotrochoid_dict["points_inv"][0, :],
+        hypotrochoid_dict["points_inv"][1, :],
         color="white",
         linewidth=lw,
         zorder=zorder,
     )
     zorder += 1
 
-    points_hypo: np.ndarray = math.hypotrochoid(
-        rp, rf, geardata.alpha_t_r, phi_r_arr, flank="right"
-    )
     ax.plot(
-        points_hypo[0, :],
-        points_hypo[1, :],
-        color="red",
-        linewidth=lw,
-        zorder=zorder,
-    )
-    zorder += 1
-    points_hypo: np.ndarray = math.hypotrochoid(
-        rp, rf, geardata.alpha_t_r, -phi_r_arr, flank="right"
-    )
-    ax.plot(
-        points_hypo[0, :],
-        points_hypo[1, :],
+        hypotrochoid_dict["points_inv_hypo"][0, :],
+        hypotrochoid_dict["points_inv_hypo"][1, :],
         color="red",
         linewidth=lw,
         zorder=zorder,
     )
     zorder += 1
 
+    ax.plot(
+        hypotrochoid_dict["points_hypo"][0, :],
+        hypotrochoid_dict["points_hypo"][1, :],
+        color="red",
+        linewidth=lw,
+        zorder=zorder,
+    )
+    zorder += 1
+
+    if show_arrows:
+        ax = _plot_arrow(
+            ax,
+            x1=hypotrochoid_dict["points_inv_hypo"][0, -1],
+            y1=hypotrochoid_dict["points_inv_hypo"][1, -1],
+            x2=hypotrochoid_dict["points_hypo"][0, -1],
+            y2=hypotrochoid_dict["points_hypo"][1, -1],
+            color="orange",
+            zorder=zorder,
+        )
+        zorder += 1
+
+
+    rp: float = hypotrochoid_dict["rp"]
     ax.set_aspect("equal")
     # ax.set_xlim(-1.5 * rp, 3 * rp)
     # ax.set_ylim(-1.5 * rp, 3 * rp)

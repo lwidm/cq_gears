@@ -2,6 +2,18 @@ import numpy as np
 from typing import Literal
 
 
+def ensure_has_zero(arr: np.ndarray) -> np.ndarray:
+    if 0.0 in arr:
+        return arr
+    non_neg_indices: np.ndarray = np.where(arr >= 0)[0]
+    if len(non_neg_indices) == 0:
+        arr = np.append(arr, 0.0)
+        return arr
+    else:
+        idx: int = non_neg_indices[0]
+        return np.insert(arr, idx, 0.0)
+
+
 def tangent_vectors(points: np.ndarray) -> np.ndarray:
     dx: np.ndarray = np.gradient(points[0])
     dy: np.ndarray = np.gradient(points[1])
@@ -62,10 +74,20 @@ def hypotrochoid(
     vy: float = rf * np.tan(alpha_t_r)
     v: np.ndarray = np.array([[vx], [vy]])
 
-    theta: np.ndarray = tangent_angles(points_inv)
-    theta_0: float = theta[
-        0
-    ]  # <- not actually true i think (at least if it is possible to start this involute below the pitch circle
+    mask_nonneg: np.ndarray = phi_r >= 0
+    mask_neg: np.ndarray = phi_r < 0
+
+    theta: np.ndarray = np.zeros(len(phi_r))
+
+    if np.any(mask_nonneg):
+        points_inv_nonneg: np.ndarray = points_inv[:, mask_nonneg]
+        theta[mask_nonneg] = tangent_angles(points_inv_nonneg)
+
+    if np.any(mask_neg):
+        points_inv_neg: np.ndarray = points_inv[:, mask_neg]
+        theta[mask_neg] = tangent_angles(points_inv_neg) - np.pi
+
+    theta_0: float = theta[np.argmax(phi_r == 0.0)]
     points_hypo: np.ndarray = np.zeros_like(points_inv)
 
     for i in np.arange(len(points_inv[0, :])):

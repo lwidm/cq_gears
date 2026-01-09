@@ -87,9 +87,10 @@ def hypotrochoid(
         points_inv_neg: np.ndarray = points_inv[:, mask_neg]
         theta[mask_neg] = tangent_angles(points_inv_neg) - np.pi
 
-    theta_0: float = theta[np.argmax(phi_r == 0.0)]
-    points_hypo: np.ndarray = np.zeros_like(points_inv)
+    points_inv_theta_0: np.ndarray = involute(rp, np.linspace(0, 0.1, 100), "clockwise" if flank == "right" else "counterclockwise")
+    theta_0: float = tangent_angles(points_inv_theta_0)[0]
 
+    points_hypo: np.ndarray = np.zeros_like(points_inv)
     for i in np.arange(len(points_inv[0, :])):
         point: tuple[float, float] = (points_inv[0, i], points_inv[1, i])
         point_hypo: np.ndarray = translate(
@@ -98,10 +99,4 @@ def hypotrochoid(
         points_hypo[0, i] = point_hypo[0, 0]
         points_hypo[1, i] = point_hypo[1, 0]
 
-    # k=-1
-    # v1  = rotate(v, theta[k] - theta_0)
-    # v2  = translate(v1, (points_inv[0, k], points_inv[1, k]))
-    # vq = np.squeeze(v1)
-    # arrow = np.array([[points_inv[0, k], vq[0]],[points_inv[1,k], vq[1]]])
-    # arrow = np.array([[0.0, vq[0]],[0.0, vq[1]]])
     return points_hypo

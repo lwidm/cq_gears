@@ -401,7 +401,7 @@ def hypotrochoid_plot_compute(phi_0: float, phi: float, phi_inv: float) -> dict[
     phi_r: float = np.radians(phi)
     phi_0_r: float = np.radians(phi_0)
     phi_r_arr: np.ndarray = np.linspace(phi_0_r, phi_r, 500)
-    phi_r_arr = math.ensure_has_zero(phi_r_arr)
+    # phi_r_arr = math.ensure_has_zero(phi_r_arr)
 
     phi_r_arr_inv: np.ndarray = np.linspace(0.0, np.radians(phi_inv), 500)
     points_inv: np.ndarray = math.involute(rb, phi_r_arr_inv, direction="counterclockwise")
@@ -433,7 +433,7 @@ def hypotrochoid_plot_compute(phi_0: float, phi: float, phi_inv: float) -> dict[
 
 
 def hypotrochoid_plot(
-    ax: Axes, phi_0: float, phi: float, show_arrows: bool, show_angle: bool
+    ax: Axes, phi_0: float, phi: float, show_arrows: bool
 ) -> Axes:
     lw: float = 1.0
 
@@ -526,3 +526,67 @@ def hypotrochoid_plot(
     ax.set_axis_off()
 
     return ax
+
+def create_hypotrochoid_video(output_dir: Path, video_length: float):
+    temp_dir = output_dir / "hypotrochoid"
+    temp_dir.mkdir(exist_ok=True)
+
+    phi_min: float = -30
+    phi_max: float = 40
+    step: float = 1 if phi_max > phi_min else -1
+    phi_arr: np.ndarray = np.arange(phi_min, phi_max, step)
+    i: int = -1
+    for phi in phi_arr:
+        i += 1
+        if (phi-phi_min)/step < 2:
+            i -=1
+            continue
+        if phi >= 0 and phi/step < 2:
+            i -=1
+            continue
+        fig, ax = plt.subplots(figsize=(5, 5))
+        hypotrochoid_plot(
+            ax=ax,
+            phi_0=phi_min,
+            phi=phi,
+            show_arrows=True,
+        )
+        fig.savefig(temp_dir / f"hypotrochoid_{i:03d}.png", dpi=300)
+        plt.close(fig)
+
+    frame_files: list[Path] = sorted(temp_dir.glob("hypotrochoid_*.png"))
+    total_frames: int = len(frame_files)
+    if total_frames == 0:
+        raise ValueError(f"No frames found in {temp_dir}")
+
+    framerate = int(total_frames / video_length)
+    output_path = output_dir / "hypotrochoid.mp4"
+
+    subprocess.run(
+        [
+            "ffmpeg",
+            "-y",
+            "-framerate",
+            str(framerate),
+            "-i",
+            str(temp_dir / "hypotrochoid_%03d.png"),
+            "-vf",
+            "scale=ceil(iw/2)*2:ceil(ih/2)*2",
+            "-c:v",
+            "libx264",
+            "-preset",
+            "medium",
+            "-profile:v",
+            "baseline",
+            "-level",
+            "3.0",
+            "-pix_fmt",
+            "yuv420p",
+            str(output_path),
+        ],
+        check=True,
+    )
+
+    for f in temp_dir.iterdir():
+        f.unlink()
+    temp_dir.rmdir()

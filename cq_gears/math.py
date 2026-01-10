@@ -32,12 +32,10 @@ def tangent_angles(points: np.ndarray) -> np.ndarray:
 
 
 def involute(
-    r: float, phi_r: np.ndarray, direction: Literal["clockwise", "counterclockwise"]
+    r: float, phi_r: np.ndarray
 ) -> np.ndarray:
     x = r * np.cos(phi_r) + r * phi_r * np.sin(phi_r)
     y = r * np.sin(phi_r) - r * phi_r * np.cos(phi_r)
-    if direction == "clockwise":
-        y = -y
     return np.vstack([x, y])  # shape (2, N)
 
 
@@ -61,33 +59,28 @@ def hypotrochoid(
     rf: float,
     alpha_t_r: float,
     phi_r: np.ndarray,
-    flank: Literal["left", "right"],
 ) -> np.ndarray:
 
-    points_inv: np.ndarray
-    if flank == "right":
-        points_inv = involute(rp, phi_r, "clockwise")
-    else:
-        points_inv = involute(rp, phi_r, "counterclockwise")
+    points_inv: np.ndarray = involute(rp, phi_r)
 
     vx: float = rf - rp
     vy: float = rf * np.tan(alpha_t_r)
     v: np.ndarray = np.array([[vx], [vy]])
 
-    mask_nonneg: np.ndarray = phi_r >= 0
-    mask_neg: np.ndarray = phi_r < 0
+    mask_nonneg: np.ndarray = phi_r > 0
+    mask_neg: np.ndarray = phi_r <= 0
 
     theta: np.ndarray = np.zeros(len(phi_r))
 
     if np.any(mask_nonneg):
         points_inv_nonneg: np.ndarray = points_inv[:, mask_nonneg]
-        theta[mask_nonneg] = tangent_angles(points_inv_nonneg)
+        theta[mask_nonneg] = tangent_angles(points_inv_nonneg) - np.pi
 
     if np.any(mask_neg):
         points_inv_neg: np.ndarray = points_inv[:, mask_neg]
-        theta[mask_neg] = tangent_angles(points_inv_neg) - np.pi
+        theta[mask_neg] = tangent_angles(points_inv_neg)
 
-    points_inv_theta_0: np.ndarray = involute(rp, np.linspace(0, 0.1, 100), "clockwise" if flank == "right" else "counterclockwise")
+    points_inv_theta_0: np.ndarray = involute(rp, np.linspace(0, 0.1, 100))
     theta_0: float = tangent_angles(points_inv_theta_0)[0]
 
     points_hypo: np.ndarray = np.zeros_like(points_inv)

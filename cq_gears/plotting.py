@@ -8,6 +8,38 @@ from pathlib import Path
 
 from . import math
 from . import core
+from .core import GearData
+
+
+def ffmpeg_video(img_dir: Path, output_path: Path, name: str, framerate) -> None:
+    subprocess.run(
+        [
+            "ffmpeg",
+            "-y",
+            "-framerate",
+            str(framerate),
+            "-i",
+            str(img_dir / f"{name}_%03d.png"),
+            "-vf",
+            "scale=ceil(iw/2)*2:ceil(ih/2)*2",
+            "-c:v",
+            "libx264",
+            "-preset",
+            "medium",
+            "-profile:v",
+            "baseline",
+            "-level",
+            "3.0",
+            "-pix_fmt",
+            "yuv420p",
+            str(output_path),
+        ],
+        check=True,
+    )
+
+    for f in img_dir.iterdir():
+        f.unlink()
+    img_dir.rmdir()
 
 
 def add_background_rect(
@@ -105,7 +137,7 @@ def involute_plot_compute(
     phi_0_r: float = np.radians(phi_0)
     phi_r: float = np.radians(phi)
     phi_r_arr: np.ndarray = np.linspace(phi_0_r, phi_r, 500)
-    points_inv: np.ndarray = math.involute(r, phi_r_arr, direction="counterclockwise")
+    points_inv: np.ndarray = math.involute(r, phi_r_arr)
     inv_start: np.ndarray = np.vstack([points_inv[0, 0], points_inv[1, 0]])
     inv_end: np.ndarray = np.vstack([points_inv[0, -1], points_inv[1, -1]])
 
@@ -137,7 +169,7 @@ def involute_plot_compute(
         rolling_line_tangent * r * phi_r
     )
     rolling_line_end: np.ndarray = rolling_line_contact - (
-        rolling_line_tangent * (line_length - r * start_line_distance)
+        rolling_line_tangent * (line_length - start_line_distance)
     )
 
     def transform(points: np.ndarray) -> np.ndarray:
@@ -209,7 +241,6 @@ def involute_plot(
             lw=lw,
             ls="--",
             zorder=zorder,
-            clip_on=False,
         )
         zorder += 1
         ax.plot(
@@ -225,7 +256,6 @@ def involute_plot(
             lw=lw,
             ls="--",
             zorder=zorder,
-            clip_on=False,
         )
         zorder += 1
         circle = Circle(
@@ -337,7 +367,7 @@ def create_involute_video(output_dir: Path, video_length: float):
             show_arrows=False,
             show_angle=True,
             type="line",
-            phi_max=phi_max,
+            phi_max=phi_arr[-1],
         )
         fig.savefig(temp_dir / f"involute_{i:03d}.png", dpi=300)
         plt.close(fig)
@@ -350,38 +380,13 @@ def create_involute_video(output_dir: Path, video_length: float):
     framerate = int(total_frames / video_length)
     output_path = output_dir / "involute.mp4"
 
-    subprocess.run(
-        [
-            "ffmpeg",
-            "-y",
-            "-framerate",
-            str(framerate),
-            "-i",
-            str(temp_dir / "involute_%03d.png"),
-            "-vf",
-            "scale=ceil(iw/2)*2:ceil(ih/2)*2",
-            "-c:v",
-            "libx264",
-            "-preset",
-            "medium",
-            "-profile:v",
-            "baseline",
-            "-level",
-            "3.0",
-            "-pix_fmt",
-            "yuv420p",
-            str(output_path),
-        ],
-        check=True,
-    )
-
-    for f in temp_dir.iterdir():
-        f.unlink()
-    temp_dir.rmdir()
+    ffmpeg_video(temp_dir, output_path, "involute", framerate)
 
 
-def hypotrochoid_plot_compute(phi_0: float, phi: float, phi_inv: float) -> dict[str, np.ndarray | dict]:
-    geardata: core.GearData = core.compute_gear_data(
+def hypotrochoid_plot_compute(
+    phi_0: float, phi_hypo: float, phi_inv: float, phi_hypo_max: float | None = None
+) -> dict[str, float | np.ndarray | GearData | dict]:
+    geardata: GearData = core.compute_gear_data(
         m=1.0,
         z=7,
         b=1.0,
@@ -398,27 +403,37 @@ def hypotrochoid_plot_compute(phi_0: float, phi: float, phi_inv: float) -> dict[
     rp: float = geardata.d / 2
     alpha_t_r: float = geardata.alpha_t_r
 
-    phi_r: float = np.radians(phi)
+    phi_0 = - phi_0
+    phi_hypo = -phi_hypo
+    if phi_hypo_max is None:
+        phi_hypo_max = phi_hypo
+    else:
+        phi_hypo_max = -phi_hypo_max
+
+    phi_hypo_r: float = np.radians(phi_hypo)
     phi_0_r: float = np.radians(phi_0)
-    phi_r_arr: np.ndarray = np.linspace(phi_0_r, phi_r, 500)
-    # phi_r_arr = math.ensure_has_zero(phi_r_arr)
+    phi_r_arr: np.ndarray = np.linspace(phi_0_r, phi_hypo_r, 500)
 
     phi_r_arr_inv: np.ndarray = np.linspace(0.0, np.radians(phi_inv), 500)
-    points_inv: np.ndarray = math.involute(rb, phi_r_arr_inv, direction="counterclockwise")
+    points_inv: np.ndarray = math.involute(
+        rb, phi_r_arr_inv
+    )
     points_inv = math.rotate(points_inv, alpha_t_r)
 
     points_hypo: np.ndarray = math.hypotrochoid(
-        rp, rf, alpha_t_r, phi_r_arr, flank="right"
+        rp, rf, alpha_t_r, phi_r_arr
     )
+
 
     hypo_inv_dict: dict[str, np.ndarray] = involute_plot_compute(
         r=rp,
         phi_0=phi_0,
-        phi=phi,
-        rotate=0.0
+        phi=phi_hypo,
+        rotate=0.0,
+        phi_max=phi_hypo_max,
     )
 
-    result: dict[str, np.ndarray] = {
+    result: dict[str, float | np.ndarray | GearData | dict] = {
         "rf": rf,
         "rb": rb,
         "rp": rp,
@@ -433,25 +448,50 @@ def hypotrochoid_plot_compute(phi_0: float, phi: float, phi_inv: float) -> dict[
 
 
 def hypotrochoid_plot(
-    ax: Axes, phi_0: float, phi: float, show_arrows: bool
+    ax: Axes,
+    phi_0: float,
+    phi_hypo: float,
+    show_arrows: bool,
+    show_line: bool,
+    phi_hypo_max: float | None = None,
 ) -> Axes:
     lw: float = 1.0
 
     zorder: int = 100
 
-    hypotrochoid_dict: dict[str, np.ndarray] = hypotrochoid_plot_compute(phi_0, phi, 30)
+    hypotrochoid_dict: dict = hypotrochoid_plot_compute(
+        phi_0, phi_hypo, 30, phi_hypo_max
+    )
     involute_dict: dict[str, np.ndarray] = hypotrochoid_dict["hypo_inv_dict"]
 
-
     dedendum_circle = Circle(
-        (0, 0), hypotrochoid_dict["rf"], color="gray", alpha=1, fill=False, zorder=zorder
+        (0, 0),
+        hypotrochoid_dict["rf"],
+        color="gray",
+        alpha=1,
+        fill=False,
+        zorder=zorder,
     )
     ax.add_patch(dedendum_circle)
     zorder += 1
-    pitch_circle = Circle((0, 0), hypotrochoid_dict["rp"], color="gray", alpha=1, fill=False, zorder=zorder)
+    pitch_circle = Circle(
+        (0, 0),
+        hypotrochoid_dict["rp"],
+        color="gray",
+        alpha=1,
+        fill=False,
+        zorder=zorder,
+    )
     ax.add_patch(pitch_circle)
     zorder += 1
-    base_circle = Circle((0, 0), hypotrochoid_dict["rb"], color="gray", alpha=1, fill=False, zorder=zorder)
+    base_circle = Circle(
+        (0, 0),
+        hypotrochoid_dict["rb"],
+        color="gray",
+        alpha=1,
+        fill=False,
+        zorder=zorder,
+    )
     ax.add_patch(base_circle)
     zorder += 1
 
@@ -481,6 +521,50 @@ def hypotrochoid_plot(
         zorder=zorder,
     )
     zorder += 1
+
+    if show_line:
+        ax.plot(
+            [
+                involute_dict["rolling_line_inv"][0, 0],
+                involute_dict["rolling_line_start"][0, 0],
+            ],
+            [
+                involute_dict["rolling_line_inv"][1, 0],
+                involute_dict["rolling_line_start"][1, 0],
+            ],
+            color="red",
+            lw=lw,
+            ls="--",
+            zorder=zorder,
+        )
+        zorder += 1
+        ax.plot(
+            [
+                involute_dict["rolling_line_inv"][0, 0],
+                involute_dict["rolling_line_end"][0, 0],
+            ],
+            [
+                involute_dict["rolling_line_inv"][1, 0],
+                involute_dict["rolling_line_end"][1, 0],
+            ],
+            color="red",
+            lw=lw,
+            ls="--",
+            zorder=zorder,
+        )
+        zorder += 1
+        circle = Circle(
+            (
+                involute_dict["rolling_line_inv"][0, 0],
+                involute_dict["rolling_line_inv"][1, 0],
+            ),
+            0.04,
+            color="yellow",
+            alpha=1,
+            zorder=zorder,
+        )
+        zorder += 1
+        ax.add_patch(circle)
 
     if show_arrows:
         ax = _plot_arrow(
@@ -514,11 +598,10 @@ def hypotrochoid_plot(
         )
         zorder += 1
 
-
     geardata: core.GearData = hypotrochoid_dict["geardata"]
     ax.set_aspect("equal")
     xlim: tuple[float, float] = (0.0, 0.6 * geardata.da)
-    ylim: tuple[float, float] = (-0.1 * geardata.da, 0.5 * geardata.da)
+    ylim: tuple[float, float] = (-0.3 * geardata.da, 0.3 * geardata.da)
     ax.set_xlim(*xlim)
     ax.set_ylim(*ylim)
     ax = add_background_rect(ax, xlim, ylim)
@@ -527,29 +610,33 @@ def hypotrochoid_plot(
 
     return ax
 
+
 def create_hypotrochoid_video(output_dir: Path, video_length: float):
     temp_dir = output_dir / "hypotrochoid"
     temp_dir.mkdir(exist_ok=True)
 
     phi_min: float = -30
-    phi_max: float = 40
+    phi_max: float = 90
     step: float = 1 if phi_max > phi_min else -1
+    step /= 3
     phi_arr: np.ndarray = np.arange(phi_min, phi_max, step)
     i: int = -1
     for phi in phi_arr:
         i += 1
-        if (phi-phi_min)/step < 2:
-            i -=1
+        if (phi - phi_min) / step < 2:
+            i -= 1
             continue
-        if phi >= 0 and phi/step < 2:
-            i -=1
+        if phi >= 0 and phi / step < 2:
+            i -= 1
             continue
         fig, ax = plt.subplots(figsize=(5, 5))
         hypotrochoid_plot(
             ax=ax,
             phi_0=phi_min,
-            phi=phi,
+            phi_hypo=phi,
             show_arrows=True,
+            show_line=True,
+            phi_hypo_max=phi_arr[-1],
         )
         fig.savefig(temp_dir / f"hypotrochoid_{i:03d}.png", dpi=300)
         plt.close(fig)
@@ -562,31 +649,4 @@ def create_hypotrochoid_video(output_dir: Path, video_length: float):
     framerate = int(total_frames / video_length)
     output_path = output_dir / "hypotrochoid.mp4"
 
-    subprocess.run(
-        [
-            "ffmpeg",
-            "-y",
-            "-framerate",
-            str(framerate),
-            "-i",
-            str(temp_dir / "hypotrochoid_%03d.png"),
-            "-vf",
-            "scale=ceil(iw/2)*2:ceil(ih/2)*2",
-            "-c:v",
-            "libx264",
-            "-preset",
-            "medium",
-            "-profile:v",
-            "baseline",
-            "-level",
-            "3.0",
-            "-pix_fmt",
-            "yuv420p",
-            str(output_path),
-        ],
-        check=True,
-    )
-
-    for f in temp_dir.iterdir():
-        f.unlink()
-    temp_dir.rmdir()
+    ffmpeg_video(temp_dir, output_path, "hypotrochoid", framerate)

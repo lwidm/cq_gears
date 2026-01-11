@@ -358,8 +358,13 @@ def create_involute_video(output_dir: Path, video_length: float):
     phi_max: float = 140
     step: float = 1 if phi_max > phi_min else -1
     phi_arr: np.ndarray = np.arange(phi_min, phi_max, step)
+
+    plt.ion()
+    fig, ax = plt.subplots(figsize=(5, 5))
+    plt.show(block=False)
+
     for i, phi in enumerate(phi_arr):
-        fig, ax = plt.subplots(figsize=(5, 5))
+        ax.clear()
         involute_plot(
             ax=ax,
             phi_0=phi_min,
@@ -369,8 +374,13 @@ def create_involute_video(output_dir: Path, video_length: float):
             type="line",
             phi_max=phi_arr[-1],
         )
+        fig.canvas.draw()
+        fig.canvas.flush_events()
+        plt.pause(0.001)  # Brief pause to update display
         fig.savefig(temp_dir / f"involute_{i:03d}.png", dpi=300)
-        plt.close(fig)
+
+    plt.ioff()
+    plt.close(fig)
 
     frame_files: list[Path] = sorted(temp_dir.glob("involute_*.png"))
     total_frames: int = len(frame_files)
@@ -620,6 +630,12 @@ def create_hypotrochoid_video(output_dir: Path, video_length: float):
     step: float = 1 if phi_max > phi_min else -1
     step /= 3
     phi_arr: np.ndarray = np.arange(phi_min, phi_max, step)
+
+    # Create a single figure for live preview
+    plt.ion()  # Turn on interactive mode
+    fig, ax = plt.subplots(figsize=(5, 5))
+    plt.show(block=False)
+
     i: int = -1
     for phi in phi_arr:
         i += 1
@@ -629,7 +645,7 @@ def create_hypotrochoid_video(output_dir: Path, video_length: float):
         if phi >= 0 and phi / step < 2:
             i -= 1
             continue
-        fig, ax = plt.subplots(figsize=(5, 5))
+        ax.clear()  # Clear previous frame
         hypotrochoid_plot(
             ax=ax,
             phi_0=phi_min,
@@ -638,8 +654,13 @@ def create_hypotrochoid_video(output_dir: Path, video_length: float):
             show_line=True,
             phi_hypo_max=phi_arr[-1],
         )
+        fig.canvas.draw()
+        fig.canvas.flush_events()
+        plt.pause(0.001)  # Brief pause to update display
         fig.savefig(temp_dir / f"hypotrochoid_{i:03d}.png", dpi=300)
-        plt.close(fig)
+
+    plt.ioff()  # Turn off interactive mode
+    plt.close(fig)
 
     frame_files: list[Path] = sorted(temp_dir.glob("hypotrochoid_*.png"))
     total_frames: int = len(frame_files)

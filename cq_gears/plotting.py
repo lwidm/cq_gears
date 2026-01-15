@@ -394,7 +394,7 @@ def create_involute_video(output_dir: Path, video_length: float):
 
 
 def hypotrochoid_plot_compute(
-    phi_0: float, phi_hypo: float, phi_inv: float, phi_hypo_max: float | None = None
+    phi_0: float, phi_hypo: float, flank: Literal["left", "right"], phi_inv: float, phi_hypo_max: float | None = None
 ) -> dict[str, float | np.ndarray | GearData | dict]:
     geardata: GearData = core.compute_gear_data(
         m=1.0,
@@ -408,17 +408,13 @@ def hypotrochoid_plot_compute(
         c_star=0.167,
         rho_f_star=0.3,
     )
-    rf: float = geardata.df / 2
-    rb: float = geardata.db / 2
-    rp: float = geardata.d / 2
+    df: float = geardata.df
+    db: float = geardata.db
+    dp: float = geardata.d
     alpha_t_r: float = geardata.alpha_t_r
 
-    phi_0 = - phi_0
-    phi_hypo = -phi_hypo
     if phi_hypo_max is None:
         phi_hypo_max = phi_hypo
-    else:
-        phi_hypo_max = -phi_hypo_max
 
     phi_hypo_r: float = np.radians(phi_hypo)
     phi_0_r: float = np.radians(phi_0)
@@ -426,17 +422,20 @@ def hypotrochoid_plot_compute(
 
     phi_r_arr_inv: np.ndarray = np.linspace(0.0, np.radians(phi_inv), 500)
     points_inv: np.ndarray = math.involute(
-        rb, phi_r_arr_inv
+        db/2, phi_r_arr_inv
     )
-    points_inv = math.rotate(points_inv, alpha_t_r)
+    if flank == "right":
+        points_inv = math.rotate(points_inv, alpha_t_r)
+    else:
+        points_inv = math.rotate(points_inv, -alpha_t_r)
 
     points_hypo: np.ndarray = math.hypotrochoid(
-        rp, rf, alpha_t_r, phi_r_arr
+        dp, df, alpha_t_r, phi_r_arr, flank
     )
 
 
     hypo_inv_dict: dict[str, np.ndarray] = involute_plot_compute(
-        r=rp,
+        r=dp/2,
         phi_0=phi_0,
         phi=phi_hypo,
         rotate=0.0,
@@ -444,9 +443,9 @@ def hypotrochoid_plot_compute(
     )
 
     result: dict[str, float | np.ndarray | GearData | dict] = {
-        "rf": rf,
-        "rb": rb,
-        "rp": rp,
+        "df": df,
+        "db": db,
+        "dp": dp,
         "alpha_t_r": alpha_t_r,
         "points_inv": points_inv,
         "points_hypo": points_hypo,
@@ -461,6 +460,7 @@ def hypotrochoid_plot(
     ax: Axes,
     phi_0: float,
     phi_hypo: float,
+    flank: Literal["left", "right"],
     show_arrows: bool,
     show_line: bool,
     phi_hypo_max: float | None = None,
@@ -469,14 +469,20 @@ def hypotrochoid_plot(
 
     zorder: int = 100
 
+    phi_inv: float
+    if flank == "right":
+            phi_inv = 30.0
+    else:
+            phi_inv = -30.0
+
     hypotrochoid_dict: dict = hypotrochoid_plot_compute(
-        phi_0, phi_hypo, 30, phi_hypo_max
+        phi_0, phi_hypo, flank, phi_inv, phi_hypo_max
     )
     involute_dict: dict[str, np.ndarray] = hypotrochoid_dict["hypo_inv_dict"]
 
     dedendum_circle = Circle(
         (0, 0),
-        hypotrochoid_dict["rf"],
+        hypotrochoid_dict["df"]/2,
         color="gray",
         alpha=1,
         fill=False,
@@ -486,7 +492,7 @@ def hypotrochoid_plot(
     zorder += 1
     pitch_circle = Circle(
         (0, 0),
-        hypotrochoid_dict["rp"],
+        hypotrochoid_dict["dp"]/2,
         color="gray",
         alpha=1,
         fill=False,
@@ -496,7 +502,7 @@ def hypotrochoid_plot(
     zorder += 1
     base_circle = Circle(
         (0, 0),
-        hypotrochoid_dict["rb"],
+        hypotrochoid_dict["db"]/2,
         color="gray",
         alpha=1,
         fill=False,
@@ -625,27 +631,17 @@ def create_hypotrochoid_video(output_dir: Path, video_length: float):
     temp_dir = output_dir / "hypotrochoid"
     temp_dir.mkdir(exist_ok=True)
 
-    phi_min: float = -30
-    phi_max: float = 90
-    step: float = 1 if phi_max > phi_min else -1
-    step /= 3
-    phi_arr: np.ndarray = np.arange(phi_min, phi_max, step)
+    phi_min: float = 30
+    phi_max: float = -50
+    flank: Literal["left", "right"] = "right"
+    phi_arr: np.ndarray = np.linspace(phi_min, phi_max, 500)
 
-    # Create a single figure for live preview
-    plt.ion()  # Turn on interactive mode
+    plt.ion()
     fig, ax = plt.subplots(figsize=(5, 5))
     plt.show(block=False)
 
-    i: int = -1
-    for phi in phi_arr:
-        i += 1
-        if (phi - phi_min) / step < 2:
-            i -= 1
-            continue
-        if phi >= 0 and phi / step < 2:
-            i -= 1
-            continue
-        ax.clear()  # Clear previous frame
+    for i, phi in enumerate(phi_arr):
+        ax.clear()
         hypotrochoid_plot(
             ax=ax,
             phi_0=phi_min,
@@ -653,6 +649,7 @@ def create_hypotrochoid_video(output_dir: Path, video_length: float):
             show_arrows=True,
             show_line=True,
             phi_hypo_max=phi_arr[-1],
+            flank=flank
         )
         fig.canvas.draw()
         fig.canvas.flush_events()

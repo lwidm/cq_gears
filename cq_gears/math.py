@@ -31,9 +31,7 @@ def tangent_angles(points: np.ndarray) -> np.ndarray:
     return angles
 
 
-def involute(
-    r: float, phi_r: np.ndarray
-) -> np.ndarray:
+def involute(r: float, phi_r: np.ndarray) -> np.ndarray:
     x = r * np.cos(phi_r) + r * phi_r * np.sin(phi_r)
     y = r * np.sin(phi_r) - r * phi_r * np.cos(phi_r)
     return np.vstack([x, y])  # shape (2, N)
@@ -55,6 +53,26 @@ def translate(points: np.ndarray, translation: tuple[float, float]) -> np.ndarra
 
 
 def hypotrochoid(
+    dp: float,
+    df: float,
+    alpha_t_r: float,
+    phi_r: np.ndarray,
+    flank: Literal["left", "right"]
+) -> np.ndarray:
+    a: float = df
+    b: float
+    if flank == "right":
+        b = +df * np.tan(alpha_t_r)
+    else:
+        b = -df * np.tan(alpha_t_r)
+    A: np.ndarray = np.array([[a], [b]])
+    B: np.ndarray = np.array([[-b], [a]])
+    t: np.ndarray = np.vstack([np.sin(phi_r), -np.cos(phi_r)])
+
+    return 1 / 2 * (A * np.cos(phi_r) + B * np.sin(phi_r) + dp * phi_r * t)
+
+
+def hypotrochoid_intuitive(
     rp: float,
     rf: float,
     alpha_t_r: float,
@@ -83,9 +101,7 @@ def hypotrochoid(
     points_hypo: np.ndarray = np.zeros_like(points_inv)
     for i in np.arange(len(points_inv[0, :])):
         point: tuple[float, float] = (points_inv[0, i], points_inv[1, i])
-        point_hypo: np.ndarray = translate(
-            rotate(v, phi_r[i]), (point[0], point[1])
-        )
+        point_hypo: np.ndarray = translate(rotate(v, phi_r[i]), (point[0], point[1]))
         points_hypo[0, i] = point_hypo[0, 0]
         points_hypo[1, i] = point_hypo[1, 0]
 

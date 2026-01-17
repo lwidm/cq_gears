@@ -34,13 +34,19 @@ def tangent_angles(points: np.ndarray) -> np.ndarray:
 def half_base_tooth_angle(m: float, dp: float, db: float) -> float:
     dp_db: float = dp / db
     theta_dp: float = np.sqrt(dp_db**2 - 1)
-    return (m * np.pi) / (4 * db) + 0.5 * theta_dp - 0.5 * np.arctan(theta_dp)
+    return (m * np.pi) / (2 * db) + theta_dp - np.arctan(theta_dp)
 
 
 def involute(r: float, phi_r: np.ndarray) -> np.ndarray:
     x: np.ndarray = r * np.cos(phi_r) + r * phi_r * np.sin(phi_r)
     y: np.ndarray = r * np.sin(phi_r) - r * phi_r * np.cos(phi_r)
     return np.vstack([x, y])  # shape (2, N)
+
+def involute_phi_d(d_star: float, db: float, flank:Literal["right", "left"])->float:
+    phi: float = np.sqrt((d_star/db)**2 -1)
+    if flank=="left":
+        phi = -phi
+    return phi
 
 
 def involute_positioned(
@@ -66,6 +72,14 @@ def involute_positioned(
         - cos_gamma * phi_r * cos_phi
     )
     return db / 2 * np.vstack([x, y])  # shape (2, N)
+
+
+def involute_tooth(m: float, dp: float, db: float, da: float, n_points: int, flank: Literal["right", "left"]) -> np.ndarray:
+    phi_start_r: float = 0.0
+    phi_end_r: float = involute_phi_d(da, db, flank)
+    phi_arr_r: np.ndarray = np.linspace(phi_start_r, phi_end_r, n_points)
+    return involute_positioned(m, dp, db, phi_arr_r, flank)
+
 
 
 def rotate(points: np.ndarray, rotation: float) -> np.ndarray:
@@ -101,6 +115,21 @@ def hypotrochoid(
     t: np.ndarray = np.vstack([np.sin(phi_r), -np.cos(phi_r)])
 
     return 1 / 2 * (A * np.cos(phi_r) + B * np.sin(phi_r) + dp * phi_r * t)
+
+
+def hypotroichoid_phi_d(d_star: float, dp: float, df: float, alpha_t_r: float, flank: Literal["right", "left"])->float:
+    df_dp: float = df/dp
+    phi: float = df_dp*np.tan(alpha_t_r) - np.sqrt((d_star/dp)**2 -df_dp**2)
+    if flank=="left":
+        phi = -phi
+    return phi
+
+
+def hypotroichoid_phi_0(dp: float, df: float, alpha_t_r: float, flank: Literal["right", "left"])->float:
+    phi: float = df/dp*np.tan(alpha_t_r)
+    if flank=="left":
+        phi = -phi
+    return phi
 
 
 def hypotrochoid_positioned(
@@ -148,6 +177,11 @@ def hypotrochoid_positioned(
 
     return 0.5 * np.vstack([x, y])  # shape (2, N)
 
+def hypotroichoid_tooth(m: float, dp: float, db: float, df: float, alpha_t_r: float, n_points: int, flank: Literal["right", "left"]) -> np.ndarray:
+    phi_start_r: float = hypotroichoid_phi_0(dp, df, alpha_t_r, flank)
+    phi_end_r: float = hypotroichoid_phi_d(dp, dp, df, alpha_t_r, flank)
+    phi_arr_r: np.ndarray = np.linspace(phi_start_r, phi_end_r, n_points)
+    return hypotrochoid_positioned(m, df, dp, db, alpha_t_r, phi_arr_r, flank)
 
 def hypotrochoid_intuitive(
     rp: float,

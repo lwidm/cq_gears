@@ -670,33 +670,20 @@ def create_hypotrochoid_video(output_dir: Path, video_length: float):
     ffmpeg_video(temp_dir, output_path, "hypotrochoid", framerate)
 
 def tooth_plot_compute(
-    phi_inv_start_r: float, phi_inv_end_r: float, phi_hypo_start_r: float, phi_hypo_end_r: float, flank: Literal["left", "right"]
+    geardata: GearData, phi_inv_start_r: float, phi_inv_end_r: float, phi_hypo_start_r: float, phi_hypo_end_r: float, flank: Literal["left", "right"]
 ) -> dict[str, float | np.ndarray | GearData]:
-    geardata: GearData = core.compute_gear_data(
-        m=1.0,
-        z=7,
-        b=1.0,
-        x=0.0,
-        alpha_t=20.0,
-        beta=0.0,
-        delta=90.0,
-        ha_star=1.0,
-        c_star=0.167,
-        rho_f_star=0.3,
-    )
     m: float = geardata.m
     df: float = geardata.df
     db: float = geardata.db
     dp: float = geardata.d
-    da: float = geardata.d
+    da: float = geardata.da
     alpha_t_r: float = geardata.alpha_t_r
 
 
-    phi_inv_r_arr: np.ndarray = np.linspace(phi_inv_start_r, phi_inv_end_r, 500)
-    phi_hypo_r_arr: np.ndarray = np.linspace(phi_hypo_start_r, phi_hypo_end_r, 500)
+    n_points: int = 500
 
-    points_inv: np.ndarray = math.involute_positioned(m, dp, db, phi_inv_r_arr, flank)
-    points_hypo: np.ndarray = math.hypotrochoid_positioned(m, df, dp, db, alpha_t_r, phi_hypo_r_arr ,flank)
+    points_inv: np.ndarray = math.involute_tooth(m, dp, db, da, n_points, flank)
+    points_hypo: np.ndarray = math.hypotroichoid_tooth(m, dp, db, df, alpha_t_r, n_points, flank)
 
 
     result: dict[str, float | np.ndarray | GearData] = {
@@ -714,6 +701,7 @@ def tooth_plot_compute(
 
 def tooth_plot(
     ax: Axes,
+    geardata: GearData,
     flank: Literal["left", "right"],
 ) -> Axes:
     lw: float = 1.0
@@ -731,7 +719,7 @@ def tooth_plot(
     phi_hypo_end_r: float = np.radians(phi_hypo_end)
 
     tooth_dict: dict = tooth_plot_compute(
-        phi_inv_start_r, phi_inv_end_r, phi_hypo_start_r, phi_hypo_end_r, flank
+        geardata, phi_inv_start_r, phi_inv_end_r, phi_hypo_start_r, phi_hypo_end_r, flank
     )
 
     dedendum_circle = Circle(

@@ -31,10 +31,41 @@ def tangent_angles(points: np.ndarray) -> np.ndarray:
     return angles
 
 
+def half_base_tooth_angle(m: float, dp: float, db: float) -> float:
+    dp_db: float = dp / db
+    theta_dp: float = np.sqrt(dp_db**2 - 1)
+    return (m * np.pi) / (4 * db) + 0.5 * theta_dp - 0.5 * np.arctan(theta_dp)
+
+
 def involute(r: float, phi_r: np.ndarray) -> np.ndarray:
-    x = r * np.cos(phi_r) + r * phi_r * np.sin(phi_r)
-    y = r * np.sin(phi_r) - r * phi_r * np.cos(phi_r)
+    x: np.ndarray = r * np.cos(phi_r) + r * phi_r * np.sin(phi_r)
+    y: np.ndarray = r * np.sin(phi_r) - r * phi_r * np.cos(phi_r)
     return np.vstack([x, y])  # shape (2, N)
+
+
+def involute_positioned(
+    m: float, dp: float, db: float, phi_r: np.ndarray, flank: Literal["right", "left"]
+) -> np.ndarray:
+    gamma: float = half_base_tooth_angle(m, dp, db)
+    cos_phi: np.ndarray = np.cos(phi_r)
+    sin_phi: np.ndarray = np.sin(phi_r)
+    cos_gamma: float = np.cos(gamma)
+    sin_gamma: float = np.sin(gamma)
+    if flank == "left":
+        sin_gamma = -sin_gamma
+    x: np.ndarray = (
+        cos_gamma * cos_phi
+        + cos_gamma * phi_r * sin_phi
+        + sin_gamma * sin_phi
+        - sin_gamma * phi_r * cos_phi
+    )
+    y: np.ndarray = (
+        -sin_gamma * cos_phi
+        - sin_gamma * phi_r * sin_phi
+        + cos_gamma * sin_phi
+        - cos_gamma * phi_r * cos_phi
+    )
+    return db / 2 * np.vstack([x, y])  # shape (2, N)
 
 
 def rotate(points: np.ndarray, rotation: float) -> np.ndarray:
@@ -57,7 +88,7 @@ def hypotrochoid(
     df: float,
     alpha_t_r: float,
     phi_r: np.ndarray,
-    flank: Literal["left", "right"]
+    flank: Literal["left", "right"],
 ) -> np.ndarray:
     a: float = df
     b: float
@@ -70,6 +101,52 @@ def hypotrochoid(
     t: np.ndarray = np.vstack([np.sin(phi_r), -np.cos(phi_r)])
 
     return 1 / 2 * (A * np.cos(phi_r) + B * np.sin(phi_r) + dp * phi_r * t)
+
+
+def hypotrochoid_positioned(
+    m: float,
+    df: float,
+    dp: float,
+    db: float,
+    alpha_t_r: float,
+    phi: np.ndarray,
+    flank: Literal["right", "left"],
+) -> np.ndarray:
+
+    a: float = df
+    b: float = df*np.tan(alpha_t_r)
+
+    gamma: float = half_base_tooth_angle(m, dp, db)
+    angle: float = gamma + alpha_t_r
+
+    cos_phi: np.ndarray = np.cos(phi)
+    sin_phi: np.ndarray = np.sin(phi)
+    cos_angle: float = np.cos(angle)
+    sin_angle: float = np.sin(angle)
+
+    if flank == "left":
+        sin_angle = -sin_angle
+        b = -b
+
+    x: np.ndarray = (
+        a * cos_angle * cos_phi
+        - b * cos_angle * sin_phi
+        + dp * cos_angle * phi * sin_phi
+        + b * sin_angle * cos_phi
+        + a * sin_angle * sin_phi
+        - dp * sin_angle * phi * cos_phi
+    )
+
+    y: np.ndarray = (
+        -a * sin_angle * cos_phi
+        + b * sin_angle * sin_phi
+        - dp * sin_angle * phi * sin_phi
+        + b * cos_angle * cos_phi
+        + a * cos_angle * sin_phi
+        - dp * cos_angle * phi * cos_phi
+    )
+
+    return 0.5 * np.vstack([x, y])  # shape (2, N)
 
 
 def hypotrochoid_intuitive(

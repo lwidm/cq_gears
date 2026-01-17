@@ -668,3 +668,139 @@ def create_hypotrochoid_video(output_dir: Path, video_length: float):
     output_path = output_dir / "hypotrochoid.mp4"
 
     ffmpeg_video(temp_dir, output_path, "hypotrochoid", framerate)
+
+def tooth_plot_compute(
+    phi_inv_start_r: float, phi_inv_end_r: float, phi_hypo_start_r: float, phi_hypo_end_r: float, flank: Literal["left", "right"]
+) -> dict[str, float | np.ndarray | GearData]:
+    geardata: GearData = core.compute_gear_data(
+        m=1.0,
+        z=7,
+        b=1.0,
+        x=0.0,
+        alpha_t=20.0,
+        beta=0.0,
+        delta=90.0,
+        ha_star=1.0,
+        c_star=0.167,
+        rho_f_star=0.3,
+    )
+    m: float = geardata.m
+    df: float = geardata.df
+    db: float = geardata.db
+    dp: float = geardata.d
+    da: float = geardata.d
+    alpha_t_r: float = geardata.alpha_t_r
+
+
+    phi_inv_r_arr: np.ndarray = np.linspace(phi_inv_start_r, phi_inv_end_r, 500)
+    phi_hypo_r_arr: np.ndarray = np.linspace(phi_hypo_start_r, phi_hypo_end_r, 500)
+
+    points_inv: np.ndarray = math.involute_positioned(m, dp, db, phi_inv_r_arr, flank)
+    points_hypo: np.ndarray = math.hypotrochoid_positioned(m, df, dp, db, alpha_t_r, phi_hypo_r_arr ,flank)
+
+
+    result: dict[str, float | np.ndarray | GearData] = {
+        "m": m,
+        "df": df,
+        "db": db,
+        "dp": dp,
+        "da": da,
+        "geardata": geardata,
+        "points_inv": points_inv,
+        "points_hypo": points_hypo,
+    }
+
+    return result
+
+def tooth_plot(
+    ax: Axes,
+    flank: Literal["left", "right"],
+) -> Axes:
+    lw: float = 1.0
+
+    zorder: int = 100
+
+    phi_inv_start: float = 0.0
+    phi_inv_end: float = 20.0
+    phi_inv_start_r: float = np.radians(phi_inv_start)
+    phi_inv_end_r: float = np.radians(phi_inv_end)
+
+    phi_hypo_start: float = 20.0
+    phi_hypo_end: float = -40.0
+    phi_hypo_start_r: float = np.radians(phi_hypo_start)
+    phi_hypo_end_r: float = np.radians(phi_hypo_end)
+
+    tooth_dict: dict = tooth_plot_compute(
+        phi_inv_start_r, phi_inv_end_r, phi_hypo_start_r, phi_hypo_end_r, flank
+    )
+
+    dedendum_circle = Circle(
+        (0, 0),
+        tooth_dict["df"]/2,
+        color="gray",
+        alpha=1,
+        fill=False,
+        zorder=zorder,
+    )
+    ax.add_patch(dedendum_circle)
+    zorder += 1
+    pitch_circle = Circle(
+        (0, 0),
+        tooth_dict["dp"]/2,
+        color="gray",
+        alpha=1,
+        fill=False,
+        zorder=zorder,
+    )
+    ax.add_patch(pitch_circle)
+    zorder += 1
+    base_circle = Circle(
+        (0, 0),
+        tooth_dict["db"]/2,
+        color="gray",
+        alpha=1,
+        fill=False,
+        zorder=zorder,
+    )
+    ax.add_patch(base_circle)
+    zorder += 1
+    base_circle = Circle(
+        (0, 0),
+        tooth_dict["da"]/2,
+        color="gray",
+        alpha=1,
+        fill=False,
+        zorder=zorder,
+    )
+    ax.add_patch(base_circle)
+    zorder += 1
+
+    ax.plot(
+        tooth_dict["points_inv"][0, :],
+        tooth_dict["points_inv"][1, :],
+        color="white",
+        linewidth=lw,
+        zorder=zorder,
+    )
+    zorder += 1
+
+    ax.plot(
+        tooth_dict["points_hypo"][0, :],
+        tooth_dict["points_hypo"][1, :],
+        color="white",
+        linewidth=lw,
+        zorder=zorder,
+    )
+    zorder += 1
+
+
+    ax.set_aspect("equal")
+    xlim: tuple[float, float] = (0.0, 0.6 * tooth_dict["da"])
+    ylim: tuple[float, float] = (-0.3 * tooth_dict["da"], 0.3 * tooth_dict["da"])
+    ax.set_xlim(*xlim)
+    ax.set_ylim(*ylim)
+    ax = add_background_rect(ax, xlim, ylim)
+    ax.set_position((0, 0, 1, 1))
+    ax.set_axis_off()
+
+    return ax

@@ -10,7 +10,7 @@ output_dir: Path = Path("output")
 
 geardata: GearData = core.compute_gear_data(
         m=1.0,
-        z=20,
+        z=5,
         b=1.0,
         x=0.0,
         alpha_t=20.0,
@@ -22,8 +22,7 @@ geardata: GearData = core.compute_gear_data(
     )
 
 fig, ax = plt.subplots(figsize=(5, 5))
-plotting.tooth_plot(ax=ax, geardata=geardata, flank="right")
-plotting.tooth_plot(ax=ax, geardata=geardata, flank="left")
+plotting.tooth_plot(ax=ax, geardata=geardata)
 fig.savefig(output_dir / f"tooth.png", dpi=300)
 plt.show()
 plt.close(fig)

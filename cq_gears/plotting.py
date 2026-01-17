@@ -394,7 +394,11 @@ def create_involute_video(output_dir: Path, video_length: float):
 
 
 def hypotrochoid_plot_compute(
-    phi_0: float, phi_hypo: float, flank: Literal["left", "right"], phi_inv: float, phi_hypo_max: float | None = None
+    phi_0: float,
+    phi_hypo: float,
+    flank: Literal["left", "right"],
+    phi_inv: float,
+    phi_hypo_max: float | None = None,
 ) -> dict[str, float | np.ndarray | GearData | dict]:
     geardata: GearData = core.compute_gear_data(
         m=1.0,
@@ -421,21 +425,16 @@ def hypotrochoid_plot_compute(
     phi_r_arr: np.ndarray = np.linspace(phi_0_r, phi_hypo_r, 500)
 
     phi_r_arr_inv: np.ndarray = np.linspace(0.0, np.radians(phi_inv), 500)
-    points_inv: np.ndarray = math.involute(
-        db/2, phi_r_arr_inv
-    )
+    points_inv: np.ndarray = math.involute(db / 2, phi_r_arr_inv)
     if flank == "right":
         points_inv = math.rotate(points_inv, alpha_t_r)
     else:
         points_inv = math.rotate(points_inv, -alpha_t_r)
 
-    points_hypo: np.ndarray = math.hypotrochoid(
-        dp, df, alpha_t_r, phi_r_arr, flank
-    )
-
+    points_hypo: np.ndarray = math.hypotrochoid(dp, df, alpha_t_r, phi_r_arr, flank)
 
     hypo_inv_dict: dict[str, np.ndarray] = involute_plot_compute(
-        r=dp/2,
+        r=dp / 2,
         phi_0=phi_0,
         phi=phi_hypo,
         rotate=0.0,
@@ -471,9 +470,9 @@ def hypotrochoid_plot(
 
     phi_inv: float
     if flank == "right":
-            phi_inv = 30.0
+        phi_inv = 30.0
     else:
-            phi_inv = -30.0
+        phi_inv = -30.0
 
     hypotrochoid_dict: dict = hypotrochoid_plot_compute(
         phi_0, phi_hypo, flank, phi_inv, phi_hypo_max
@@ -482,7 +481,7 @@ def hypotrochoid_plot(
 
     dedendum_circle = Circle(
         (0, 0),
-        hypotrochoid_dict["df"]/2,
+        hypotrochoid_dict["df"] / 2,
         color="gray",
         alpha=1,
         fill=False,
@@ -492,7 +491,7 @@ def hypotrochoid_plot(
     zorder += 1
     pitch_circle = Circle(
         (0, 0),
-        hypotrochoid_dict["dp"]/2,
+        hypotrochoid_dict["dp"] / 2,
         color="gray",
         alpha=1,
         fill=False,
@@ -502,7 +501,7 @@ def hypotrochoid_plot(
     zorder += 1
     base_circle = Circle(
         (0, 0),
-        hypotrochoid_dict["db"]/2,
+        hypotrochoid_dict["db"] / 2,
         color="gray",
         alpha=1,
         fill=False,
@@ -649,7 +648,7 @@ def create_hypotrochoid_video(output_dir: Path, video_length: float):
             show_arrows=True,
             show_line=True,
             phi_hypo_max=phi_arr[-1],
-            flank=flank
+            flank=flank,
         )
         fig.canvas.draw()
         fig.canvas.flush_events()
@@ -669,8 +668,9 @@ def create_hypotrochoid_video(output_dir: Path, video_length: float):
 
     ffmpeg_video(temp_dir, output_path, "hypotrochoid", framerate)
 
+
 def tooth_plot_compute(
-    geardata: GearData, phi_inv_start_r: float, phi_inv_end_r: float, phi_hypo_start_r: float, phi_hypo_end_r: float, flank: Literal["left", "right"]
+    geardata: GearData,
 ) -> dict[str, float | np.ndarray | GearData]:
     m: float = geardata.m
     df: float = geardata.df
@@ -679,12 +679,32 @@ def tooth_plot_compute(
     da: float = geardata.da
     alpha_t_r: float = geardata.alpha_t_r
 
-
     n_points: int = 500
 
-    points_inv: np.ndarray = math.involute_tooth(m, dp, db, da, n_points, flank)
-    points_hypo: np.ndarray = math.hypotroichoid_tooth(m, dp, db, df, alpha_t_r, n_points, flank)
+    phi_r_addendum: float = math.involute_phi_d(da, db, "right")
+    phi_r_intersection: float = math.involute_self_intersection(
+        phi_r_addendum, m, dp, db
+    )
 
+    phi_r_start: float = 0.0
+    phi_r_end: float
+    if phi_r_addendum > phi_r_intersection:
+        phi_r_end = phi_r_intersection
+    else:
+        phi_r_end = phi_r_addendum
+
+    points_inv_right: np.ndarray = math.involute_tooth(
+        m, dp, db, phi_r_start, phi_r_end, n_points, "right"
+    )
+    points_inv_left: np.ndarray = math.involute_tooth(
+        m, dp, db, phi_r_start, -phi_r_end, n_points, "left"
+    )
+    points_hypo_right: np.ndarray = math.hypotroichoid_tooth(
+        m, dp, db, df, alpha_t_r, n_points, "right"
+    )
+    points_hypo_left: np.ndarray = math.hypotroichoid_tooth(
+        m, dp, db, df, alpha_t_r, n_points, "left"
+    )
 
     result: dict[str, float | np.ndarray | GearData] = {
         "m": m,
@@ -693,38 +713,28 @@ def tooth_plot_compute(
         "dp": dp,
         "da": da,
         "geardata": geardata,
-        "points_inv": points_inv,
-        "points_hypo": points_hypo,
+        "points_inv_right": points_inv_right,
+        "points_inv_left": points_inv_left,
+        "points_hypo_right": points_hypo_right,
+        "points_hypo_left": points_hypo_left,
     }
 
     return result
 
+
 def tooth_plot(
     ax: Axes,
     geardata: GearData,
-    flank: Literal["left", "right"],
 ) -> Axes:
     lw: float = 1.0
 
     zorder: int = 100
 
-    phi_inv_start: float = 0.0
-    phi_inv_end: float = 20.0
-    phi_inv_start_r: float = np.radians(phi_inv_start)
-    phi_inv_end_r: float = np.radians(phi_inv_end)
-
-    phi_hypo_start: float = 20.0
-    phi_hypo_end: float = -40.0
-    phi_hypo_start_r: float = np.radians(phi_hypo_start)
-    phi_hypo_end_r: float = np.radians(phi_hypo_end)
-
-    tooth_dict: dict = tooth_plot_compute(
-        geardata, phi_inv_start_r, phi_inv_end_r, phi_hypo_start_r, phi_hypo_end_r, flank
-    )
+    tooth_dict: dict = tooth_plot_compute(geardata)
 
     dedendum_circle = Circle(
         (0, 0),
-        tooth_dict["df"]/2,
+        tooth_dict["df"] / 2,
         color="gray",
         alpha=1,
         fill=False,
@@ -734,7 +744,7 @@ def tooth_plot(
     zorder += 1
     pitch_circle = Circle(
         (0, 0),
-        tooth_dict["dp"]/2,
+        tooth_dict["dp"] / 2,
         color="gray",
         alpha=1,
         fill=False,
@@ -744,7 +754,7 @@ def tooth_plot(
     zorder += 1
     base_circle = Circle(
         (0, 0),
-        tooth_dict["db"]/2,
+        tooth_dict["db"] / 2,
         color="gray",
         alpha=1,
         fill=False,
@@ -754,7 +764,7 @@ def tooth_plot(
     zorder += 1
     base_circle = Circle(
         (0, 0),
-        tooth_dict["da"]/2,
+        tooth_dict["da"] / 2,
         color="gray",
         alpha=1,
         fill=False,
@@ -764,8 +774,16 @@ def tooth_plot(
     zorder += 1
 
     ax.plot(
-        tooth_dict["points_inv"][0, :],
-        tooth_dict["points_inv"][1, :],
+        tooth_dict["points_inv_right"][0, :],
+        tooth_dict["points_inv_right"][1, :],
+        color="white",
+        linewidth=lw,
+        zorder=zorder,
+    )
+    zorder += 1
+    ax.plot(
+        tooth_dict["points_inv_left"][0, :],
+        tooth_dict["points_inv_left"][1, :],
         color="white",
         linewidth=lw,
         zorder=zorder,
@@ -773,14 +791,21 @@ def tooth_plot(
     zorder += 1
 
     ax.plot(
-        tooth_dict["points_hypo"][0, :],
-        tooth_dict["points_hypo"][1, :],
+        tooth_dict["points_hypo_right"][0, :],
+        tooth_dict["points_hypo_right"][1, :],
         color="white",
         linewidth=lw,
         zorder=zorder,
     )
     zorder += 1
-
+    ax.plot(
+        tooth_dict["points_hypo_left"][0, :],
+        tooth_dict["points_hypo_left"][1, :],
+        color="white",
+        linewidth=lw,
+        zorder=zorder,
+    )
+    zorder += 1
 
     ax.set_aspect("equal")
     xlim: tuple[float, float] = (0.0, 0.6 * tooth_dict["da"])

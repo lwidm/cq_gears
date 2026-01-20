@@ -100,16 +100,16 @@ def _arc_points(
     r: float,
     phi_start: float,
     phi_end: float,
-    type: Literal["degree", "radian"] = "degree",
+    unit: Literal["degree", "radian"] = "degree",
     dir: Literal["clockwise", "counterclockwise"] = "counterclockwise",
     n: int = 200,
 ) -> np.ndarray:
-    if type == "degree":
+    if unit == "degree":
         phi_start = np.radians(phi_start)
         phi_end = np.radians(phi_end)
 
-    if phi_end < phi_start:
-        phi_end += 2 * np.pi
+    # if phi_end < phi_start:
+    #     phi_end += 2 * np.pi
 
     theta = np.linspace(
         phi_start,
@@ -144,7 +144,8 @@ def involute_plot_compute(
     points_arc: np.ndarray = _arc_points(
         r=r,
         phi_start=0.0,
-        phi_end=360 - np.abs(phi_r),
+        phi_end=phi_r - np.sign(phi_r) * 2 * np.pi,
+        unit="radian",
         dir="counterclockwise",
     )
 
@@ -350,11 +351,15 @@ def involute_plot(
     return ax
 
 
-def create_involute_video(output_dir: Path, video_length: float):
+def create_involute_video(
+    output_dir: Path, video_length: float, type: Literal["line", "string"]
+):
     temp_dir = output_dir / "involute"
     temp_dir.mkdir(exist_ok=True)
 
     phi_min: float = -90
+    if type == "string":
+        phi_min = 0.0
     phi_max: float = 140
     step: float = 1 if phi_max > phi_min else -1
     phi_arr: np.ndarray = np.arange(phi_min, phi_max, step)
@@ -371,7 +376,7 @@ def create_involute_video(output_dir: Path, video_length: float):
             phi=phi,
             show_arrows=False,
             show_angle=True,
-            type="line",
+            type=type,
             phi_max=phi_arr[-1],
         )
         fig.canvas.draw()

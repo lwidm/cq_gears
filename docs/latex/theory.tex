@@ -13,6 +13,11 @@
 \usepackage{siunitx}
 \usepackage{graphicx}
 \usepackage{wrapfig}
+\usepackage{hyperref}
+\usepackage[backend=biber, style=numeric, sorting=none]{biblatex}
+\usepackage{media9}
+
+\addbibresource{references.bib}
 
 \sisetup{
     locale = DE,
@@ -48,8 +53,10 @@
 
 
 
+\nocite{*}
+\printbibliography
+
 \appendix
-\section{References / Sources}
 \section{TODOs}
 
 \end{document}

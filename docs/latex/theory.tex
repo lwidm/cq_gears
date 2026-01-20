@@ -1,0 +1,55 @@
+\documentclass[11pt, a4paper]{article}
+
+\usepackage[a4paper, margin=25mm]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+\usepackage{physics}
+
+\usepackage{titlesec}
+\usepackage{titling}
+\usepackage{authblk}
+\usepackage{microtype}
+\usepackage{siunitx}
+\usepackage{graphicx}
+\usepackage{wrapfig}
+
+\sisetup{
+    locale = DE,
+}
+
+\input{header.tex}
+
+\titleformat*{\section}{\large\bfseries}
+\titleformat*{\subsection}{\normalsize\bfseries}
+
+\graphicspath{{../assets/}}
+
+\setlength{\droptitle}{-5em}
+\title{Mathematical Theory of Involute Gear Curves}
+\author[1]{L. Widmer}
+% \affil[1]{Department of Mechanical and Process Engineering, ETH Zurich, Switzerland}
+
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+\newpage
+\input{chapters/00_intorduction}
+\input{chapters/01_preliminaries}
+\input{chapters/02_involute}
+\input{chapters/03_hypotroichoid}
+\input{chapters/04_tooth_geometry_and_positioning}
+\input{chapters/05_curve_intersections}
+
+
+
+\appendix
+\section{References / Sources}
+\section{TODOs}
+
+\end{document}

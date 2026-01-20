@@ -1,0 +1,126 @@
+# LaTeX compilation products
+*.aux
+*.lof
+*.log
+*.lot
+*.fls
+*.out
+*.toc
+*.fmt
+*.fot
+*.cb
+*.cb2
+.*.lb
+
+# Intermediate documents
+*.dvi
+*.xdv
+*-converted-to.*
+
+# Bibliography auxiliary files
+*.bbl
+*.bcf
+*.blg
+*-blx.aux
+*-blx.bib
+*.run.xml
+
+# Build tool auxiliary files
+*.fdb_latexmk
+*.synctex
+*.synctex(busy)
+*.synctex.gz
+*.synctex.gz(busy)
+*.pdfsync
+
+# Build directories
+*.pdf_tex
+*.eps_tex
+
+# PDF output files
+*.pdf
+
+# Glossaries
+*.acn
+*.acr
+*.glg
+*.glo
+*.gls
+*.glsdefs
+*.lzo
+*.lzs
+*.slg
+*.slo
+*.sls
+
+# Gnuplot
+*.gnuplot
+*.table
+
+# Hyperref
+*.brf
+
+# Knitr
+*-concordance.tex
+
+# Listings
+*.lol
+
+# Makeidx
+*.idx
+*.ilg
+*.ind
+
+# Minitoc
+*.maf
+*.mlf
+*.mlt
+*.mtc[0-9]*
+*.slf[0-9]*
+*.slt[0-9]*
+*.stc[0-9]*
+
+# Minted
+_minted*
+*.pyg
+
+# Nomencl
+*.nlg
+*.nlo
+*.nls
+
+# Pax
+*.pax
+
+# Pythontex
+*.pytxcode
+pythontex-files-*/
+
+# TikZ
+*.dpth
+*.md5
+*.auxlock
+
+# Todonotes
+*.tdo
+
+# Xindy
+*.xdy
+
+# WinEdt
+*.bak
+*.sav
+
+# Latexmk
+*.fdb_latexmk
+
+# Editors
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Operating system files
+Thumbs.db
+.Spotlight-V100
+.Trashes

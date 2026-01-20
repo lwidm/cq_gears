@@ -1,0 +1,60 @@
+\section{Preliminaries}
+
+\subsection{Notation and Symbols}
+
+\subsubsection*{Gear Geometry}
+\begin{tabular}{@{}lll@{}}
+    $m$         & Module                    & \textit{Modul} \\
+    $z$         & Number of teeth           & \textit{Zähnezahl} \\
+    $\alpha_t$  & Pressure angle (transverse) & \textit{Eingriffswinkel} \\
+    $x$         & Profile shift coefficient & \textit{Profilverschiebungsfaktor} \\
+\end{tabular}
+
+\subsubsection*{Diameters}
+\begin{tabular}{@{}lll@{}}
+    $d_p$   & Pitch circle diameter ($d_p = m \cdot z$)     & \textit{Teilkreisdurchmesser} \\
+    $d_b$   & Base circle diameter ($d_b = d_p \cos\alpha_t$) & \textit{Grundkreisdurchmesser} \\
+    $d_a$   & Addendum (tip) circle diameter                & \textit{Kopfkreisdurchmesser} \\
+    $d_f$   & Dedendum (root) circle diameter               & \textit{Fusskreisdurchmesser} \\
+    $d^*$   & Arbitrary diameter                            & -- \\
+\end{tabular}
+
+\subsubsection*{Tooth Dimensions}
+\begin{tabular}{@{}ll@{}}
+    $s_0$   & Tooth thickness at pitch circle \\
+    $s_b$   & Tooth thickness at base circle \\
+    $\gamma$& Half tooth angle at base circle \\
+\end{tabular}
+
+\subsubsection*{Curve Parameters and Angles}
+\begin{tabular}{@{}ll@{}}
+    $\phi$      & Curve parameter (rolling angle) \\
+    $\theta$    & Angle with respect to x-axis \\
+    $\phi_0$    & Starting parameter value \\
+\end{tabular}
+
+\subsubsection*{Vectors and Functions}
+\begin{tabular}{@{}ll@{}}
+    $\vb{r}_{\text{inv}}(\phi)$     & Involute position vector \\
+    $\vb{r}_{\text{hypo}}(\phi)$    & Hypotrochoid position vector \\
+    $\vb{T}(\phi)$                  & Unit tangent vector \\
+    $\vb{N}(\phi)$                  & Unit normal vector \\
+    $\vb{R}(\theta)$                & 2D rotation matrix \\
+\end{tabular}
+
+\subsection{Sign Convention}
+The symbol $\mypm$ indicates a sign that depends on which flank is being described:
+\begin{itemize}
+    \item $\textcolor{red}{+}$: Right flank (clockwise rotation)
+    \item $\textcolor{red}{-}$: Left flank (counterclockwise rotation)
+\end{itemize}
+
+\subsection{Rotation Matrix}
+The 2D rotation matrix for angle $\theta$ (counterclockwise positive):
+\begin{equation}
+    \vb{R}(\theta) = \begin{bmatrix}
+        \cos\theta & -\sin\theta \\
+        \sin\theta & \cos\theta
+    \end{bmatrix}
+\end{equation}
+

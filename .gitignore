@@ -34,10 +34,6 @@ export/
 *.step
 *.stl
 
-# Media files (generated)
-*.mp4
-*.avi
-
 # Virtual environments
 venv/
 env/

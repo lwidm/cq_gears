@@ -50,13 +50,15 @@ def involute_phi_d(d_star: float, db: float, flank: Literal["right", "left"]) ->
     return phi
 
 
-def involute_self_intersection(phi_0: float, m: float, dp: float, db: float, n_iter: int = 200):
+def involute_self_intersection(
+    phi_0: float, m: float, dp: float, db: float, n_iter: int = 200
+) -> float:
     gamma: float = half_base_tooth_angle(m, dp, db)
 
-    def newton_raphson(phi: float)-> float:
-        a: float = np.cos(phi) + phi*np.sin(phi)
-        b: float = np.sin(phi) - phi*np.cos(phi)
-        return phi - a/phi**2 *(b - np.tan(gamma)*a)
+    def newton_raphson(phi: float) -> float:
+        a: float = np.cos(phi) + phi * np.sin(phi)
+        b: float = np.sin(phi) - phi * np.cos(phi)
+        return phi - a / phi**2 * (b - np.tan(gamma) * a)
 
     phi: float = phi_0
 
@@ -162,6 +164,72 @@ def hypotroichoid_phi_0(
     return phi
 
 
+def hypotroichoid_involute_intersection(
+    phi_0_inv: float,
+    phi_0_hypo: float,
+    df: float,
+    dp: float,
+    db: float,
+    alpha_t_r: float,
+    flank: Literal["right", "left"],
+    n_iter: int = 200,
+) -> tuple[float, float]:
+    a: float = df
+    b: float = df * np.tan(alpha_t_r)
+    c: float = np.cos(alpha_t_r)
+    d: float = np.sin(alpha_t_r)
+
+    if flank == "left":
+        b = -b
+        d = -d
+
+    def newton_raphson(x: np.ndarray) -> np.ndarray:
+        J_11: float = db * x[0] * (c * np.cos(x[0]) - d * np.sin(x[0]))
+        J_12: float = (
+            a * np.sin(x[1])
+            + b * np.cos(x[1])
+            - dp * np.sin(x[1])
+            - dp * x[1] * np.cos(x[1])
+        )
+        J_21: float = db * x[0] * (d * np.cos(x[0]) + c * np.sin(x[0]))
+        J_22: float = (
+            b * np.sin(x[1])
+            - a * np.cos(x[1])
+            + dp * np.cos(x[1])
+            - dp * x[1] * np.sin(x[1])
+        )
+        J_inv: np.ndarray = (
+            1 / (J_11 * J_22 - J_12 * J_21) * np.array([[J_22, -J_12], [-J_21, J_11]])
+        )
+        f: np.ndarray = np.array(
+            [
+                    db * c * np.cos(x[0])
+                    + db * c * x[0] * np.sin(x[0])
+                    - db * d * np.sin(x[0])
+                    + db * d * x[0] * np.cos(x[0])
+                    - a * np.cos(x[1])
+                    + b * np.sin(x[1])
+                    - dp * x[1] * np.sin(x[1])
+                ,
+                    db * d * np.cos(x[0])
+                    + db * d * x[0] * np.sin(x[0])
+                    + db * c * np.sin(x[0])
+                    - db * c * x[0] * np.cos(x[0])
+                    - b * np.cos(x[1])
+                    - a * np.sin(x[1])
+                    + dp * x[1] * np.cos(x[1])
+            ]
+        )
+        return x - J_inv @ f
+
+    phi: np.ndarray = np.array([phi_0_inv, phi_0_hypo])
+
+    for _ in range(n_iter):
+        phi = newton_raphson(phi)
+
+    return phi[0], phi[1]
+
+
 def hypotrochoid_positioned(
     m: float,
     df: float,
@@ -214,11 +282,11 @@ def hypotroichoid_tooth(
     db: float,
     df: float,
     alpha_t_r: float,
+    phi_end_r: float,
     n_points: int,
     flank: Literal["right", "left"],
 ) -> np.ndarray:
     phi_start_r: float = hypotroichoid_phi_0(dp, df, alpha_t_r, flank)
-    phi_end_r: float = hypotroichoid_phi_d(dp, dp, df, alpha_t_r, flank)
     phi_arr_r: np.ndarray = np.linspace(phi_start_r, phi_end_r, n_points)
     return hypotrochoid_positioned(m, df, dp, db, alpha_t_r, phi_arr_r, flank)
 

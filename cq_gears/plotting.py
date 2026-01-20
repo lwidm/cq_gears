@@ -682,28 +682,33 @@ def tooth_plot_compute(
     n_points: int = 500
 
     phi_r_addendum: float = math.involute_phi_d(da, db, "right")
-    phi_r_intersection: float = math.involute_self_intersection(
+    phi_r_addendum_intersection: float = math.involute_self_intersection(
         phi_r_addendum, m, dp, db
     )
 
-    phi_r_start: float = 0.0
+    phi_inv_start: float = math.involute_phi_d(dp, db, "right")
+    phi_hypo_end: float = math.hypotroichoid_phi_d(dp, dp, df, alpha_t_r, "right")
+    phi_inv_start, phi_hypo_end = math.hypotroichoid_involute_intersection(
+        phi_inv_start, phi_hypo_end, df, dp, db, alpha_t_r, "right", 200
+    )
+
     phi_r_end: float
-    if phi_r_addendum > phi_r_intersection:
-        phi_r_end = phi_r_intersection
+    if phi_r_addendum > phi_r_addendum_intersection:
+        phi_r_end = phi_r_addendum_intersection
     else:
         phi_r_end = phi_r_addendum
 
     points_inv_right: np.ndarray = math.involute_tooth(
-        m, dp, db, phi_r_start, phi_r_end, n_points, "right"
+        m, dp, db, phi_inv_start, phi_r_end, n_points, "right"
     )
     points_inv_left: np.ndarray = math.involute_tooth(
-        m, dp, db, phi_r_start, -phi_r_end, n_points, "left"
+        m, dp, db, -phi_inv_start, -phi_r_end, n_points, "left"
     )
     points_hypo_right: np.ndarray = math.hypotroichoid_tooth(
-        m, dp, db, df, alpha_t_r, n_points, "right"
+        m, dp, db, df, alpha_t_r, phi_hypo_end, n_points, "right"
     )
     points_hypo_left: np.ndarray = math.hypotroichoid_tooth(
-        m, dp, db, df, alpha_t_r, n_points, "left"
+        m, dp, db, df, alpha_t_r, -phi_hypo_end, n_points, "left"
     )
 
     result: dict[str, float | np.ndarray | GearData] = {

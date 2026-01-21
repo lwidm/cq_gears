@@ -6,16 +6,16 @@ The involute curve originates from the base circle and defines the tooth flank. 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.8\textwidth]{de-evolventenverzahnung-zahnstange-eingriff.jpg}
-    \caption{Rack and pinion \cite{rack}}
+    \caption{Rack and pinion~\cite{tecScience_zahnstange}}
     \label{fig:rack-geometry}
 \end{figure}
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.8\textwidth]{de-evolventenverzahnung-kreis-evolvente-eingriffswinkel-flankenform.jpg}
-    \caption{Involute geometry and pressure angle \cite{geometry}}
+    \caption{Involute geometry and pressure angle~\cite{tecScience_konstruktion_evolvente}}
     \label{fig:involute-geometry}
 \end{figure}
-The video at \cite{involute} shows how the involute originates in a very intuitive way.
+The youtoube video by Gregely Bencsik~\cite{involute_YTvideo} shows how the involute originates in a very intuitive way.
 
 For the mathematical description I will think of the involute as the curve traced by the unwinding of a taut string from the base 
 
@@ -47,7 +47,7 @@ Figure~\ref{fig:involute_construction} illustrates two equivalent geometric cons
 \subsection{Parametric Equation}
 Looking atin Figure~\ref{fig:involute_construction}, the parametric equation can be separated into two commponents (yellow and blue arrow). The yellow arrow has a magnitude of $\frac{d_b}{2}$ and the blue arrow's magnitude (as discussed in the sectino above) is equal to the arc length by $\phi$, i.e. $\frac{d_b}{2}\phi$.
 
-$$
+\begin{equation}
 \begin{bmatrix}
 x(\phi) \\
 y(\phi)
@@ -60,11 +60,12 @@ y(\phi)
 \sin(\phi) \\
 -\cos(\phi)
 \end{bmatrix}}
-$$
+\end{equation}
 
 \subsection{Parameter \texorpdfstring{$\phi(d^*)$}{φ(d*)} at a Given Diameter}
 In order to avoid dealing with intersections it can be useful to know at which $\phi$ a certain diameter (for e.g. the addendum diameter $d_a$) is reached. The followingg is the derivation of $\phi(d^*)$, where $d^*$ is an arbitrary diameter.
 
+\begin{subequations}
 \begin{align}
 d^* &\stackrel{!}{=} \sqrt{x(\phi^*)^2 + y(\phi^*)^2}\cdot2 \\
 (d^*/2)^2 &= x(\phi^*)^2 + y(\phi^*)^2 \\
@@ -76,6 +77,7 @@ d^* &\stackrel{!}{=} \sqrt{x(\phi^*)^2 + y(\phi^*)^2}\cdot2 \\
 \phi^* &= \pm\frac{\sqrt{{d^*}^2 - d_b^2}}{d_b} \\
        &= \pm\left[\left(\frac{d^* }{d_b}\right)^2 - 1\right]^{\frac{1}{2}}
 \end{align}
+\end{subequations}
 
 Note: The positve solution is valid for the right flank (counterclockwise rotating involute) and the negative solution holds for the left flank (clockwise rotating involute)
 
@@ -83,20 +85,25 @@ Note: The positve solution is valid for the right flank (counterclockwise rotati
 In order to create a full tooth the invlolute needs to be mirrored by the x-axis (or a left involute and a right involute need to be placed correctly). But since only the tooth thickness at the \textbf{pitch circle} is known we first need to know the angle between the x-axis and the involute point at $d^*(\phi)=d_p$. This is required since the involute starts at $y=0$ (meaning the point crossing the pitch circle is at $y>0$). With this information one can first rotate the involute around the origin until the point at the pitch circle is at $y=0$ and then further rotate it by the half tooth thickness angle.
 
 \paragraph{a)} determine $x(\phi^*)$
+\begin{subequations}
 \begin{align}
 x(\phi^*) &= \frac{d_b}{2}\cos\phi^* + \frac{d_b}{2}\phi^*\sin\phi^*\\
 &=\frac{d_b}{2}\cos\left(\pm\frac{\sqrt{{d^*}^2 - d_b^2}}{d_b}\right) \pm \frac{d_b}{2}\frac{\sqrt{{d^*}^2 - d_b^2}}{d_b}\sin\left(\pm\frac{\sqrt{{d^*}^2 - d_b^2}}{d_b}\right) \\
 &=\frac{d_b}{2}\cos\left(\pm\frac{\sqrt{{d^*}^2 - d_b^2}}{d_b}\right) \pm \frac{\sqrt{{d^*}^2 - d_b^2}}{2}\sin\left(\pm\frac{\sqrt{{d^*}^2 - d_b^2}}{d_b}\right)
 \end{align}
+\end{subequations}
 
 \paragraph{b)} determine $y(\phi^*)$
+\begin{subequations}
 \begin{align}
 y(\phi^*) &= \frac{d_b}{2}\sin\phi^* - \frac{d_b}{2}\phi^*\cos\phi^*\\
 &=\frac{d_b}{2}\sin\left(\pm\frac{\sqrt{{d^*}^2 - d_b^2}}{d_b}\right) \mp \frac{d_b}{2}\frac{\sqrt{{d^*}^2 - d_b^2}}{d_b}\cos\left(\pm\frac{\sqrt{{d^*}^2 - d_b^2}}{d_b}\right) \\
 &=\frac{d_b}{2}\sin\left(\pm\frac{\sqrt{{d^*}^2 - d_b^2}}{d_b}\right) \mp \frac{\sqrt{{d^*}^2 - d_b^2}}{2}\cos\left(\pm\frac{\sqrt{{d^*}^2 - d_b^2}}{d_b}\right)
 \end{align}
+\end{subequations}
 
 \paragraph{c)} Compute $\tan(y/x)$
+\begin{subequations}
 \begin{align}
 \theta(\phi^*) &= \arctan\frac{y(\phi^*)}{x(\phi^*)} \\
  &= \arctan\frac{\frac{d_b}{2}\sin\phi^* - \frac{d_b}{2}\phi^*\cos\phi^*)}{\frac{d_b}{2}\cos\phi^* + \frac{d_b}{2}\phi^*\sin\phi^*} \\
@@ -104,6 +111,7 @@ y(\phi^*) &= \frac{d_b}{2}\sin\phi^* - \frac{d_b}{2}\phi^*\cos\phi^*\\
  \textcolor{orange}{\cdot \frac{1/\cos\phi^*}{1/\cos\phi^*}}\\
  &= \arctan\frac{\tan\phi^* - \phi^*}{1 + \phi^*\tan\phi^*} \label{eq:involute_angle_unsimplified} 
 \end{align}
+\end{subequations}
 
 \paragraph{d)} Simplify using tangent subtraction / addition formula:
 
@@ -113,7 +121,8 @@ The tangent subtraction / addition formula reads
 \label{eq:tangent_subtraction_formula}
 \end{equation}
 
-Inserting $\alpha=\phi^*$ and $\beta=\arctan\phi^*$ into eq \ref{eq:tangent_subtraction_formula} above (only considering subtraction):
+Inserting $\alpha=\phi^*$ and $\beta=\arctan\phi^*$ into eq~\eqref{eq:tangent_subtraction_formula} above (only considering subtraction):
+\begin{subequations}
 \begin{align}
     \tan\left(\phi^* - \arctan(\phi^*)\right) &= \frac{\tan(\phi^*) - \tan(\arctan(\phi^*))}{1+\tan(\phi^*)\tan(\arctan(\phi^*))}
     \\
@@ -121,8 +130,9 @@ Inserting $\alpha=\phi^*$ and $\beta=\arctan\phi^*$ into eq \ref{eq:tangent_subt
     \\
     \phi^* - \arctan(\phi^*) &= \arctan\frac{\tan(\phi^*) - \phi^*}{1 + \phi^*\tan(\phi^*)} \label{eq:inserted_tangent_subtraction_formula}
 \end{align}
+\end{subequations}
 
-Comparing eq. \ref{eq:involute_angle_unsimplified} and eq. \ref{eq:inserted_tangent_subtraction_formula} gives:
+Comparing eq.~\eqref{eq:involute_angle_unsimplified} and eq.~\eqref{eq:inserted_tangent_subtraction_formula} gives:
 \begin{equation}
     \theta(\phi^*) = \phi^* - \arctan\phi^*
 \end{equation}
@@ -135,6 +145,7 @@ This is a very unsurprising results, as this simply is the involute equation.
 \end{equation}
 
 \subsection{Summary}
+\begin{subequations}
 \begin{align}
 \vb{r_{inv}}(\phi) = 
 \begin{bmatrix}
@@ -152,6 +163,7 @@ y(\phi)
 \phi(d^*) &= \mypm\left[\left(\frac{d^* }{d_b}\right)^2 - 1\right]^{\frac{1}{2}}\\
 \theta(d^*) &=  \mypm\left[\left(\frac{d^*}{d_b}\right)^2 - 1\right]^{\tfrac{1}{2}} - \arctan\left(\mypm\left[\left(\frac{d^*}{d_b}\right)^2 - 1\right]^{\tfrac{1}{2}}\right)
 \end{align}
+\end{subequations}
 
 \textbf{Note:} The $\mypm$ as well as the monotonicity of $\phi$ depends on which flank
 \begin{itemize}

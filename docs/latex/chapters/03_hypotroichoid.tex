@@ -9,9 +9,9 @@ The parametric description of the undercut curve is significantly more complicat
     \label{fig:undercut_video_screenshot}
 \end{figure}
 
-Figure~\ref{fig:undercut_video_screenshot} above (and the associated video) show very nicely how the geometry of the undercut is created. Simply put, the rack rolls along the pitch circle (careful: \textbf{unlike the tooth involute which uses the base circle here the rack rolls along the pitch circle}) and with it the (here right) tip of the rack tooth (shown above with the solid arrow) rotate and translates.
+Figure~\ref{fig:undercut_video_screenshot} above (and the associated video) show very nicely how the geometry of the undercut is created. Simply put, the rack rolls along the pitch circle (careful: \textbf{unlike the tooth involute which uses the base circle here the rack rolls along the pitch circle}) and with it the (here right) tip of the rack tooth (shown above with the solid arrow, which I will call the \textbf{shift vector}) rotate and translates.
 
-Therefore the undercut can be constructed by placing this solid arrow along the involute created by $d_p$ while keeping the angle of this arrow w.r.t the involute constant.
+Therefore the undercut can be constructed by placing this shift vector along the involute created by $d_p$ while keeping the angle of this shift vector w.r.t the involute constant (the image and video in Figure~\ref{fig:undercut_generated_video} below show this very nicely)
 
 Again we use $\phi$ as a parameter for this curve however this time a negative $\phi$ will result in the right flank as it is related to the associated clockwise rotating involute used for construction.
 
@@ -27,7 +27,7 @@ From here on I will refer to the undercut curve as the Hypotrochoid
     \item Negative $\phi$ values will result in a right flank and positive values will result in a left flank.\footnote{Actually both flanks have positive and negative values for $\phi$ as close to the dedendum circle the sign switches. What is meant here is that $\max(\phi)$ is positive or negative.}
 \end{itemize}
 
-With this in mind the arrow at $\phi=0$ (which is the state of Figure~\ref{fig:undercut_video_screenshot} above) is:
+With this in mind the shift vector at $\phi=0$ (which is the state of Figure~\ref{fig:undercut_video_screenshot} above) is:
 \begin{equation}
     \vb v = \begin{bmatrix} v_x \\ v_y \end{bmatrix} = \begin{bmatrix} r_d - r_p \\ \mypm r_f \tan(\alpha_t) \end{bmatrix}
 \end{equation}
@@ -38,7 +38,7 @@ or using $d_f = 2\cdot r_d$ and $d_p = 2 \cdot r_p$
 
 
 \subsection{Differential Geometry of the Involute}
-Since we need to move the arrow along the involute \textbf{while keeping the angle w.r.t the involute constant}, we need to continuously rotate this arrow by an angle defined by the involute.
+Since we need to move the shift vector along the involute \textbf{while keeping the angle w.r.t the involute constant} (again check the image and video in Figure~\ref{fig:undercut_generated_video} for a visual explanation), we need to continuously rotate it by an angle defined by the involute.
 
 The easiest way to do this is to compute the angle of the tangent vector to the involute w.r.t the $x$-axis (again keep in mind the rotated orientation of Figure~\ref{fig:undercut_video_screenshot}) as at $\phi=0$ this angle is $0$
 
@@ -124,6 +124,21 @@ Similarly for the angle of the normal vector:
 \end{equation}
 
 \subsection{Parametric Equation}
+
+\begin{figure}[ht]
+    \centering
+        \iflocal
+            \href{run:../assets/hypotroichoid.mp4}{%
+                \includegraphics[width=0.47\linewidth]{../assets/hypotroichoid.png}
+            }%
+        \else
+            \href{https://github.com/lwidm/cq_gears/blob/main/docs/assets/hypotroichoid.mp4}{%
+                \includegraphics[width=0.47\linewidth]{../assets/hypotroichoid.png}
+            }%
+        \fi
+    \caption{Image showing the shift vector at a later point in the undercut curve construction ($\phi<0$).The images link to a corresponding video on GitHub showing the movement of the shift vector along the involute.}
+    \label{fig:undercut_generated_video}
+\end{figure}
 \subsection{Parameter \texorpdfstring{$\phi(d^*)$}{φ(d*)} at a Given Diameter}
     \subsubsection{General Case}
     \subsubsection{Special Case \texorpdfstring{$\phi_0 = \phi(d_f)$}{φ₀ = φ(dₓ)}}

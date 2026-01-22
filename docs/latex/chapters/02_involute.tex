@@ -15,7 +15,7 @@ The involute curve originates from the base circle and defines the tooth flank. 
     \caption{Involute geometry and pressure angle~\cite{tecScience_konstruktion_evolvente}}
     \label{fig:involute-geometry}
 \end{figure}
-The youtoube video by Gregely Bencsik~\cite{involute_YTvideo} shows how the involute originates in a very intuitive way.
+The YouTube video by Gergely Bencsik~\cite{involute_YTvideo} shows how the involute originates in a very intuitive way.
 
 For the mathematical description I will think of the involute as the curve traced by the unwinding of a taut string from the base 
 
@@ -42,10 +42,10 @@ For the mathematical description I will think of the involute as the curve trace
     \label{fig:involute_construction}
 \end{figure}
 
-Figure~\ref{fig:involute_construction} illustrates two equivalent geometric constructions for the involute. While the rolling-line construction (left) is more directly relevant in a mechanical context, since it reflects the kinematics of a rack rolling without slipping on a gear, the unwinding-string construction (right) showes more clearly that the length of the blue arrow is exactly equal to the arc length spanned by the base circle at the angular parameter~$\phi$.
+Figure~\ref{fig:involute_construction} illustrates two equivalent geometric constructions for the involute. While the rolling-line construction (left) is more directly relevant in a mechanical context, since it reflects the kinematics of a rack rolling without slipping on a gear, the unwinding-string construction (right) shows more clearly that the length of the blue arrow is exactly equal to the arc length spanned by the base circle at the angular parameter~$\phi$.
 
 \subsection{Parametric Equation}
-Looking atin Figure~\ref{fig:involute_construction}, the parametric equation can be separated into two commponents (yellow and blue arrow). The yellow arrow has a magnitude of $\frac{d_b}{2}$ and the blue arrow's magnitude (as discussed in the sectino above) is equal to the arc length by $\phi$, i.e. $\frac{d_b}{2}\phi$.
+Looking at Figure~\ref{fig:involute_construction}, the parametric equation can be separated into two components (yellow and blue arrow). The yellow arrow has a magnitude of $\frac{d_b}{2}$ and the blue arrow's magnitude (as discussed in the section above) is equal to the arc length by $\phi$, i.e. $\frac{d_b}{2}\phi$.
 
 \begin{equation}
 \begin{bmatrix}
@@ -63,7 +63,7 @@ y(\phi)
 \end{equation}
 
 \subsection{Parameter \texorpdfstring{$\phi(d^*)$}{φ(d*)} at a Given Diameter}
-In order to avoid dealing with intersections it can be useful to know at which $\phi$ a certain diameter (for e.g. the addendum diameter $d_a$) is reached. The followingg is the derivation of $\phi(d^*)$, where $d^*$ is an arbitrary diameter.
+In order to avoid dealing with intersections it can be useful to know at which $\phi$ a certain diameter (for e.g. the addendum diameter $d_a$) is reached. The following is the derivation of $\phi(d^*)$, where $d^*$ is an arbitrary diameter.
 
 \begin{subequations}
 \begin{align}
@@ -79,10 +79,10 @@ d^* &\stackrel{!}{=} \sqrt{x(\phi^*)^2 + y(\phi^*)^2}\cdot2 \\
 \end{align}
 \end{subequations}
 
-Note: The positve solution is valid for the right flank (counterclockwise rotating involute) and the negative solution holds for the left flank (clockwise rotating involute)
+Note: The positive solution is valid for the right flank (counterclockwise rotating involute) and the negative solution holds for the left flank (clockwise rotating involute)
 
 \subsection{Involute Angle \texorpdfstring{$\theta(d^*)$}{θ(d*)} at a Given Diameter}
-In order to create a full tooth the invlolute needs to be mirrored by the x-axis (or a left involute and a right involute need to be placed correctly). But since only the tooth thickness at the \textbf{pitch circle} is known we first need to know the angle between the x-axis and the involute point at $d^*(\phi)=d_p$. This is required since the involute starts at $y=0$ (meaning the point crossing the pitch circle is at $y>0$). With this information one can first rotate the involute around the origin until the point at the pitch circle is at $y=0$ and then further rotate it by the half tooth thickness angle.
+In order to create a full tooth the involute needs to be mirrored by the x-axis (or a left involute and a right involute need to be placed correctly). But since only the tooth thickness at the \textbf{pitch circle} is known we first need to know the angle between the x-axis and the involute point at $d^*(\phi)=d_p$. This is required since the involute starts at $y=0$ (meaning the point crossing the pitch circle is at $y>0$). With this information one can first rotate the involute around the origin until the point at the pitch circle is at $y=0$ and then further rotate it by the half tooth thickness angle.
 
 \paragraph{a)} determine $x(\phi^*)$
 \begin{subequations}
@@ -106,7 +106,7 @@ y(\phi^*) &= \frac{d_b}{2}\sin\phi^* - \frac{d_b}{2}\phi^*\cos\phi^*\\
 \begin{subequations}
 \begin{align}
 \theta(\phi^*) &= \arctan\frac{y(\phi^*)}{x(\phi^*)} \\
- &= \arctan\frac{\frac{d_b}{2}\sin\phi^* - \frac{d_b}{2}\phi^*\cos\phi^*)}{\frac{d_b}{2}\cos\phi^* + \frac{d_b}{2}\phi^*\sin\phi^*} \\
+ &= \arctan\frac{\frac{d_b}{2}\sin\phi^* - \frac{d_b}{2}\phi^*\cos\phi^*}{\frac{d_b}{2}\cos\phi^* + \frac{d_b}{2}\phi^*\sin\phi^*} \\
  &= \arctan\frac{\sin\phi^* - \phi^*\cos\phi^*}{\cos\phi^* + \phi^*\sin\phi^*} 
  \textcolor{orange}{\cdot \frac{1/\cos\phi^*}{1/\cos\phi^*}}\\
  &= \arctan\frac{\tan\phi^* - \phi^*}{1 + \phi^*\tan\phi^*} \label{eq:involute_angle_unsimplified} 

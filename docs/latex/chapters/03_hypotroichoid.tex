@@ -1,26 +1,30 @@
 \section{The Hypotrochoid (Undercut Curve)}
-The parametric description of the undercut curve is significantly more complicated. Fortunately Gregelry Bencsik has made a great youtube video~\cite{undercut_YTvideo} which shows in a very intuitive way how the geometry is created and shows a relative simple way one can describe it.
+The parametric description of the undercut curve is significantly more complicated. Fortunately Gergely Bencsik has made a great YouTube video~\cite{undercut_YTvideo} which shows in a very intuitive way how the geometry is created and shows a relative simple way one can describe it.
 
 \subsection{Geometric construction}
 \begin{figure}[ht]
     \centering
     \includegraphics[width=0.9\textwidth]{../assets/undercut_geometry_YT_screenshot.png}
-    \caption{Screenshot of Gragelry Bencsik's video~\cite{undercut_YTvideo} explaining the undercut geomertry. Here $r_p$ refers to the pitch circle radius, $r_d$ to the addendum circle radius (for which I use $r_f$, resp. $d_f$ for the diameter) and alpha the transversal pressure angle (for which I use $\alpha_t$)}
+    \caption{Screenshot of Gergely Bencsik's video~\cite{undercut_YTvideo} explaining the undercut geometry. Here $r_p$ refers to the pitch circle radius, $r_d$ to the addendum circle radius (for which I use $r_f$, resp. $d_f$ for the diameter) and alpha the transversal pressure angle (for which I use $\alpha_t$)}
     \label{fig:undercut_video_screenshot}
 \end{figure}
 
-Figure~\ref{fig:undercut_video_screenshot} above (and the associated video) show very nicely how the geometry of the undercut is created. Simply put, the rack rolls along the pitch circle (carefull: \textbf{unlike the tooth involute which uses the base circle here the rack rolls along the pitch circle}) and with it the (here right) tip of the rack tooth (shown above with the solid arrow) rotate and translates.
+Figure~\ref{fig:undercut_video_screenshot} above (and the associated video) show very nicely how the geometry of the undercut is created. Simply put, the rack rolls along the pitch circle (careful: \textbf{unlike the tooth involute which uses the base circle here the rack rolls along the pitch circle}) and with it the (here right) tip of the rack tooth (shown above with the solid arrow) rotate and translates.
 
 Therefore the undercut can be constructed by placing this solid arrow along the involute created by $d_p$ while keeping the angle of this arrow w.r.t the involute constant.
 
 Again we use $\phi$ as a parameter for this curve however this time a negative $\phi$ will result in the right flank as it is related to the associated clockwise rotating involute used for construction.
 
-\textbf{A major confusion} with Figure~\ref{fig:undercut_video_screenshot} above is the coordinate syste. The math in the following sections creates an undercut curve on the right side of the gear, and not below and therefore you need to treat it as follows:
+From here on I will refer to the undercut curve as the Hypotrochoid
+
+\subsection{Shift Vector}
+
+\textbf{A major confusion} with Figure~\ref{fig:undercut_video_screenshot} above is the coordinate system. The math in the following sections creates an undercut curve on the right side of the gear, and not below and therefore you need to treat it as follows:
 \begin{itemize}
     \item Positive $x$-direction is downwards
     \item Positive $y$-direction is to the right
-    \item I use a $\mypm$ to differenciatiate between the right ($\textcolor{red}{+}$) and left ($\textcolor{red}{-}$) flank.
-    \item Negative $\phi$ values will result in a right flank and positve values will result in a left flank.\footnote{Actually both flanks have positive and negative values for $\phi$ as close to the dedendum circle the sing switches. What is ment here is that $\max(\phi)$ is positive or negative.}
+    \item I use a $\mypm$ to differentiate between the right ($\textcolor{red}{+}$) and left ($\textcolor{red}{-}$) flank.
+    \item Negative $\phi$ values will result in a right flank and positive values will result in a left flank.\footnote{Actually both flanks have positive and negative values for $\phi$ as close to the dedendum circle the sign switches. What is meant here is that $\max(\phi)$ is positive or negative.}
 \end{itemize}
 
 With this in mind the arrow at $\phi=0$ (which is the state of Figure~\ref{fig:undercut_video_screenshot} above) is:
@@ -34,10 +38,91 @@ or using $d_f = 2\cdot r_d$ and $d_p = 2 \cdot r_p$
 
 
 \subsection{Differential Geometry of the Involute}
-    \subsubsection{Derivative}
-    \subsubsection{Tangent and Normal Vectors}
-    \subsubsection{Angle of Tangent/Normal}
-\subsection{Shift Vector}
+Since we need to move the arrow along the involute \textbf{while keeping the angle w.r.t the involute constant}, we need to continuously rotate this arrow by an angle defined by the involute.
+
+The easiest way to do this is to compute the angle of the tangent vector to the involute w.r.t the $x$-axis (again keep in mind the rotated orientation of Figure~\ref{fig:undercut_video_screenshot}) as at $\phi=0$ this angle is $0$
+
+This means we need to compute the tangent vector of the involute and hence also its derivative w.r.t $\phi$
+
+\subsubsection{Derivative}
+Starting from the parametric involute equation,
+\begin{equation}
+\vb{r_{inv}}(\phi) = 
+\begin{bmatrix}
+x(\phi) \\
+y(\phi)
+\end{bmatrix}
+= \tfrac{d_b}{2} \begin{bmatrix}
+\cos(\phi) \\
+\sin(\phi)
+\end{bmatrix}
++ \tfrac{d_b}{2}\phi \begin{bmatrix}
+\sin(\phi) \\
+-\cos(\phi)
+\end{bmatrix}
+\end{equation}
+First the $x$-component is differentiated
+\begin{subequations}
+\begin{align}
+x(\phi) &= \frac{d_p}{2}(\cos(\phi) + \phi \sin(\phi))\\
+x'(\phi) &= \frac{d_p}{2}(-\sin(\phi) + \sin(\phi) + \phi\cos(\phi)) \\
+&= \frac{d_p}{2}\phi\cos(\phi)
+\end{align}
+\end{subequations}
+
+Next the $y$-component is differentiated
+\begin{subequations}
+\begin{align}
+y(\phi) &= \frac{d_p}{2}(\sin(\phi) - \phi \cos(\phi))\\
+y'(\phi) &= \frac{d_p}{2}(\cos(\phi) - \cos(\phi) + \phi\sin(\phi)) \\
+&= \frac{d_p}{2}\phi\sin(\phi)
+\end{align}
+\end{subequations}
+
+Resulting in:
+\begin{equation}
+\vb{r_{inv}}'(\phi) = \frac{d_p}{2}\phi\begin{bmatrix}\cos(\phi)\\\sin(\phi)\end{bmatrix}
+\end{equation}
+
+\subsubsection{Tangent and Normal Vectors}
+To get normalised vectors the magnitude of the derivative is computed
+\begin{subequations}
+\begin{align}
+\norm{\vb{r_{inv}'}(\phi)} &= \frac{d_p}{2}\abs{\phi}\sqrt{\cos^2(\phi) + \sin^2(\phi)} \\
+&= \frac{d_p}{2}\abs{\phi}
+\end{align}
+\end{subequations}
+
+\paragraph{The unit tangent vector} is computed as:
+\begin{subequations}
+\begin{align}
+\vb{T}(\phi) &= \frac{\vb{r_{inv}}'(\phi)}{\norm{\vb{r_{inv}}'(\phi)}}\\
+&= \frac{\phi}{\abs{\phi}}\begin{bmatrix}\cos(\phi)\\\sin(\phi)\end{bmatrix}\\
+&= \operatorname{sgn}(\phi) \begin{bmatrix}\cos(\phi)\\\sin(\phi)\end{bmatrix}
+\end{align}
+\end{subequations}
+
+\paragraph{The unit normal vector} is obtained by rotating the unit tangent by $+90^\circ$ (or $-90^\circ)$
+\begin{equation}
+\vb{N}(\phi) = \operatorname{sgn}(\phi)\begin{bmatrix}-\sin(\phi)\\\cos(\phi)\end{bmatrix}
+\end{equation}
+
+\subsubsection{Angle of Tangent/Normal}
+The angle $\theta_t$ of the tangent relative to the $x$-axis is computed as:
+\begin{equation}
+\tan(\theta_t) = \frac{y'(\phi)}{x'(\phi)} = \frac{\phi\sin(\phi)}{\phi\cos(\phi)}=\tan{\phi}
+\end{equation}
+
+Hence:
+\begin{equation}
+\theta_t(\phi) = \phi
+\end{equation}
+
+Similarly for the angle of the normal vector:
+\begin{equation}
+\theta_n(\phi) = \phi + \tfrac{\pi}{2}
+\end{equation}
+
 \subsection{Parametric Equation}
 \subsection{Parameter \texorpdfstring{$\phi(d^*)$}{φ(d*)} at a Given Diameter}
     \subsubsection{General Case}

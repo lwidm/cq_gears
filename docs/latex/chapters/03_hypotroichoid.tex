@@ -38,6 +38,7 @@ or using $d_f = 2\cdot r_d$ and $d_p = 2 \cdot r_p$
 
 
 \subsection{Differential Geometry of the Involute}
+\label{subsec:diff_geom_invo}
 Since we need to move the shift vector along the involute \textbf{while keeping the angle w.r.t the involute constant} (again check the image and video in Figure~\ref{fig:undercut_generated_video} for a visual explanation), we need to continuously rotate it by an angle defined by the involute.
 
 The easiest way to do this is to compute the angle of the tangent vector to the involute w.r.t the $x$-axis (again keep in mind the rotated orientation of Figure~\ref{fig:undercut_video_screenshot}) as at $\phi=0$ this angle is $0$
@@ -139,6 +140,156 @@ Similarly for the angle of the normal vector:
     \caption{Image showing the shift vector at a later point in the undercut curve construction ($\phi<0$).The images link to a corresponding video on GitHub showing the movement of the shift vector along the involute.}
     \label{fig:undercut_generated_video}
 \end{figure}
+As described in previous sections we first need to rotate the shift vector by the angle $\phi$ (see Section~\ref{subsec:diff_geom_invo}) and then translate it to the correct position of the construction involute:
+
+\begin{subequations}
+\begin{align}
+    \vb{r_{hypo}}(\phi) &=\vb{R}(\phi)\vb v + \vb{r_{inv}}(\phi)
+\\
+    &= \underbrace{
+            \begin{bmatrix}
+                \cos(\phi) & -\sin(\phi) \\
+                \sin(\phi) & \cos(\phi)
+            \end{bmatrix}}_{\vb R(\phi)}
+        \underbrace{
+            \begin{bmatrix}
+                \frac{d_f - d_p}{2} \\
+                \pm\frac{d_f}{2}\tan(\alpha_t)
+            \end{bmatrix}}_{\vb v}
+        + \underbrace{
+            \frac{d_p}{2}
+                \begin{bmatrix}
+                    \cos(\phi) \\
+                    \sin(\phi)
+                \end{bmatrix}
+            + \frac{d_p}{2}\phi
+                \begin{bmatrix}
+                    \sin(\phi) \\
+                    -\cos(\phi)
+                \end{bmatrix}
+            }_{\vb{r_{inv}(\phi)}}
+\\
+    &= \frac{1}{2}\left(
+            \begin{bmatrix}
+                \cos(\phi) & -\sin(\phi) \\
+                \sin(\phi) & \cos(\phi)
+            \end{bmatrix}
+            \begin{bmatrix}
+                d_f - d_p \\
+                \pm d_f\tan(\alpha_t)
+            \end{bmatrix}
+        + d_p
+            \begin{bmatrix}
+                \cos(\phi) \\
+                \sin(\phi)
+            \end{bmatrix}
+        + d_p\phi
+            \begin{bmatrix}
+                \sin(\phi) \\
+                -\cos(\phi)
+            \end{bmatrix}
+        \right)
+\\[1ex]
+    &= \frac{1}{2}\left(
+            \begin{bmatrix}
+                (d_f - d_p)\cos(\phi) \mp d_f\tan(\alpha_t)\sin(\phi)\\
+                (d_f - d_p)\sin(\phi) \pm d_f\tan(\alpha_t)\cos(\phi)
+            \end{bmatrix}
+            + \begin{bmatrix}
+                d_p(\cos(\phi) + \phi\sin(\phi))\\
+                d_p(\sin(\phi) - \phi\cos(\phi))\\
+            \end{bmatrix}
+        \right)
+\\[1ex]
+    &= \frac{1}{2}
+        \begin{bmatrix}
+            (d_f - d_p + d_p)\cos(\phi) + d_f\tan(\alpha_t)\sin(\phi) + d_p\phi\sin(\phi) \\
+            (d_f - d_p + d_p)\sin(\phi) - d_f\tan(\alpha_t)\cos(\phi) - d_p\phi\cos(\phi) \\
+        \end{bmatrix}
+\\[1ex]
+    &= \frac{1}{2}
+        \begin{bmatrix}
+            d_f\cos(\phi) \mp d_f\tan(\alpha_t)\sin(\phi) + d_p\phi\sin(\phi) \\
+            d_f\sin(\phi) \pm d_f\tan(\alpha_t)\cos(\phi) - d_p\phi\cos(\phi) \\
+        \end{bmatrix}
+\\[1ex]
+    &= \frac{1}{2}\left(
+            \begin{bmatrix}
+                d_f\\
+                \pm d_f\tan(\alpha_t)\\
+            \end{bmatrix}
+        \cos(\phi)
+        +
+            \begin{bmatrix}
+                \mp d_f\tan(\alpha_t) \\
+                d_f \\
+            \end{bmatrix}
+        \sin(\phi)
+        + d_p\,\phi
+            \begin{bmatrix}
+                \sin(\phi) \\
+                - \cos(\phi) \\
+            \end{bmatrix}
+        \right)
+\end{align}
+\end{subequations}
+
+\paragraph{Final result} represented \dots
+
+\dots as a single matrix:
+\begin{equation}
+\vb{r_{hypo}}(\phi) = \frac{1}{2}
+        \begin{bmatrix}
+            d_f\cos(\phi) \mp d_f\tan(\alpha_t)\sin(\phi) + d_p\phi\sin(\phi) \\
+            d_f\sin(\phi) \pm d_f\tan(\alpha_t)\cos(\phi) - d_p\phi\cos(\phi) \\
+        \end{bmatrix}
+\label{eq:hypo_single_matrix}
+\end{equation}
+
+\dots as separated terms:
+\begin{equation}
+\vb{r_{hypo}}(\phi) = \frac{1}{2}\left(
+            \begin{bmatrix}
+                d_f\\
+                \pm d_f\tan(\alpha_t)\\
+            \end{bmatrix}
+        \cos(\phi)
+        +
+            \begin{bmatrix}
+                \mp d_f\tan(\alpha_t) \\
+                d_f \\
+            \end{bmatrix}
+        \sin(\phi)
+        + d_p\,\phi
+            \begin{bmatrix}
+                \sin(\phi) \\
+                - \cos(\phi) \\
+            \end{bmatrix}
+        \right)
+\label{eq:hypo_separated_terms}
+\end{equation}
+
+\dots in compact notation:
+\begin{equation}
+\begin{gathered}
+\vb{r_{hypo}}(\phi) = \frac{1}{2} \left(
+    \begin{bmatrix}
+        a \\ b
+    \end{bmatrix} \cos(\phi)
+    + \begin{bmatrix}
+        -b \\ a
+    \end{bmatrix} \sin(\phi)
+    + d_p\,\phi\; \begin{bmatrix}
+        \sin(\phi) \\ - \cos(\phi)
+    \end{bmatrix}
+    \right)
+\\
+a = d_f \quad\quad b = \pm d_f\tan(\alpha_t)
+\label{eq:hypo_compact_notation}
+\end{gathered}
+\end{equation}
+
+
 \subsection{Parameter \texorpdfstring{$\phi(d^*)$}{φ(d*)} at a Given Diameter}
     \subsubsection{General Case}
     \subsubsection{Special Case \texorpdfstring{$\phi_0 = \phi(d_f)$}{φ₀ = φ(dₓ)}}

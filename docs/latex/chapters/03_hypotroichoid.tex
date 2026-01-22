@@ -291,6 +291,91 @@ a = d_f \quad\quad b = \pm d_f\tan(\alpha_t)
 
 
 \subsection{Parameter \texorpdfstring{$\phi(d^*)$}{φ(d*)} at a Given Diameter}
-    \subsubsection{General Case}
-    \subsubsection{Special Case \texorpdfstring{$\phi_0 = \phi(d_f)$}{φ₀ = φ(dₓ)}}
+\subsubsection{General Case}
+Starting from Eq.~\eqref{eq:hypo_compact_notation} the $x$ and $y$ components are separated:
+\begin{subequations}
+\begin{align}
+x_{hypo}(\phi) &= \frac{1}{2}\left(a\cos\phi - b \sin\phi + d_p\phi\sin\phi\right) \\
+y_{hypo}(\phi) &= \frac{1}{2}\left(b\cos\phi + a \sin\phi - d_p\phi\cos\phi\right)
+\end{align}
+\end{subequations}
+
+With these the diamter can be determined
+\begin{subequations}
+\begin{align}
+d^* &\stackrel{!}{=} \sqrt{x_{inv}(\phi)^2 + y_{inv}(\phi)^2} \;\;\cdot 2 \\
+&= \sqrt{\frac{1}{4}\cdot \left(\left(a\cos\phi - b \sin\phi + d_p\phi\sin\phi\right)^2 + \left(b\cos\phi + a \sin\phi - d_p\phi\cos\phi\right)^2\right)} \;\;\cdot 2 \\
+&= \sqrt{\left(a\cos\phi - b \sin\phi + d_p\phi\sin\phi\right)^2 + \left(b\cos\phi + a \sin\phi - d_p\phi\cos\phi\right)^2}
+\label{eq:main_d_star_hypo}
+\end{align}
+\end{subequations}
+
+Simplifying the terms under the square root in Eq.~\eqref{eq:main_d_star_hypo}:
+\begin{subequations}
+\begin{align}
+\left(a\cos\phi - b \sin\phi + d_p\phi\sin\phi\right)^2 &= a^2\cos^2\phi + b^2\sin^2\phi + d_p^2\phi^2\sin^2\phi \nonumber\\
+&\phantom{=} - 2ab\cos\phi\sin\phi + 2ad_p\phi\cos\phi\sin\phi - 2bd_p\phi\sin^2\phi
+\\
+\left(b\cos\phi + a \sin\phi - d_p\phi\cos\phi\right)^2 &= b^2\cos^2\phi + a^2\sin^2\phi + d_p^2\phi^2\cos^2\phi \nonumber\\
+&\phantom{=} + 2ab\cos\phi\sin\phi - 2bd_p\phi\cos^2\phi - 2ad_p\phi\sin\phi\cos\phi
+\end{align}
+\end{subequations}
+
+Inserting into Eq.~\ref{eq:main_d_star_hypo}:
+\begin{subequations}
+\begin{align}
+d^* &= \Big[ 
+\nonumber\\
+    &\phantom{= [ \;\;} \big( a^2\cos^2\phi + b^2\sin^2\phi + d_p^2\phi^2\sin^2\phi 
+\nonumber\\
+    &\phantom{= [ \;\; \big ( a^2}\textcolor{orange}{\cancel{- 2ab\cos\phi\sin\phi}} \textcolor{blue}{\cancel{+ 2ad_p\phi\cos\phi\sin\phi}} - 2bd_p\phi\sin^2\phi \big) + 
+\\
+    &\phantom{= [ \;\; } \big( b^2\cos^2\phi + a^2\sin^2\phi + d_p^2\phi^2\cos^2\phi
+\nonumber \\
+    &\phantom{= [ \;\; \big( b^2} \textcolor{orange}{\cancel{+ 2ab\cos\phi\sin\phi}} - 2bd_p\phi\cos^2\phi \textcolor{blue}{\cancel{- 2ad_p\phi\sin\phi\cos\phi}} \big)
+\nonumber \\
+    &\phantom{= [ }\Big]^{\tfrac{1}{2}}
+\nonumber \\
+    &= \sqrt{(a^2 + b^2)\cos^2\phi + (a^2 + b^2) \sin^2\phi +d_p^2\phi^2(\sin^2\phi + \cos^2\phi) - 2bd_p\phi(\sin^2+\cos^2)}
+\\
+    &= \sqrt{(a^2 + b^2)(\cos^2\phi + \sin^2\phi) +d_p^2\phi^2(\sin^2\phi + \cos^2\phi) - 2bd_p\phi(\sin^2+\cos^2)}
+\\
+    &= \sqrt{a^2 + b^2 +d_p^2\phi^2 - 2bd_p\phi}
+\end{align}
+\end{subequations}
+
+Now solving for $\phi(d^*)$
+\begin{subequations}
+\begin{align}
+d^* &= \sqrt{a^2 + b^2 +d_p^2\phi^2 - 2bd_p\phi}\\
+{d^*}^2 &= a^2 + b^2 +d_p^2\phi^2 - 2bd_p\phi\\
+(d_p^2)\cdot\phi^2 - (2bd_p)\cdot\phi + (a^2 + b^2 - {d^*}^2)& = 0
+\end{align}
+\end{subequations}
+
+Using the midnight formula:
+\begin{equation*}
+ax^2+bx + c = 0 \qq{$\Longrightarrow$} x = \frac{-b \pm \sqrt{b^2 -4ac}}{2a}
+\end{equation*}
+
+Results in:
+\begin{subequations}
+\begin{align}
+\phi(d^*) &= \frac{2bd_p \pm \sqrt{4b^2d_p^2 - 4d_p^2(a^2 + b^2 - {d^*}^2)}}{2d_p^2} \\
+&= \frac{2bd_p \pm \sqrt{\cancel{4b^2d_p^2} - 4a^2d_p^2 \cancel{- 4b^2d_p^2} + 4{d^*}^2d_p^2}}{2d_p^2} \\
+&= \frac{2bd_p \pm 2d_p\sqrt{- a^2 + {d^*}^2}}{2d_p^2}\\
+&= \frac{b \pm \sqrt{{d^*}^2- a^2}}{d_p} \\
+&= \frac{b}{d_p} \pm \sqrt{\left(\frac{d^*}{d_p}\right)^2- \left(\frac{a}{d_p}\right)^2}
+\end{align}
+\end{subequations}
+
+Inserting $a=d_f$ and $b=\mypm d_f \tan(\alpha_t)$:
+\begin{subequations}
+\begin{align}
+\phi(d^*) &= \mypm\frac{b}{d_p} \pm \sqrt{\left(\frac{d^*}{d_p}\right)^2- \left(\frac{a}{d_p}\right)^2} \\
+&= \mypm\frac{d_f}{d_p}\tan{\alpha_t} \pm \sqrt{\left(\frac{d^*}{d_p}\right)^2- \left(\frac{d_f}{d_p}\right)^2} \\
+\end{align}
+\end{subequations}
+
+\subsubsection{Special Case \texorpdfstring{$\phi_0 = \phi(d_f)$}{φ₀ = φ(dₓ)}}
 \subsection{Summary}

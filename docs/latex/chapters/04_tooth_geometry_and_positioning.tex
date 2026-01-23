@@ -1,19 +1,19 @@
 \section{Tooth Geometry and Positioning of Curves}
-To construct a tooth of a gear the two parametric curves described above need to be correctly positioned both relatively to each other but also relatively to the $x$-axis. The curves should be placed (rotated) in such a manner that by mirroring the curves along the $x$-axis a valid tooth geometry emerges with both a right and left flank.
+To construct a gear tooth, the two parametric curves (involute and undercut curve) need to be correctly positioned relative to each other and to the $x$-axis. The curves should be rotated such that mirroring them along the $x$-axis produces a valid tooth geometry with both a right and left flank.
 
 \subsection{Tooth Thickness and Half Tooth Angle, \texorpdfstring{$\gamma$}{γ}}
-The tooth thickness (in arc length) at the pitch circle if there is \textbf{no profile shift} is:
+The tooth thickness (in arc length) at the pitch circle, assuming \textbf{no profile shift}, is:
 \begin{equation}
     s_0 = \frac{m\pi}{2}
     \label{eq:tooth_thickness_pitch}
 \end{equation}
 
-Therefore the angle spanned by half of the tooth at the pitch circle is
+Therefore, the angle spanned by half of the tooth at the pitch circle is:
 \begin{equation}
     \gamma_0 = \frac{m\pi}{2\;d_p}
 \end{equation}
 
-To get the angle spanned by the half of the tooth at the base circle we need to add the angle spanned by the involute at $\phi(d_p)$.
+To get the angle spanned by half the tooth at the base circle, the angle spanned by the involute at $\phi(d_p)$ must be added.
 
 The equation for obtaining the involute angle as derived in Section~\ref{subsec:involute_angle} is:
 \begin{equation}
@@ -30,7 +30,7 @@ Inserting the relevant diameters:
 \end{align}
 \end{subequations}
 
-This results in a half tooth angle at the base of:
+This results in a half tooth angle at the base circle of:
 
 \begin{subequations}
 \begin{align}
@@ -65,7 +65,7 @@ The involute simply needs to be rotated by half the tooth angle at the base circ
         \end{bmatrix}
         \begin{bmatrix}
             \cos(\phi) +\phi \sin(\phi)\\
-            \sin(\phi) -\phi \cos(\phi))
+            \sin(\phi) -\phi \cos(\phi)
         \end{bmatrix}
 \\[1ex]
     &= \frac{d_b}{2} \begin{bmatrix}
@@ -77,11 +77,11 @@ The involute simply needs to be rotated by half the tooth angle at the base circ
 
 \subsection{Positioned Undercut Curve}
 
-Due to the current definition of the undercut curve (see Figure~\ref{fig:undercut_video_screenshot} the undercut curve needs to be rotated by both the half tooth angle at the base circle as well as the transversal pressure angle ($\alpha_t$).
+Due to the definition of the undercut curve (see Figure~\ref{fig:undercut_video_screenshot}), it needs to be rotated by both the half tooth angle at the base circle and the transversal pressure angle ($\alpha_t$).
 
 \begin{subequations}
 \begin{align}
-    &\vb{r_{undercut,pos}}(\phi) = \vb{R}(\mypm(-\gamma - \alpha_t)))\;\vb{r_{undercut}}(\phi)
+    &\vb{r_{undercut,pos}}(\phi) = \vb{R}(\mypm(-\gamma - \alpha_t))\;\vb{r_{undercut}}(\phi)
 \\[1ex]
     &= \begin{bmatrix}
             \cos(\gamma+\alpha_t) & \sin(\mypm(\gamma+\alpha_t)) \\

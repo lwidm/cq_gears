@@ -34,7 +34,7 @@ def tangent_angles(points: np.ndarray) -> np.ndarray:
 def half_base_tooth_angle(m: float, dp: float, db: float) -> float:
     dp_db: float = dp / db
     theta_dp: float = np.sqrt(dp_db**2 - 1)
-    return (m * np.pi) / (2 * db) + theta_dp - np.arctan(theta_dp)
+    return (m * np.pi) / (2 * dp) + theta_dp - np.arctan(theta_dp)
 
 
 def involute(r: float, phi_r: np.ndarray) -> np.ndarray:

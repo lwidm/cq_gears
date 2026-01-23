@@ -1,6 +1,138 @@
-\section{Tooth Geometry and Positioning}
-\subsection{Tooth Thickness at Pitch Circle}
-\subsection{Tooth Thickness at Base Circle}
-\subsection{Half Tooth Angle \texorpdfstring{$\gamma$}{γ}}
+\section{Tooth Geometry and Positioning of Curves}
+To construct a tooth of a gear the two parametric curves described above need to be correctly positioned both relatively to each other but also relatively to the $x$-axis. The curves should be placed (rotated) in such a manner that by mirroring the curves along the $x$-axis a valid tooth geometry emerges with both a right and left flank.
+
+\subsection{Tooth Thickness and Half Tooth Angle, \texorpdfstring{$\gamma$}{γ}}
+The tooth thickness (in arc length) at the pitch circle if there is \textbf{no profile shift} is:
+\begin{equation}
+    s_0 = \frac{m\pi}{2}
+    \label{eq:tooth_thickness_pitch}
+\end{equation}
+
+Therefore the angle spanned by half of the tooth at the pitch circle is
+\begin{equation}
+    \gamma_0 = \frac{m\pi}{2\;d_p}
+\end{equation}
+
+To get the angle spanned by the half of the tooth at the base circle we need to add the angle spanned by the involute at $\phi(d_p)$.
+
+The equation for obtaining the involute angle as derived in Section~\ref{subsec:involute_angle} is:
+\begin{equation}
+\theta(d^*) = \left[\left(\frac{d^*}{d_b}\right)^2 - 1\right]^{\tfrac{1}{2}} - \arctan\left(\left[\left(\frac{d^*}{d_b}\right)^2 - 1\right]^{\tfrac{1}{2}}\right)
+\end{equation}
+
+Inserting the relevant diameters:
+\begin{subequations}
+\begin{align}
+\Delta \gamma &= \theta(d_p) - \cancelto{0}{\theta(d_b)} \\
+    &= \theta(d_p) \\
+    &= \left[\left(\frac{d_p}{d_b}\right)^2 - 1\right]^{\tfrac{1}{2}}
+        - \arctan\left(\left[\left(\frac{d_p}{d_b}\right)^2 - 1\right]^{\tfrac{1}{2}}\right)
+\end{align}
+\end{subequations}
+
+This results in a half tooth angle at the base of:
+
+\begin{subequations}
+\begin{align}
+    \gamma &= \gamma_0+\Delta \gamma \\
+           &= \frac{m\pi}{2\;d_p} + \left[\left(\frac{d_p}{d_b}\right)^2 - 1\right]^{\tfrac{1}{2}} - \arctan\left(\left[\left(\frac{d_p}{d_b}\right)^2 - 1\right]^{\tfrac{1}{2}}\right)
+\end{align}
+\end{subequations}
+
 \subsection{Positioned Involute}
-\subsection{Positioned Hypotrochoid}
+The involute simply needs to be rotated by half the tooth angle at the base circle:
+\begin{subequations}
+\begin{align}
+    \vb{r_{inv,pos}}(\phi) &= \vb{R}(\mypm(-\gamma))\vb{r_{inv}}(\phi) \\[1ex]
+    &= \begin{bmatrix}
+            \cos(\gamma) & \sin(\mypm\gamma) \\
+            -\sin(\mypm\gamma) & \cos(\gamma)
+        \end{bmatrix}
+        \left(
+            \tfrac{d_b}{2} \begin{bmatrix}
+                \cos(\phi) \\
+                \sin(\phi)
+            \end{bmatrix}
+            + \tfrac{d_b}{2}\phi \begin{bmatrix}
+                \sin(\phi) \\
+                -\cos(\phi)
+            \end{bmatrix}
+        \right)
+\\[1ex]
+    &= \frac{d_b}{2} \begin{bmatrix}
+            \cos(\gamma) & \sin(\mypm\gamma) \\
+            -\sin(\mypm\gamma) & \cos(\gamma)
+        \end{bmatrix}
+        \begin{bmatrix}
+            \cos(\phi) +\phi \sin(\phi)\\
+            \sin(\phi) -\phi \cos(\phi))
+        \end{bmatrix}
+\\[1ex]
+    &= \frac{d_b}{2} \begin{bmatrix}
+            \phantom{-}\cos(\myppm\gamma)\;\cos(\phi) +\cos(\myppm\gamma)\;\phi \sin(\phi) + \sin(\mypm\gamma)\;\sin(\phi) - \sin(\mypm\gamma)\;\phi\cos(\phi)\\
+            -\sin(\mypm\gamma)\;\cos(\phi) - \sin(\mypm\gamma)\;\phi \sin(\phi) + \cos(\myppm\gamma)\;\sin(\phi) - \cos(\myppm\gamma)\;\phi\cos(\phi)\\
+        \end{bmatrix}
+\end{align}
+\end{subequations}
+
+\subsection{Positioned Undercut Curve}
+
+Due to the current definition of the undercut curve (see Figure~\ref{fig:undercut_video_screenshot} the undercut curve needs to be rotated by both the half tooth angle at the base circle as well as the transversal pressure angle ($\alpha_t$).
+
+\begin{subequations}
+\begin{align}
+    &\vb{r_{undercut,pos}}(\phi) = \vb{R}(\mypm(-\gamma - \alpha_t)))\;\vb{r_{undercut}}(\phi)
+\\[1ex]
+    &= \begin{bmatrix}
+            \cos(\gamma+\alpha_t) & \sin(\mypm(\gamma+\alpha_t)) \\
+            -\sin(\mypm(\gamma+\alpha_t)) & \cos(\gamma+\alpha_t)
+        \end{bmatrix}
+        \;\frac{1}{2}\left(
+            \vb A \cos(\phi) + \vb B \sin(\phi) + d_p\,\phi\;\vb t(\phi)
+        \right)
+\\[1ex]
+    &= \frac{1}{2}\begin{bmatrix}
+            \cos(\gamma+\alpha_t) & \sin(\mypm(\gamma+\alpha_t)) \\
+            -\sin(\mypm(\gamma+\alpha_t)) & \cos(\gamma+\alpha_t)
+        \end{bmatrix}
+        \left(
+            \begin{bmatrix}
+                a \\ b
+            \end{bmatrix} \cos(\phi)
+            + \begin{bmatrix}
+                -b \\ a
+            \end{bmatrix} \sin(\phi)
+            + d_p\,\phi\; \begin{bmatrix}
+                \sin(\phi) \\ -\cos(\phi)
+            \end{bmatrix}
+        \right)
+\\[1ex]
+    &= \frac{1}{2} \begin{bmatrix}
+            \cos(\gamma+\alpha_t) & \sin(\mypm(\gamma+\alpha_t)) \\
+            -\sin(\mypm(\gamma+\alpha_t)) & \cos(\gamma+\alpha_t)
+        \end{bmatrix}
+        \begin{bmatrix}
+            a\cos(\phi) - b \sin(\phi) + d_p\,\phi\sin(\phi) \\
+            b\cos(\phi) + a \sin(\phi) - d_p\,\phi\cos(\phi)
+        \end{bmatrix}
+\\[1ex]
+    &= \frac{1}{2}\bigg[\begin{array}{cc}
+            \phantom{-}a\cos(\myppm\;\gamma+\alpha_t\;)\;\cos(\phi) 
+            - b\cos(\myppm\;\gamma+\alpha_t\;)\;\sin(\phi)
+                + d_p\cos(\myppm\;\gamma+\alpha_t\;)\;\phi\sin(\phi)\dots \\
+            -a\sin(\mypm(\gamma+\alpha_t))\;\cos(\phi)
+                +b\sin(\mypm(\gamma+\alpha_t))\;\sin(\phi)
+                - d_p\sin(\mypm(\gamma+\alpha_t))\;\phi\sin(\phi)\dots
+        \end{array}
+\nonumber\\
+        &\phantom{= \frac{1}{2}\bigg[}\begin{array}{cc}
+            \hspace{1em}\dots + b\sin(\mypm(\gamma+\alpha_t))\;\cos(\phi) 
+                + a\sin(\mypm(\gamma+\alpha_t))\;\sin(\phi)
+                - d_p\sin(\mypm(\gamma+\alpha_t))\;\phi\cos(\phi)\\
+            \hspace{1em}\dots+ b\cos(\myppm\;\gamma+\alpha_t\;)\;\cos(\phi) 
+                + a\cos(\myppm\;\gamma+\alpha_t\;)\;\sin(\phi)
+                - d_p\cos(\myppm\;\gamma+\alpha_t\;)\;\phi\cos(\phi)
+        \end{array}\bigg]
+\end{align}
+\end{subequations}
+

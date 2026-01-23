@@ -377,5 +377,68 @@ Inserting $a=d_f$ and $b=\mypm d_f \tan(\alpha_t)$:
 \end{align}
 \end{subequations}
 
+\subsubsection{Separated Right and Left Flank Cases}
+
+\paragraph{Right Flank:}
+\begin{equation*}
+b = \textcolor{red}{+}d_f\tan(\alpha_t)
+\end{equation*}
+When dealing with the right flank the construction involute rotates clockwise, therefore wa are interested in the smaller (usually negative) solution for $\phi$. Therefore, the square root term is subtracted.
+\begin{equation}
+    \phi_{right}(d^*) = \frac{d_f}{d_p}\tan{\alpha_t} - \sqrt{\left(\frac{d^*}{d_p}\right)^2 - \left(\frac{d_f}{d_p}\right)^2}
+\end{equation}
+
+\paragraph{Left Flank:}
+\begin{equation*}
+b = \textcolor{red}{-}d_f\tan(\alpha_t)
+\end{equation*}
+When dealing with the left flank the construction involute rotates counterclockwise, therefore wa are interested in th smaller (usually positive) solution for $\phi$. Therefore, the square root term is added.
+\begin{equation}
+    \phi_{left}(d^*) = \textcolor{red}{-}\frac{d_f}{d_p}\tan{\alpha_t} + \sqrt{\left(\frac{d^*}{d_p}\right)^2 - \left(\frac{d_f}{d_p}\right)^2}
+\end{equation}
+
+
 \subsubsection{Special Case \texorpdfstring{$\phi_0 = \phi(d_f)$}{φ₀ = φ(dₓ)}}
+The case of $d^* = d_f$ is interesting since this is the starting angle where one generally wants to start the involute:
+\begin{align}
+\phi_0 = \phi(d_f) &=  \mypm\frac{d_f}{d_p}\tan{\alpha_t} \pm \sqrt{\cancel{\left(\frac{d_f}{d_p}\right)^2- \left(\frac{d_f}{d_p}\right)^2}}
+\nonumber\\
+&= \mypm\frac{d_f}{d_p}\tan{\alpha_t}
+\end{align}
+
 \subsection{Summary}
+\begin{equation}
+\begin{gathered}
+\vb{r_{hypo}}(\phi) = \frac{1}{2} \left(
+    \begin{bmatrix}
+        a \\ b
+    \end{bmatrix} \cos(\phi)
+    + \begin{bmatrix}
+        -b \\ a
+    \end{bmatrix} \sin(\phi)
+    + d_p\,\phi\; \begin{bmatrix}
+        \sin(\phi) \\ - \cos(\phi)
+    \end{bmatrix}
+    \right)
+\\
+a = d_f \quad\quad b = \pm d_f\tan(\alpha_t)
+\end{gathered}
+\end{equation}
+
+\begin{align}
+    \phi(d^*) &= \mypm\frac{d_f}{d_p}\tan{\alpha_t} \pm \sqrt{\left(\frac{d^*}{d_p}\right)^2- \left(\frac{d_f}{d_p}\right)^2}
+    \\
+    \phi_{right}(d^*) &= \frac{d_f}{d_p}\tan{\alpha_t} - \sqrt{\left(\frac{d^*}{d_p}\right)^2 - \left(\frac{d_f}{d_p}\right)^2}
+    \\
+    \phi_{left}(d^*) &= \textcolor{red}{-}\frac{d_f}{d_p}\tan{\alpha_t} + \sqrt{\left(\frac{d^*}{d_p}\right)^2 - \left(\frac{d_f}{d_p}\right)^2}
+    \\
+    \phi_0 = \phi(d_f) &= \mypm\frac{d_f}{d_p}\tan{\alpha_t}
+\end{align}
+
+\paragraph{Note:} The $\mypm$ depends on which flank
+\begin{itemize}
+    \item $\textcolor{red}{+}$: Right flank $\Rightarrow$ $\phi$ is monotonically decreasing ($\phi_{start} > \phi_{end}$)\newline
+        usually: $\phi_0 > 0 \qq{,} \phi_{end} < 0$ 
+    \item $\textcolor{red}{-}$: Left flank $\Rightarrow$ $\phi$ is monotonically increasing ($\phi_{start} < \phi_{end}$)\newline
+        usually: $\phi_0 < 0 \qq{,} \phi_{end} > 0$ 
+\end{itemize}

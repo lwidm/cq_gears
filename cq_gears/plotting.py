@@ -398,12 +398,12 @@ def create_involute_video(
     ffmpeg_video(temp_dir, output_path, "involute", framerate)
 
 
-def hypotrochoid_plot_compute(
+def undercut_plot_compute(
     phi_0: float,
-    phi_hypo: float,
+    phi_undercut: float,
     flank: Literal["left", "right"],
     phi_inv: float,
-    phi_hypo_max: float | None = None,
+    phi_undercut_max: float | None = None,
 ) -> dict[str, float | np.ndarray | GearData | dict]:
     geardata: GearData = core.compute_gear_data(
         m=1.0,
@@ -422,12 +422,12 @@ def hypotrochoid_plot_compute(
     dp: float = geardata.d
     alpha_t_r: float = geardata.alpha_t_r
 
-    if phi_hypo_max is None:
-        phi_hypo_max = phi_hypo
+    if phi_undercut_max is None:
+        phi_undercut_max = phi_undercut
 
-    phi_hypo_r: float = np.radians(phi_hypo)
+    phi_undercut_r: float = np.radians(phi_undercut)
     phi_0_r: float = np.radians(phi_0)
-    phi_r_arr: np.ndarray = np.linspace(phi_0_r, phi_hypo_r, 500)
+    phi_r_arr: np.ndarray = np.linspace(phi_0_r, phi_undercut_r, 500)
 
     phi_r_arr_inv: np.ndarray = np.linspace(0.0, np.radians(phi_inv), 500)
     points_inv: np.ndarray = math.involute(db / 2, phi_r_arr_inv)
@@ -436,14 +436,14 @@ def hypotrochoid_plot_compute(
     else:
         points_inv = math.rotate(points_inv, -alpha_t_r)
 
-    points_hypo: np.ndarray = math.hypotrochoid(dp, df, alpha_t_r, phi_r_arr, flank)
+    points_undercut: np.ndarray = math.undercut_curve(dp, df, alpha_t_r, phi_r_arr, flank)
 
-    hypo_inv_dict: dict[str, np.ndarray] = involute_plot_compute(
+    undercut_inv_dict: dict[str, np.ndarray] = involute_plot_compute(
         r=dp / 2,
         phi_0=phi_0,
-        phi=phi_hypo,
+        phi=phi_undercut,
         rotate=0.0,
-        phi_max=phi_hypo_max,
+        phi_max=phi_undercut_max,
     )
 
     result: dict[str, float | np.ndarray | GearData | dict] = {
@@ -452,22 +452,22 @@ def hypotrochoid_plot_compute(
         "dp": dp,
         "alpha_t_r": alpha_t_r,
         "points_inv": points_inv,
-        "points_hypo": points_hypo,
+        "points_undercut": points_undercut,
         "geardata": geardata,
-        "hypo_inv_dict": hypo_inv_dict,
+        "undercut_inv_dict": undercut_inv_dict,
     }
 
     return result
 
 
-def hypotrochoid_plot(
+def undercut_plot(
     ax: Axes,
     phi_0: float,
-    phi_hypo: float,
+    phi_undercut: float,
     flank: Literal["left", "right"],
     show_arrows: bool,
     show_line: bool,
-    phi_hypo_max: float | None = None,
+    phi_undercut_max: float | None = None,
 ) -> Axes:
     lw: float = 1.0
 
@@ -479,14 +479,14 @@ def hypotrochoid_plot(
     else:
         phi_inv = -30.0
 
-    hypotrochoid_dict: dict = hypotrochoid_plot_compute(
-        phi_0, phi_hypo, flank, phi_inv, phi_hypo_max
+    undercut_dict: dict = undercut_plot_compute(
+        phi_0, phi_undercut, flank, phi_inv, phi_undercut_max
     )
-    involute_dict: dict[str, np.ndarray] = hypotrochoid_dict["hypo_inv_dict"]
+    involute_dict: dict[str, np.ndarray] = undercut_dict["undercut_inv_dict"]
 
     dedendum_circle = Circle(
         (0, 0),
-        hypotrochoid_dict["df"] / 2,
+        undercut_dict["df"] / 2,
         color="gray",
         alpha=1,
         fill=False,
@@ -496,7 +496,7 @@ def hypotrochoid_plot(
     zorder += 1
     pitch_circle = Circle(
         (0, 0),
-        hypotrochoid_dict["dp"] / 2,
+        undercut_dict["dp"] / 2,
         color="gray",
         alpha=1,
         fill=False,
@@ -506,7 +506,7 @@ def hypotrochoid_plot(
     zorder += 1
     base_circle = Circle(
         (0, 0),
-        hypotrochoid_dict["db"] / 2,
+        undercut_dict["db"] / 2,
         color="gray",
         alpha=1,
         fill=False,
@@ -516,8 +516,8 @@ def hypotrochoid_plot(
     zorder += 1
 
     ax.plot(
-        hypotrochoid_dict["points_inv"][0, :],
-        hypotrochoid_dict["points_inv"][1, :],
+        undercut_dict["points_inv"][0, :],
+        undercut_dict["points_inv"][1, :],
         color="white",
         linewidth=lw,
         zorder=zorder,
@@ -534,8 +534,8 @@ def hypotrochoid_plot(
     zorder += 1
 
     ax.plot(
-        hypotrochoid_dict["points_hypo"][0, :],
-        hypotrochoid_dict["points_hypo"][1, :],
+        undercut_dict["points_undercut"][0, :],
+        undercut_dict["points_undercut"][1, :],
         color="red",
         linewidth=lw,
         zorder=zorder,
@@ -611,14 +611,14 @@ def hypotrochoid_plot(
             ax,
             x1=involute_dict["points_inv"][0, -1],
             y1=involute_dict["points_inv"][1, -1],
-            x2=hypotrochoid_dict["points_hypo"][0, -1],
-            y2=hypotrochoid_dict["points_hypo"][1, -1],
+            x2=undercut_dict["points_undercut"][0, -1],
+            y2=undercut_dict["points_undercut"][1, -1],
             color="orange",
             zorder=zorder,
         )
         zorder += 1
 
-    geardata: core.GearData = hypotrochoid_dict["geardata"]
+    geardata: core.GearData = undercut_dict["geardata"]
     ax.set_aspect("equal")
     xlim: tuple[float, float] = (0.0, 0.6 * geardata.da)
     ylim: tuple[float, float] = (-0.3 * geardata.da, 0.3 * geardata.da)
@@ -631,8 +631,8 @@ def hypotrochoid_plot(
     return ax
 
 
-def create_hypotrochoid_video(output_dir: Path, video_length: float):
-    temp_dir = output_dir / "hypotrochoid"
+def create_undercut_video(output_dir: Path, video_length: float):
+    temp_dir = output_dir / "undercut"
     temp_dir.mkdir(exist_ok=True)
 
     phi_min: float = 30
@@ -646,32 +646,32 @@ def create_hypotrochoid_video(output_dir: Path, video_length: float):
 
     for i, phi in enumerate(phi_arr):
         ax.clear()
-        hypotrochoid_plot(
+        undercut_plot(
             ax=ax,
             phi_0=phi_min,
-            phi_hypo=phi,
+            phi_undercut=phi,
             show_arrows=True,
             show_line=True,
-            phi_hypo_max=phi_arr[-1],
+            phi_undercut_max=phi_arr[-1],
             flank=flank,
         )
         fig.canvas.draw()
         fig.canvas.flush_events()
         plt.pause(0.001)  # Brief pause to update display
-        fig.savefig(temp_dir / f"hypotrochoid_{i:03d}.png", dpi=300)
+        fig.savefig(temp_dir / f"undercut_{i:03d}.png", dpi=300)
 
     plt.ioff()  # Turn off interactive mode
     plt.close(fig)
 
-    frame_files: list[Path] = sorted(temp_dir.glob("hypotrochoid_*.png"))
+    frame_files: list[Path] = sorted(temp_dir.glob("undercut_*.png"))
     total_frames: int = len(frame_files)
     if total_frames == 0:
         raise ValueError(f"No frames found in {temp_dir}")
 
     framerate = int(total_frames / video_length)
-    output_path = output_dir / "hypotrochoid.mp4"
+    output_path = output_dir / "undercut.mp4"
 
-    ffmpeg_video(temp_dir, output_path, "hypotrochoid", framerate)
+    ffmpeg_video(temp_dir, output_path, "undercut", framerate)
 
 
 def tooth_plot_compute(
@@ -692,9 +692,9 @@ def tooth_plot_compute(
     )
 
     phi_inv_start: float = math.involute_phi_d(dp, db, "right")
-    phi_hypo_end: float = math.hypotroichoid_phi_d(dp, dp, df, alpha_t_r, "right")
-    phi_inv_start, phi_hypo_end = math.hypotroichoid_involute_intersection(
-        phi_inv_start, phi_hypo_end, df, dp, db, alpha_t_r, "right", 200
+    phi_undercut_end: float = math.undercut_phi_d(dp, dp, df, alpha_t_r, "right")
+    phi_inv_start, phi_undercut_end = math.undercut_involute_intersection(
+        phi_inv_start, phi_undercut_end, df, dp, db, alpha_t_r, "right", 200
     )
 
     phi_r_end: float
@@ -709,11 +709,11 @@ def tooth_plot_compute(
     points_inv_left: np.ndarray = math.involute_tooth(
         m, dp, db, -phi_inv_start, -phi_r_end, n_points, "left"
     )
-    points_hypo_right: np.ndarray = math.hypotroichoid_tooth(
-        m, dp, db, df, alpha_t_r, phi_hypo_end, n_points, "right"
+    points_undercut_right: np.ndarray = math.undercut_tooth(
+        m, dp, db, df, alpha_t_r, phi_undercut_end, n_points, "right"
     )
-    points_hypo_left: np.ndarray = math.hypotroichoid_tooth(
-        m, dp, db, df, alpha_t_r, -phi_hypo_end, n_points, "left"
+    points_undercut_left: np.ndarray = math.undercut_tooth(
+        m, dp, db, df, alpha_t_r, -phi_undercut_end, n_points, "left"
     )
 
     result: dict[str, float | np.ndarray | GearData] = {
@@ -725,8 +725,8 @@ def tooth_plot_compute(
         "geardata": geardata,
         "points_inv_right": points_inv_right,
         "points_inv_left": points_inv_left,
-        "points_hypo_right": points_hypo_right,
-        "points_hypo_left": points_hypo_left,
+        "points_undercut_right": points_undercut_right,
+        "points_undercut_left": points_undercut_left,
     }
 
     return result
@@ -801,16 +801,16 @@ def tooth_plot(
     zorder += 1
 
     ax.plot(
-        tooth_dict["points_hypo_right"][0, :],
-        tooth_dict["points_hypo_right"][1, :],
+        tooth_dict["points_undercut_right"][0, :],
+        tooth_dict["points_undercut_right"][1, :],
         color="white",
         linewidth=lw,
         zorder=zorder,
     )
     zorder += 1
     ax.plot(
-        tooth_dict["points_hypo_left"][0, :],
-        tooth_dict["points_hypo_left"][1, :],
+        tooth_dict["points_undercut_left"][0, :],
+        tooth_dict["points_undercut_left"][1, :],
         color="white",
         linewidth=lw,
         zorder=zorder,

@@ -121,7 +121,7 @@ def translate(points: np.ndarray, translation: tuple[float, float]) -> np.ndarra
     return translated
 
 
-def hypotrochoid(
+def undercut_curve(
     dp: float,
     df: float,
     alpha_t_r: float,
@@ -141,7 +141,7 @@ def hypotrochoid(
     return 1 / 2 * (A * np.cos(phi_r) + B * np.sin(phi_r) + dp * phi_r * t)
 
 
-def hypotroichoid_phi_d(
+def undercut_phi_d(
     d_star: float,
     dp: float,
     df: float,
@@ -155,7 +155,7 @@ def hypotroichoid_phi_d(
     return phi
 
 
-def hypotroichoid_phi_0(
+def undercut_phi_0(
     dp: float, df: float, alpha_t_r: float, flank: Literal["right", "left"]
 ) -> float:
     phi: float = df / dp * np.tan(alpha_t_r)
@@ -164,9 +164,9 @@ def hypotroichoid_phi_0(
     return phi
 
 
-def hypotroichoid_involute_intersection(
+def undercut_involute_intersection(
     phi_0_inv: float,
-    phi_0_hypo: float,
+    phi_0_undercut: float,
     df: float,
     dp: float,
     db: float,
@@ -222,7 +222,7 @@ def hypotroichoid_involute_intersection(
         )
         return x - J_inv @ f
 
-    phi: np.ndarray = np.array([phi_0_inv, phi_0_hypo])
+    phi: np.ndarray = np.array([phi_0_inv, phi_0_undercut])
 
     for _ in range(n_iter):
         phi = newton_raphson(phi)
@@ -230,7 +230,7 @@ def hypotroichoid_involute_intersection(
     return phi[0], phi[1]
 
 
-def hypotrochoid_positioned(
+def undercut_curve_positioned(
     m: float,
     df: float,
     dp: float,
@@ -276,7 +276,7 @@ def hypotrochoid_positioned(
     return 0.5 * np.vstack([x, y])  # shape (2, N)
 
 
-def hypotroichoid_tooth(
+def undercut_tooth(
     m: float,
     dp: float,
     db: float,
@@ -286,12 +286,12 @@ def hypotroichoid_tooth(
     n_points: int,
     flank: Literal["right", "left"],
 ) -> np.ndarray:
-    phi_start_r: float = hypotroichoid_phi_0(dp, df, alpha_t_r, flank)
+    phi_start_r: float = undercut_phi_0(dp, df, alpha_t_r, flank)
     phi_arr_r: np.ndarray = np.linspace(phi_start_r, phi_end_r, n_points)
-    return hypotrochoid_positioned(m, df, dp, db, alpha_t_r, phi_arr_r, flank)
+    return undercut_curve_positioned(m, df, dp, db, alpha_t_r, phi_arr_r, flank)
 
 
-def hypotrochoid_intuitive(
+def undercut_curve_intuitive(
     rp: float,
     rf: float,
     alpha_t_r: float,
@@ -317,11 +317,11 @@ def hypotrochoid_intuitive(
         points_inv_neg: np.ndarray = points_inv[:, mask_neg]
         theta[mask_neg] = tangent_angles(points_inv_neg)
 
-    points_hypo: np.ndarray = np.zeros_like(points_inv)
+    points_undercut: np.ndarray = np.zeros_like(points_inv)
     for i in np.arange(len(points_inv[0, :])):
         point: tuple[float, float] = (points_inv[0, i], points_inv[1, i])
-        point_hypo: np.ndarray = translate(rotate(v, phi_r[i]), (point[0], point[1]))
-        points_hypo[0, i] = point_hypo[0, 0]
-        points_hypo[1, i] = point_hypo[1, 0]
+        point_undercut: np.ndarray = translate(rotate(v, phi_r[i]), (point[0], point[1]))
+        points_undercut[0, i] = point_undercut[0, 0]
+        points_undercut[1, i] = point_undercut[1, 0]
 
-    return points_hypo
+    return points_undercut

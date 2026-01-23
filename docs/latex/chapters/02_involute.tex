@@ -2,7 +2,7 @@
 \subsection{Geometric Construction}
 Figure~\ref{fig:rack-geometry} shows a gear interacting with a rack, with the relevant geometry overlaid:
 base circle (\emph{Grundkreis}), pitch circle (\emph{Teilkreis}), addendum and dedendum circles (\emph{Kopf- und Fusskreis}), and the line of action (\emph{Eingriffslinie}).
-The involute curve originates from the base circle and defines the tooth flank. As the rack moves linearly, the contact point travels along the line of action, maintaining a constant velocity ratio.
+The involute curve originates from the base circle and defines the tooth flank.
 \begin{figure}[ht]
     \centering
     \includegraphics[width=0.8\textwidth]{de-evolventenverzahnung-zahnstange-eingriff.jpg}
@@ -15,9 +15,7 @@ The involute curve originates from the base circle and defines the tooth flank. 
     \caption{Involute geometry and pressure angle~\cite{tecScience_konstruktion_evolvente}}
     \label{fig:involute-geometry}
 \end{figure}
-The YouTube video by Gergely Bencsik~\cite{involute_YTvideo} shows how the involute originates in a very intuitive way.
-
-For the mathematical description I will think of the involute as the curve traced by the unwinding of a taut string from the base 
+The YouTube video by Gergely Bencsik~\cite{involute_YTvideo} shows how the involute originates in a very intuitive way. For deriving the parametric equation, it is easier to think of the involute as the curve traced by the end of a taut string unwinding from the base circle (see Figure~\ref{fig:involute_construction}, right).
 
 \begin{figure}[htbp]
     \centering
@@ -42,10 +40,10 @@ For the mathematical description I will think of the involute as the curve trace
     \label{fig:involute_construction}
 \end{figure}
 
-Figure~\ref{fig:involute_construction} illustrates two equivalent geometric constructions for the involute. While the rolling-line construction (left) is more directly relevant in a mechanical context, since it reflects the kinematics of a rack rolling without slipping on a gear, the unwinding-string construction (right) shows more clearly that the length of the blue arrow is exactly equal to the arc length spanned by the base circle at the angular parameter~$\phi$.
+Figure~\ref{fig:involute_construction} illustrates two equivalent geometric constructions. The key insight from the unwinding-string construction (right) is that the length of the blue arrow equals the arc length spanned by the base circle at angle $\phi$.
 
 \subsection{Parametric Equation}
-Looking at Figure~\ref{fig:involute_construction}, the parametric equation can be separated into two components (yellow and blue arrow). The yellow arrow has a magnitude of $\frac{d_b}{2}$ and the blue arrow's magnitude (as discussed in the section above) is equal to the arc length by $\phi$, i.e. $\frac{d_b}{2}\phi$.
+Looking at Figure~\ref{fig:involute_construction}, the parametric equation can be separated into two components (yellow and blue arrow). The yellow arrow has magnitude $\frac{d_b}{2}$, and the blue arrow has magnitude equal to the arc length, i.e. $\frac{d_b}{2}\phi$.
 
 \begin{equation}
 \begin{bmatrix}
@@ -63,7 +61,7 @@ y(\phi)
 \end{equation}
 
 \subsection{Parameter \texorpdfstring{$\phi(d^*)$}{φ(d*)} at a Given Diameter}
-In order to avoid dealing with intersections it can be useful to know at which $\phi$ a certain diameter (for e.g. the addendum diameter $d_a$) is reached. The following is the derivation of $\phi(d^*)$, where $d^*$ is an arbitrary diameter.
+To avoid extending the involute beyond the relevant geometry, it is useful to know at which $\phi$ a certain diameter (e.g. the addendum diameter $d_a$) is reached. The following is the derivation of $\phi(d^*)$, where $d^*$ is an arbitrary diameter.
 
 \begin{subequations}
 \begin{align}
@@ -82,7 +80,7 @@ d^* &\stackrel{!}{=} \sqrt{x(\phi^*)^2 + y(\phi^*)^2}\cdot2 \\
 Note: The positive solution is valid for the right flank (counterclockwise rotating involute) and the negative solution holds for the left flank (clockwise rotating involute)
 
 \subsection{Involute Angle \texorpdfstring{$\theta(d^*)$}{θ(d*)} at a Given Diameter}
-In order to create a full tooth the involute needs to be mirrored by the x-axis (or a left involute and a right involute need to be placed correctly). But since only the tooth thickness at the \textbf{pitch circle} is known we first need to know the angle between the x-axis and the involute point at $d^*(\phi)=d_p$. This is required since the involute starts at $y=0$ (meaning the point crossing the pitch circle is at $y>0$). With this information one can first rotate the involute around the origin until the point at the pitch circle is at $y=0$ and then further rotate it by the half tooth thickness angle.
+In order to create a full tooth the involute needs to be mirrored by the x-axis (or a left involute and a right involute need to be placed correctly). But since only the tooth thickness at the \textbf{pitch circle} is known, the angle between the x-axis and the involute point at $d^*(\phi)=d_p$ must first be determined. This is required since the involute starts at $y=0$ (meaning the point crossing the pitch circle is at $y>0$). The involute can then be rotated by $\theta(d_p)$, placing the pitch circle crossing point at $y=0$, and later rotated again by the half tooth angle to position the curve correctly.
 
 \paragraph{a)} determine $x(\phi^*)$
 \begin{subequations}
@@ -137,7 +135,7 @@ Comparing eq.~\eqref{eq:involute_angle_unsimplified} and eq.~\eqref{eq:inserted_
     \theta(\phi^*) = \phi^* - \arctan\phi^*
 \end{equation}
 
-This is a very unsurprising results, as this simply is the involute equation.
+After all this derivation, the result is, of course (d'oh!), just the well-known involute function $\operatorname{inv}(\phi) = \phi - \arctan(\phi)$.
 
 \paragraph{e)} Insert $\phi^* = \pm\left[\left(\frac{d^* }{d_b}\right)^2 - 1\right]^{\frac{1}{2}}$
 \begin{equation}
@@ -167,9 +165,8 @@ y(\phi)
 
 \textbf{Note:} The $\mypm$ as well as the monotonicity of $\phi$ depends on which flank
 \begin{itemize}
-    \item $\textcolor{red}{+}$: Left flank (involute rotating counterclockwise) $\Rightarrow$ $\phi$ is monotonically increasing\newline
+    \item $\textcolor{red}{+}$: Right flank (involute rotating counterclockwise) $\Rightarrow$ $\phi$ is monotonically increasing\newline
         $\phi_{start} < \phi_{end}$, usually: $\phi_{start} = 0$  and  $\phi_{end} > 0$
-    \item $\textcolor{red}{-}$: Right flank (involute rotating clockwise) $\Rightarrow$ $\phi$ is monotonically decreasing\newline
+    \item $\textcolor{red}{-}$: Left flank (involute rotating clockwise) $\Rightarrow$ $\phi$ is monotonically decreasing\newline
         $\phi_{start} > \phi_{end}$, usually: $\phi_{start} = 0$  and  $\phi_{end} < 0$
-
 \end{itemize}

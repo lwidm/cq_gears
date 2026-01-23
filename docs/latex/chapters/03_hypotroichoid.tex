@@ -1,33 +1,32 @@
-\section{The Hypotrochoid (Undercut Curve)}
-The parametric description of the undercut curve is significantly more complicated. Fortunately Gergely Bencsik has made a great YouTube video~\cite{undercut_YTvideo} which shows in a very intuitive way how the geometry is created and shows a relative simple way one can describe it.
+\section{The Undercut Curve}
+The parametric description of the undercut curve is significantly more complicated. Fortunately, Gergely Bencsik has made a YouTube video~\cite{undercut_YTvideo} which explains the geometry intuitively and presents a relatively simple way to describe it.
 
 \subsection{Geometric construction}
 \begin{figure}[ht]
     \centering
     \includegraphics[width=0.9\textwidth]{../assets/undercut_geometry_YT_screenshot.png}
-    \caption{Screenshot of Gergely Bencsik's video~\cite{undercut_YTvideo} explaining the undercut geometry. Here $r_p$ refers to the pitch circle radius, $r_d$ to the addendum circle radius (for which I use $r_f$, resp. $d_f$ for the diameter) and alpha the transversal pressure angle (for which I use $\alpha_t$)}
+    \caption{Screenshot of Gergely Bencsik's video~\cite{undercut_YTvideo} explaining the undercut geometry. Here $r_p$ refers to the pitch circle radius, $r_d$ to the addendum circle radius (denoted $r_f$, resp. $d_f$ for the diameter, in this document) and alpha the transversal pressure angle (denoted $\alpha_t$)}
     \label{fig:undercut_video_screenshot}
 \end{figure}
 
-Figure~\ref{fig:undercut_video_screenshot} above (and the associated video) show very nicely how the geometry of the undercut is created. Simply put, the rack rolls along the pitch circle (careful: \textbf{unlike the tooth involute which uses the base circle here the rack rolls along the pitch circle}) and with it the (here right) tip of the rack tooth (shown above with the solid arrow, which I will call the \textbf{shift vector}) rotate and translates.
+Figure~\ref{fig:undercut_video_screenshot} (and the associated video) show how the undercut geometry is created. The rack rolls along the pitch circle (careful: \textbf{unlike the tooth involute, here the rack rolls along the pitch circle, not the base circle}) and the tip of the rack tooth (shown with the solid arrow, hereafter referred to as the \textbf{shift vector}) rotates and translates with it.
 
-Therefore the undercut can be constructed by placing this shift vector along the involute created by $d_p$ while keeping the angle of this shift vector w.r.t the involute constant (the image and video in Figure~\ref{fig:undercut_generated_video} below show this very nicely)
+Therefore the undercut can be constructed by placing this shift vector along the involute created by $d_p$ (hereafter referred to as the \textbf{construction involute}) while keeping the angle of this shift vector w.r.t.\ the involute constant (see Figure~\ref{fig:undercut_generated_video}).
 
-Again we use $\phi$ as a parameter for this curve however this time a negative $\phi$ will result in the right flank as it is related to the associated clockwise rotating involute used for construction.
+As with the involute, $\phi$ is used as the curve parameter. However, this time a negative $\phi$ results in the right flank, since the construction involute rotates clockwise in this case (opposite to the tooth involute, as shown in Figure~\ref{fig:undercut_video_screenshot}). For the left flank, the opposite holds: positive $\phi$ with a counterclockwise rotating construction involute.
 
-From here on I will refer to the undercut curve as the Hypotrochoid
 
 \subsection{Shift Vector}
 
-\textbf{A major confusion} with Figure~\ref{fig:undercut_video_screenshot} above is the coordinate system. The math in the following sections creates an undercut curve on the right side of the gear, and not below and therefore you need to treat it as follows:
+\textbf{A potential source of confusion} is the coordinate system in Figure~\ref{fig:undercut_video_screenshot}. The math in the following sections creates an undercut curve on the right side of the gear, not below, and therefore the coordinate system should be interpreted as follows:
 \begin{itemize}
     \item Positive $x$-direction is downwards
     \item Positive $y$-direction is to the right
-    \item I use a $\mypm$ to differentiate between the right ($\textcolor{red}{+}$) and left ($\textcolor{red}{-}$) flank.
-    \item Negative $\phi$ values will result in a right flank and positive values will result in a left flank.\footnote{Actually both flanks have positive and negative values for $\phi$ as close to the dedendum circle the sign switches. What is meant here is that $\max(\phi)$ is positive or negative.}
+    \item A $\mypm$ is used to differentiate between the right ($\textcolor{red}{+}$) and left ($\textcolor{red}{-}$) flank.
+    \item Negative $\phi$ values will result in a right flank and positive values will result in a left flank.\footnote{Actually both flanks have positive and negative values for $\phi$ since the sign switches near the dedendum circle. What is meant here is that $\phi_{end}$ is negative (right flank) or positive (left flank), where the curve is drawn starting from the dedendum circle outwards.}
 \end{itemize}
 
-With this in mind the shift vector at $\phi=0$ (which is the state of Figure~\ref{fig:undercut_video_screenshot} above) is:
+With this in mind, the shift vector at $\phi=0$ (the state shown in Figure~\ref{fig:undercut_video_screenshot}) is:
 \begin{equation}
     \vb v = \begin{bmatrix} v_x \\ v_y \end{bmatrix} = \begin{bmatrix} r_d - r_p \\ \mypm r_f \tan(\alpha_t) \end{bmatrix}
 \end{equation}
@@ -39,25 +38,23 @@ or using $d_f = 2\cdot r_d$ and $d_p = 2 \cdot r_p$
 
 \subsection{Differential Geometry of the Involute}
 \label{subsec:diff_geom_invo}
-Since we need to move the shift vector along the involute \textbf{while keeping the angle w.r.t the involute constant} (again check the image and video in Figure~\ref{fig:undercut_generated_video} for a visual explanation), we need to continuously rotate it by an angle defined by the involute.
+Since the shift vector must be moved along the construction involute while keeping the angle w.r.t.\ the construction involute constant (see Figure~\ref{fig:undercut_generated_video}), it needs to be continuously rotated by an angle defined by the construction involute.
 
-The easiest way to do this is to compute the angle of the tangent vector to the involute w.r.t the $x$-axis (again keep in mind the rotated orientation of Figure~\ref{fig:undercut_video_screenshot}) as at $\phi=0$ this angle is $0$
-
-This means we need to compute the tangent vector of the involute and hence also its derivative w.r.t $\phi$
+The easiest way to do this is to compute the angle of the tangent vector to the construction involute w.r.t.\ the $x$-axis (keeping in mind the rotated orientation of Figure~\ref{fig:undercut_video_screenshot}), since at $\phi=0$ this angle is $0$. This requires computing the derivative of the construction involute w.r.t.\ $\phi$.
 
 \subsubsection{Derivative}
-Starting from the parametric involute equation,
+Starting from the parametric involute equation, but using $d_p$ instead of $d_b$ since the construction involute is based on the pitch circle:
 \begin{equation}
-\vb{r_{inv}}(\phi) = 
+\vb{r_{inv}}(\phi) =
 \begin{bmatrix}
 x(\phi) \\
 y(\phi)
 \end{bmatrix}
-= \tfrac{d_b}{2} \begin{bmatrix}
+= \tfrac{d_p}{2} \begin{bmatrix}
 \cos(\phi) \\
 \sin(\phi)
 \end{bmatrix}
-+ \tfrac{d_b}{2}\phi \begin{bmatrix}
++ \tfrac{d_p}{2}\phi \begin{bmatrix}
 \sin(\phi) \\
 -\cos(\phi)
 \end{bmatrix}
@@ -86,7 +83,7 @@ Resulting in:
 \end{equation}
 
 \subsubsection{Tangent and Normal Vectors}
-To get normalised vectors the magnitude of the derivative is computed
+To get normalised vectors, the magnitude of the derivative is computed
 \begin{subequations}
 \begin{align}
 \norm{\vb{r_{inv}'}(\phi)} &= \frac{d_p}{2}\abs{\phi}\sqrt{\cos^2(\phi) + \sin^2(\phi)} \\
@@ -103,7 +100,7 @@ To get normalised vectors the magnitude of the derivative is computed
 \end{align}
 \end{subequations}
 
-\paragraph{The unit normal vector} is obtained by rotating the unit tangent by $+90^\circ$ (or $-90^\circ)$
+\paragraph{The unit normal vector} is obtained by rotating the unit tangent by $+90^\circ$.
 \begin{equation}
 \vb{N}(\phi) = \operatorname{sgn}(\phi)\begin{bmatrix}-\sin(\phi)\\\cos(\phi)\end{bmatrix}
 \end{equation}
@@ -137,14 +134,14 @@ Similarly for the angle of the normal vector:
                 \includegraphics[width=0.47\linewidth]{../assets/hypotroichoid.png}
             }%
         \fi
-    \caption{Image showing the shift vector at a later point in the undercut curve construction ($\phi<0$).The images link to a corresponding video on GitHub showing the movement of the shift vector along the involute.}
+    \caption{The shift vector at a later point in the undercut curve construction ($\phi<0$). The image links to a video on GitHub showing the movement of the shift vector along the construction involute.}
     \label{fig:undercut_generated_video}
 \end{figure}
-As described in previous sections we first need to rotate the shift vector by the angle $\phi$ (see Section~\ref{subsec:diff_geom_invo}) and then translate it to the correct position of the construction involute:
+As described in previous sections, the shift vector is first rotated by the angle $\phi$ (see Section~\ref{subsec:diff_geom_invo}) and then translated to the correct position of the construction involute:
 
 \begin{subequations}
 \begin{align}
-    \vb{r_{hypo}}(\phi) &=\vb{R}(\phi)\vb v + \vb{r_{inv}}(\phi)
+    \vb{r_{undercut}}(\phi) &=\vb{R}(\phi)\vb v + \vb{r_{inv}}(\phi)
 \\
     &= \underbrace{
             \begin{bmatrix}
@@ -238,17 +235,17 @@ As described in previous sections we first need to rotate the shift vector by th
 
 \dots as a single matrix:
 \begin{equation}
-\vb{r_{hypo}}(\phi) = \frac{1}{2}
+\vb{r_{undercut}}(\phi) = \frac{1}{2}
         \begin{bmatrix}
             d_f\cos(\phi) \mp d_f\tan(\alpha_t)\sin(\phi) + d_p\phi\sin(\phi) \\
             d_f\sin(\phi) \pm d_f\tan(\alpha_t)\cos(\phi) - d_p\phi\cos(\phi) \\
         \end{bmatrix}
-\label{eq:hypo_single_matrix}
+\label{eq:undercut_single_matrix}
 \end{equation}
 
 \dots as separated terms:
 \begin{equation}
-\vb{r_{hypo}}(\phi) = \frac{1}{2}\left(
+\vb{r_{undercut}}(\phi) = \frac{1}{2}\left(
             \begin{bmatrix}
                 d_f\\
                 \pm d_f\tan(\alpha_t)\\
@@ -266,13 +263,13 @@ As described in previous sections we first need to rotate the shift vector by th
                 - \cos(\phi) \\
             \end{bmatrix}
         \right)
-\label{eq:hypo_separated_terms}
+\label{eq:undercut_separated_terms}
 \end{equation}
 
 \dots in compact notation:
 \begin{equation}
 \begin{gathered}
-\vb{r_{hypo}}(\phi) = \frac{1}{2} \left(
+\vb{r_{undercut}}(\phi) = \frac{1}{2} \left(
     \begin{bmatrix}
         a \\ b
     \end{bmatrix} \cos(\phi)
@@ -285,32 +282,32 @@ As described in previous sections we first need to rotate the shift vector by th
     \right)
 \\
 a = d_f \quad\quad b = \pm d_f\tan(\alpha_t)
-\label{eq:hypo_compact_notation}
+\label{eq:undercut_compact_notation}
 \end{gathered}
 \end{equation}
 
 
 \subsection{Parameter \texorpdfstring{$\phi(d^*)$}{φ(d*)} at a Given Diameter}
 \subsubsection{General Case}
-Starting from Eq.~\eqref{eq:hypo_compact_notation} the $x$ and $y$ components are separated:
+Starting from Eq.~\eqref{eq:undercut_compact_notation}, the $x$ and $y$ components are separated:
 \begin{subequations}
 \begin{align}
-x_{hypo}(\phi) &= \frac{1}{2}\left(a\cos\phi - b \sin\phi + d_p\phi\sin\phi\right) \\
-y_{hypo}(\phi) &= \frac{1}{2}\left(b\cos\phi + a \sin\phi - d_p\phi\cos\phi\right)
+x_{undercut}(\phi) &= \frac{1}{2}\left(a\cos\phi - b \sin\phi + d_p\phi\sin\phi\right) \\
+y_{undercut}(\phi) &= \frac{1}{2}\left(b\cos\phi + a \sin\phi - d_p\phi\cos\phi\right)
 \end{align}
 \end{subequations}
 
-With these the diamter can be determined
+With these, the diameter can be determined:
 \begin{subequations}
 \begin{align}
 d^* &\stackrel{!}{=} \sqrt{x_{inv}(\phi)^2 + y_{inv}(\phi)^2} \;\;\cdot 2 \\
 &= \sqrt{\frac{1}{4}\cdot \left(\left(a\cos\phi - b \sin\phi + d_p\phi\sin\phi\right)^2 + \left(b\cos\phi + a \sin\phi - d_p\phi\cos\phi\right)^2\right)} \;\;\cdot 2 \\
 &= \sqrt{\left(a\cos\phi - b \sin\phi + d_p\phi\sin\phi\right)^2 + \left(b\cos\phi + a \sin\phi - d_p\phi\cos\phi\right)^2}
-\label{eq:main_d_star_hypo}
+\label{eq:main_d_star_undercut}
 \end{align}
 \end{subequations}
 
-Simplifying the terms under the square root in Eq.~\eqref{eq:main_d_star_hypo}:
+Simplifying the terms under the square root in Eq.~\eqref{eq:main_d_star_undercut}:
 \begin{subequations}
 \begin{align}
 \left(a\cos\phi - b \sin\phi + d_p\phi\sin\phi\right)^2 &= a^2\cos^2\phi + b^2\sin^2\phi + d_p^2\phi^2\sin^2\phi \nonumber\\
@@ -321,7 +318,7 @@ Simplifying the terms under the square root in Eq.~\eqref{eq:main_d_star_hypo}:
 \end{align}
 \end{subequations}
 
-Inserting into Eq.~\ref{eq:main_d_star_hypo}:
+Inserting into Eq.~\eqref{eq:main_d_star_undercut}:
 \begin{subequations}
 \begin{align}
 d^* &= \Big[ 
@@ -353,7 +350,7 @@ d^* &= \sqrt{a^2 + b^2 +d_p^2\phi^2 - 2bd_p\phi}\\
 \end{align}
 \end{subequations}
 
-Using the midnight formula:
+Using the quadratic formula:
 \begin{equation*}
 ax^2+bx + c = 0 \qq{$\Longrightarrow$} x = \frac{-b \pm \sqrt{b^2 -4ac}}{2a}
 \end{equation*}
@@ -383,7 +380,7 @@ Inserting $a=d_f$ and $b=\mypm d_f \tan(\alpha_t)$:
 \begin{equation*}
 b = \textcolor{red}{+}d_f\tan(\alpha_t)
 \end{equation*}
-When dealing with the right flank the construction involute rotates clockwise, therefore wa are interested in the smaller (usually negative) solution for $\phi$. Therefore, the square root term is subtracted.
+When dealing with the right flank, the construction involute rotates clockwise, therefore the smaller (usually negative) solution for $\phi$ is relevant. Hence, the square root term is subtracted.
 \begin{equation}
     \phi_{right}(d^*) = \frac{d_f}{d_p}\tan{\alpha_t} - \sqrt{\left(\frac{d^*}{d_p}\right)^2 - \left(\frac{d_f}{d_p}\right)^2}
 \end{equation}
@@ -392,14 +389,14 @@ When dealing with the right flank the construction involute rotates clockwise, t
 \begin{equation*}
 b = \textcolor{red}{-}d_f\tan(\alpha_t)
 \end{equation*}
-When dealing with the left flank the construction involute rotates counterclockwise, therefore wa are interested in th smaller (usually positive) solution for $\phi$. Therefore, the square root term is added.
+When dealing with the left flank, the construction involute rotates counterclockwise, therefore the larger (usually positive) solution for $\phi$ is relevant. Hence, the square root term is added.
 \begin{equation}
     \phi_{left}(d^*) = \textcolor{red}{-}\frac{d_f}{d_p}\tan{\alpha_t} + \sqrt{\left(\frac{d^*}{d_p}\right)^2 - \left(\frac{d_f}{d_p}\right)^2}
 \end{equation}
 
 
 \subsubsection{Special Case \texorpdfstring{$\phi_0 = \phi(d_f)$}{φ₀ = φ(dₓ)}}
-The case of $d^* = d_f$ is interesting since this is the starting angle where one generally wants to start the involute:
+The case of $d^* = d_f$ is interesting since this is the starting angle where one generally wants to start the undercut curve:
 \begin{align}
 \phi_0 = \phi(d_f) &=  \mypm\frac{d_f}{d_p}\tan{\alpha_t} \pm \sqrt{\cancel{\left(\frac{d_f}{d_p}\right)^2- \left(\frac{d_f}{d_p}\right)^2}}
 \nonumber\\
@@ -409,7 +406,7 @@ The case of $d^* = d_f$ is interesting since this is the starting angle where on
 \subsection{Summary}
 \begin{equation}
 \begin{gathered}
-\vb{r_{hypo}}(\phi) = \frac{1}{2} \left(
+\vb{r_{undercut}}(\phi) = \frac{1}{2} \left(
     \begin{bmatrix}
         a \\ b
     \end{bmatrix} \cos(\phi)

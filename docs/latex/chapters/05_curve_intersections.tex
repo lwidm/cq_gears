@@ -1,7 +1,102 @@
 \section{Curve Intersections}
+
+\subsection{Newton Raphson}
+Since finding analytical solutions for the intersections between the two curves is extremely difficult a numerical approach is used instead. Specifially the Newton-Raphson method is used:
+
+\paragraph{1D Newton-Raphson}:
+\begin{equation}
+\begin{gathered}
+f(x) \stackrel{!}{=} 0 \\
+x^{k+1} = x^k - \frac{f(x^k)}{f'(x^k)}
+\end{gathered}
+\label{eq:1D_newton_raphson}
+\end{equation}
+
+\paragraph{2D Newton-Raphson}:
+\begin{equation}
+\begin{gathered}
+    \vb F(\vb x) = \begin{bmatrix} f_1(x_1, x_2) \\ f_2(x_1, x_2) \end{bmatrix} \stackrel{!}{=} \vb 0
+    \\[1ex]
+    \vb J(\vb x) = \begin{bmatrix} J_{11} & J_{12} \\ J_{21} & J_{22} \end{bmatrix} = \begin{bmatrix} \pdv{f_1}{x_1} & \pdv{f_1}{x_2} \\ \pdv{f_2}{x_1} & \pdv{f_2}{x_2} \end{bmatrix}
+    \\[1ex]
+    \vb J^{-1} = \frac{1}{J_{11}J_{22} - J_{12}J_{21}} \begin{bmatrix}J_{22} & - J_{12} \\ -J_{21} & J_{11}\end{bmatrix}
+    \\[1ex]
+\vb x^{k+1} = \vb x^k - \vb J^{-1}(\vb x^k)\;\vb F(\vb x^k)
+\end{gathered}
+\label{eq:2D_newton_raphson}
+\end{equation}
+
 \subsection{Left–Right Involute Intersection}
-    \subsubsection{Symmetry Argument}
-    \subsubsection{Newton-Raphson Solution}
+
+\begin{subequations}
+\begin{align}
+    &\vb{r_{inv,pos,right}}(\phi) = \vb{R}(-\gamma)\;\vb{r_{inv}}(\phi)
+\nonumber\\[1ex]
+    &\phantom{\vb{r_{inv,po}}}= \frac{d_b}{2} \begin{bmatrix}
+        \phantom{-}\cos(\gamma)\;\cos(\phi) +\cos(\gamma)\;\phi \sin(\phi) + \sin(\gamma)\;\sin(\phi) - \sin(\gamma)\;\phi\cos(\phi)\\
+        -\sin(\gamma)\;\cos(\phi) - \sin(\gamma)\;\phi \sin(\phi) + \cos(\gamma)\;\sin(\phi) - \cos(\gamma)\;\phi\cos(\phi)\\
+    \end{bmatrix}
+\\[2ex]
+    &\vb{r_{inv,pos,left}}(\phi) = \vb{R}(\gamma)\;\vb{r_{inv}}(\phi)
+\nonumber\\[1ex]
+    &\phantom{\vb{r_{inv,po}}} = \frac{d_b}{2}
+    \begin{bmatrix}
+        \phantom{-}\cos(\phantom{-}\gamma)\;\cos(\phi) +\cos(\phantom{-}\gamma)\;\phi \sin(\phi) + \sin(-\gamma)\;\sin(\phi) - \sin(-\gamma)\;\phi\cos(\phi)\\
+        -\sin(-\gamma)\;\cos(\phi) - \sin(-\gamma)\;\phi \sin(\phi) + \cos(\phantom{-}\gamma)\;\sin(\phi) - \cos(\phantom{-}\gamma)\;\phi\cos(\phi)\\
+    \end{bmatrix}
+\end{align}
+\end{subequations}
+
+x component:
+\begin{equation}
+\begin{aligned}
+\cos(\gamma)\;\cos(\phi_r) &+ \cos(\gamma)\;\phi_r \sin(\phi_r) + \sin(\gamma)\;\sin(\phi_r) - \sin(\gamma)\;\phi_r\cos(\phi_r)\\
+&= \cos(\gamma)\;\cos(\phi_l) +\cos(\gamma)\;\phi_l \sin(\phi_l) - \sin(\gamma)\;\sin(\phi_l) + \sin(\gamma)\;\phi_l\cos(\phi_l)
+\end{aligned}
+\end{equation}
+y component:
+\begin{equation}
+\begin{aligned}
+-\sin(\gamma)\;\cos(\phi_r) &- \sin(\gamma)\;\phi_r \sin(\phi_r) + \cos(\gamma)\;\sin(\phi_r) - \cos(\gamma)\;\phi_r\cos(\phi_r)\\
+&= \sin(\gamma)\;\cos(\phi_l) + \sin(\gamma)\;\phi_l \sin(\phi_l) + \cos(\gamma)\;\sin(\phi_l) - \cos(\gamma)\;\phi_l\cos(\phi_l)
+\end{aligned}
+\end{equation}
+
+a) Due to the symmetry of the two cuves: $\phi_r = -\phi_l = \phi$
+Proof by inserting $\phi$ into eq. x:
+\begin{equation}
+\begin{aligned}
+    &\phantom{=}\,\;\cos(\gamma)\;\cos(\phi)_l + \cos(\gamma)\;\phi \sin(\phi) + \sin(\gamma)\;\sin(\phi) - \sin(\gamma)\;\phi\cos(\phi)
+\\
+    &= \cos(\gamma)\;\cos(\phi) + \cos(\gamma)\;\phi \sin(\phi) + \sin(\gamma)\;\sin(\phi) - \sin(\gamma)\;\phi\cos(\phi)
+\end{aligned}
+\end{equation}
+
+b) Inserting $\phi_r = -\phi_l = \phi$ into eq. y:**
+\begin{equation}
+\begin{aligned}
+&\phantom{=}\,\; -\sin(\gamma)\;\cos(\phi) - \sin(\gamma)\;\phi \sin(\phi) + \cos(\gamma)\;\sin(\phi) - \cos(\gamma)\;\phi\cos(\phi)\\
+&= 
+\phantom{-}\sin(\gamma)\;\cos(\phi) + \sin(\gamma)\;\phi \sin(\phi) - \cos(\gamma)\;\sin(\phi) + \cos(\gamma)\;\phi\cos(\phi)
+\end{aligned}
+\end{equation}
+
+RHS-LHS=0 and simplify
+
+\begin{subequations}
+\begin{align}
+    2\sin(\gamma)\cos(\phi) + 2\sin(\gamma)\phi\sin(\phi) - 2\cos(\gamma)\sin(\phi) + 2\cos(\gamma)\phi\cos(\phi) &= 0\\
+    \sin(\gamma)\cos(\phi) + \sin(\gamma)\phi\sin(\phi) - \cos(\gamma)\sin(\phi) + \cos(\gamma)\phi\cos(\phi) &= 0\\
+    \sin(\gamma)\left[\cos(\phi) + \phi\sin(\phi)\right] - \cos(\gamma)\left[\sin(\phi) - \phi\cos(\phi)\right]&= 0
+\end{align}
+\vspace*{-2.5em}
+\begin{align}
+    \sin(\gamma)\left[\cos(\phi) + \phi\sin(\phi)\right] &= \cos(\gamma)\left[\sin(\phi) - \phi\cos(\phi)\right]\\
+    \tan(\gamma) &= \frac{\sin(\phi) - \phi\cos(\phi)}{\cos(\phi) + \phi\sin(\phi)}\\
+    \frac{\sin(\phi) - \phi\cos(\phi)}{\cos(\phi) + \phi\sin(\phi)} - \tan(\gamma) &=0
+\end{align}
+\end{subequations}
+
 \subsection{Involute–Hypotrochoid Intersection}
     \subsubsection{System of Equations}
     \subsubsection{Jacobian Matrix}

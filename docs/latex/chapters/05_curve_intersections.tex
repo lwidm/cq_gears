@@ -1,9 +1,10 @@
 \section{Curve Intersections}
 
-\subsection{Newton Raphson}
-Since finding analytical solutions for the intersections between the two curves is extremely difficult a numerical approach is used instead. Specifially the Newton-Raphson method is used:
+\subsection{Newton-Raphson Method}
+Finding analytical solutions for the intersections between the two curves is extremely difficult, so a numerical approach is used instead. Specifically, the Newton-Raphson method provides an iterative way to find roots of nonlinear equations.
 
-\paragraph{1D Newton-Raphson}:
+\paragraph{1D Newton-Raphson}
+For a single variable, the method iteratively refines an estimate of the root:
 \begin{equation}
 \begin{gathered}
 f(x) \stackrel{!}{=} 0 \\
@@ -12,7 +13,8 @@ x^{k+1} = x^k - \frac{f(x^k)}{f'(x^k)}
 \label{eq:1D_newton_raphson}
 \end{equation}
 
-\paragraph{2D Newton-Raphson}:
+\paragraph{2D Newton-Raphson}
+For systems of two equations, the derivative is replaced by the Jacobian matrix. Given a vector function $\vb F$ and its Jacobian $\vb J$, the iteration becomes:
 \begin{equation}
 \begin{gathered}
     \vb F(\vb x) = \begin{bmatrix} f_1(x_1, x_2) \\ f_2(x_1, x_2) \end{bmatrix} \stackrel{!}{=} \vb 0
@@ -27,7 +29,7 @@ x^{k+1} = x^k - \frac{f(x^k)}{f'(x^k)}
 \end{equation}
 
 \subsection{Left–Right Involute Intersection}
-
+In certain configurations, particularly when profile shift is applied, the left and right involute flanks of a tooth may intersect before reaching the dedendum circle. When this occurs, the involute curves must be truncated at their intersection point rather than extending to the dedendum. To determine this intersection, the positioned involute equations are set equal. The right and left involutes are rotated by $-\gamma$ and $+\gamma$ respectively:
 \begin{subequations}
 \begin{align}
     &\vb{r_{inv,pos,right}}(\phi) = \vb{R}(-\gamma)\;\vb{r_{inv}}(\phi)
@@ -47,14 +49,18 @@ x^{k+1} = x^k - \frac{f(x^k)}{f'(x^k)}
 \end{align}
 \end{subequations}
 
-x component:
+\paragraph{Equating Components}
+Setting the two curves equal yields two equations, one for each component.
+
+The $x$-component gives:
 \begin{equation}
 \begin{aligned}
 \cos(\gamma)\;\cos(\phi_r) &+ \cos(\gamma)\;\phi_r \sin(\phi_r) + \sin(\gamma)\;\sin(\phi_r) - \sin(\gamma)\;\phi_r\cos(\phi_r)\\
 &= \cos(\gamma)\;\cos(\phi_l) +\cos(\gamma)\;\phi_l \sin(\phi_l) - \sin(\gamma)\;\sin(\phi_l) + \sin(\gamma)\;\phi_l\cos(\phi_l)
 \end{aligned}
 \end{equation}
-y component:
+
+The $y$-component gives:
 \begin{equation}
 \begin{aligned}
 -\sin(\gamma)\;\cos(\phi_r) &- \sin(\gamma)\;\phi_r \sin(\phi_r) + \cos(\gamma)\;\sin(\phi_r) - \cos(\gamma)\;\phi_r\cos(\phi_r)\\
@@ -62,8 +68,8 @@ y component:
 \end{aligned}
 \end{equation}
 
-a) Due to the symmetry of the two cuves: $\phi_r = -\phi_l = \phi$
-Proof by inserting $\phi$ into eq. x:
+\paragraph{Symmetry Argument}
+Due to the symmetry of the two curves, the ansatz $\phi_r = -\phi_l = \phi$ is proposed. This can be verified by substituting into the $x$-component equation, which yields:
 \begin{equation}
 \begin{aligned}
     &\phantom{=}\,\;\cos(\gamma)\;\cos(\phi)_l + \cos(\gamma)\;\phi \sin(\phi) + \sin(\gamma)\;\sin(\phi) - \sin(\gamma)\;\phi\cos(\phi)
@@ -71,17 +77,19 @@ Proof by inserting $\phi$ into eq. x:
     &= \cos(\gamma)\;\cos(\phi) + \cos(\gamma)\;\phi \sin(\phi) + \sin(\gamma)\;\sin(\phi) - \sin(\gamma)\;\phi\cos(\phi)
 \end{aligned}
 \end{equation}
+Both sides are identical, confirming the symmetry assumption is valid.
 
-b) Inserting $\phi_r = -\phi_l = \phi$ into eq. y:**
+\paragraph{Deriving the Intersection Condition}
+Inserting $\phi_r = -\phi_l = \phi$ into the $y$-component equation:
 \begin{equation}
 \begin{aligned}
 &\phantom{=}\,\; -\sin(\gamma)\;\cos(\phi) - \sin(\gamma)\;\phi \sin(\phi) + \cos(\gamma)\;\sin(\phi) - \cos(\gamma)\;\phi\cos(\phi)\\
-&= 
+&=
 \phantom{-}\sin(\gamma)\;\cos(\phi) + \sin(\gamma)\;\phi \sin(\phi) - \cos(\gamma)\;\sin(\phi) + \cos(\gamma)\;\phi\cos(\phi)
 \end{aligned}
 \end{equation}
 
-RHS-LHS=0 and simplify
+Taking the difference (RHS $-$ LHS $= 0$) and simplifying:
 
 \begin{subequations}
 \begin{align}

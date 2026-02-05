@@ -18,7 +18,11 @@
 \usepackage{media9}
 
 \newif\iflocal
-% \localtrue
+\ifdefined\notlocal
+    \localfalse
+\else
+    \localtrue
+\fi
 
 \addbibresource{references.bib}
 

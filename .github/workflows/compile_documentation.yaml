@@ -15,6 +15,8 @@ jobs:
       run:
         working-directory: docs/latex
     steps:
+      - name: 0. Install git-lfs
+        run: apt-get update && apt-get install -y git-lfs
       - uses: actions/checkout@v4
         with:
           lfs: true

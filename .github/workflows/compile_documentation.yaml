@@ -16,6 +16,8 @@ jobs:
         working-directory: docs/latex
     steps:
       - uses: actions/checkout@v4
+        with:
+          lfs: true
       - name: 1. First pass (generates .aux with citation keys)
         run: pdflatex "\def\notlocal{}\input{theory.tex}"
       - name: 2. Process bibliography

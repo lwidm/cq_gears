@@ -3,6 +3,10 @@ name: compile_documentation
 on:
   workflow_dispatch
 
+permissions:
+  pages: write
+  id-token: write
+
 jobs:
   compile_documentation:
     runs-on: ubuntu-latest
@@ -22,7 +26,11 @@ jobs:
         run: pdflatex "\def\notlocal{}\input{theory.tex}"
       - name: 4. Third pass (resolves all cross-references)
         run: pdflatex "\def\notlocal{}\input{theory.tex}"
-      - uses: actions/upload-artifact@v4
+      - name: 5. Prepare pages artifact
+        run: |
+          mkdir -p /tmp/pages
+          cp theory.pdf /tmp/pages/
+      - uses: actions/upload-pages-artifact@v3
         with:
-          name: documentation-pdf
-          path: docs/latex/theory.pdf
+          path: /tmp/pages
+      - uses: actions/deploy-pages@v4

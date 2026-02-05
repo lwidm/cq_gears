@@ -1,0 +1,28 @@
+name: compile_documentation
+
+on:
+  workflow_dispatch
+
+jobs:
+  compile_documentation:
+    runs-on: ubuntu-latest
+    container: texlive/texlive:latest
+    defaults:
+      run:
+        working-directory: docs/latex
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: docs/latex
+      - name: 1. First pass (generates .aux with citation keys)
+        run: pdflatex "\def\notlocal{}\input{theory.tex}"
+      - name: 2. Process bibliography
+        run: biber theory
+      - name: 3. Second pass (incorporates bibliography)
+        run: pdflatex "\def\notlocal{}\input{theory.tex}"
+      - name: 4. Third pass (resolves all cross-references)
+        run: pdflatex "\def\notlocal{}\input{theory.tex}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: documentation-pdf
+          path: docs/latex/theory.pdf

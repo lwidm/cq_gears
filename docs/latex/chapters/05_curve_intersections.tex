@@ -110,6 +110,72 @@ This means we need to solve the following equation with Newton-Raphson:
 \begin{align}
 f(\phi) = \frac{\sin(\phi) - \phi\cos(\phi)}{\cos(\phi) + \phi\sin(\phi)} - \tan(\gamma) &=0\\
 \end{align}
+For this we need to compute the derivative of $f(\phi)$ first
+
+\paragraph{Derivate of $f(x)$}
+\begin{enumerate}[label=\alph*)]
+    \item Split into components
+        \begin{equation}
+            \begin{gathered}
+                f(\phi) = \frac{u(\phi)}{v(\phi)} -C\\
+                \begin{aligned}
+                    u(\phi) &=\sin(\phi) - \phi \cos(\phi) \\
+                    v(\phi) &=\cos(\phi) + \phi \sin(\phi) \\
+                    C &= \tan(\gamma)
+                \end{aligned}
+            \end{gathered}
+        \end{equation}
+    \item compute $u'(\phi)$
+        \begin{equation}
+            \begin{aligned}
+                u'(\phi)    &= \cos(\phi) - \cos(\phi) + \phi\sin(\phi) \\
+                            &= \phi\sin(\phi)
+            \end{aligned}
+        \end{equation}
+    \item compute $v'(\phi)$
+        \begin{equation}
+            \begin{aligned}
+                v'(\phi)    &= -\sin(\phi) + \sin(\phi) + \phi\cos(\phi) \\
+                            &= \phi\cos(\phi)
+            \end{aligned}
+        \end{equation}
+    \item apply quotient rule
+        \begin{equation}
+            \dv{}{\phi}\left[\frac{u(\phi)}{v(\phi)}\right] = \frac{u'\;v - u\;v'}{v^2}
+        \end{equation}
+        \begin{align}
+            \dv{f(\phi)}{\phi} & = \frac{u'\;v - u\;v'}{v^2} \\
+                &= \frac{
+                    \phi\sin(\phi)\cdot\left[\cos(\phi) + \phi\sin(\phi)\right] - \phi\cos(\phi)\cdot\left[\sin(\phi) - \phi\cos(\phi)\right]
+                    }
+                    {\left[\cos(\phi) + \phi\sin(\phi)\right]^2}\\[1ex]
+                &= \frac{
+                    \cancel{\phi\sin(\phi)\cos(\phi)} + \phi^2\sin^2(\phi) \cancel{ -\phi\sin(\phi)\cos(\phi)} + \phi^2\cos^2(\phi)
+                    }
+                    {\left[\cos(\phi) + \phi\sin(\phi)\right]^2}\\[1ex]
+                &= \frac{
+                    \phi^2\cancelto{1}{\left[\sin^2(\phi) + \cos^2(\phi)\right]}
+                    }
+                    {\left[\cos(\phi) + \phi\sin(\phi)\right]^2}\\[1ex]
+                &= \frac{\phi^2}{\left[\cos(\phi) + \phi\sin(\phi)\right]^2}
+        \end{align}
+\end{enumerate}
+
+\paragraph{Formulate Newton-Raphson}
+\begin{align}
+    \phi_{n+1} &= \phi_n - \frac{F(\phi_n)}{F'(\phi_n)} \\
+                &= \phi_n - \left(\frac{\sin(\phi_n) - \phi_n\cos(\phi_n)}{\cos(\phi_n) + \phi_n\sin(\phi_n)} - \tan(\gamma)\right)
+                    \frac{\left[\cos(\phi_n) + \phi_n\sin(\phi_n)\right]^2}{\phi_n^2}\\[1ex]
+                 &= \phi_n - \frac{\cos(\phi_n) + \phi_n\sin(\phi_n)}{\phi_n^2}\left(\sin(\phi_n) - \phi_n\cos(\phi_n) - \tan(\gamma)\;\left[\cos(\phi_n) + \phi_n\sin(\phi_n)\right]\right)
+\end{align}
+or more presentable:
+\begin{equation}
+    \begin{gathered}
+        \phi_{n+1} = \phi_n - \frac{a}{\phi_n^2}\left(b - \tan(\gamma)\;a\right)\\[1ex]
+        a =\cos(\phi_n) + \phi_n\sin(\phi_n) \qq{and} b=\sin(\phi_n) - \phi_n\cos(\phi_n)
+    \end{gathered}
+\end{equation}
+
 
 \subsection{Involute–Hypotrochoid Intersection}
     \subsubsection{System of Equations}

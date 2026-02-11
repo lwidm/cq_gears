@@ -38,3 +38,11 @@ export/
 venv/
 env/
 ENV/
+
+# Generated documentation assets
+docs/assets/involute_line.png
+docs/assets/involute_line.mp4
+docs/assets/involute_string.png
+docs/assets/involute_string.mp4
+docs/assets/hypotroichoid.png
+docs/assets/hypotroichoid.mp4

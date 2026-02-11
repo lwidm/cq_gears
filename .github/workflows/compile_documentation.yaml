@@ -8,7 +8,30 @@ permissions:
   id-token: write
 
 jobs:
+  generate_assets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python version 3.12
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.12
+          architecture: 'x64'
+          cache: pip
+      - name: Display Python version
+        run: python -c "import sys; print(sys.version)"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Generate assets
+        run: python "./scripts/generate_docs_assets.py"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: python_assets
+          path: "./docs/assets"
   compile_documentation:
+    needs: generate_assets
     runs-on: ubuntu-latest
     container: texlive/texlive:latest
     defaults:
@@ -21,6 +44,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           lfs: true
+      - uses: actions/download-artifact@v4
+        with:
+          name: python_assets
+          path: "./docs/assets"
       - name: 1. First pass (generates .aux with citation keys)
         run: pdflatex "\def\notlocal{}\input{theory.tex}"
       - name: 2. Process bibliography
@@ -33,6 +60,7 @@ jobs:
         run: |
           mkdir -p /tmp/pages
           cp theory.pdf /tmp/pages/
+          cp ../assets/* /tmp/pages/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: /tmp/pages

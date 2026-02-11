@@ -1,0 +1,5 @@
+cadquery
+numpy
+scipy
+matplotlib
+pyvista

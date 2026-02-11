@@ -9,10 +9,7 @@ dependencies:
   - cq-editor=master
   - numpy
   - scipy
+  - matplotlib
   - pyvista
-  - nlopt
-  - vtk
-  - ipython
-  - pytest
   - pip
   - pip:

@@ -30,7 +30,13 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: python_assets
-          path: "./docs/assets"
+          path: |
+            ./docs/assets/involute_line.png
+            ./docs/assets/involute_line.mp4
+            ./docs/assets/involute_string.png
+            ./docs/assets/involute_string.mp4
+            ./docs/assets/hypotroichoid.png
+            ./docs/assets/hypotroichoid.mp4
   compile_documentation:
     needs: generate_assets
     runs-on: ubuntu-latest

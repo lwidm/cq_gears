@@ -436,7 +436,9 @@ def undercut_plot_compute(
     else:
         points_inv = math.rotate(points_inv, -alpha_t_r)
 
-    points_undercut: np.ndarray = math.undercut_curve(dp, df, alpha_t_r, phi_r_arr, flank)
+    points_undercut: np.ndarray = math.undercut_curve(
+        dp, df, alpha_t_r, phi_r_arr, flank
+    )
 
     undercut_inv_dict: dict[str, np.ndarray] = involute_plot_compute(
         r=dp / 2,
@@ -822,6 +824,169 @@ def tooth_plot(
     ax.set_aspect("equal")
     xlim: tuple[float, float] = (0.0, 0.6 * tooth_dict["da"])
     ylim: tuple[float, float] = (-0.3 * tooth_dict["da"], 0.3 * tooth_dict["da"])
+    ax.set_xlim(*xlim)
+    ax.set_ylim(*ylim)
+    ax = add_background_rect(ax, xlim, ylim)
+    ax.set_position((0, 0, 1, 1))
+    ax.set_axis_off()
+
+    return ax
+
+
+def profile_shift_plot(
+    ax: Axes,
+    x_values: list[float],
+    m: float = 1.0,
+    z: int = 8,
+) -> Axes:
+    lw: float = 1.0
+    zorder: int = 100
+
+    n_values: int = len(x_values)
+    geardatas: list[GearData] = [
+        core.compute_gear_data(
+            m=m,
+            z=z,
+            b=1.0,
+            x=x_val,
+            alpha_t=20.0,
+            beta=0.0,
+            delta=90.0,
+            ha_star=1.0,
+            c_star=0.25,
+            rho_f_star=0.3,
+        )
+        for x_val in x_values
+    ]
+
+    tooth_dicts: list[dict] = [tooth_plot_compute(gd) for gd in geardatas]
+
+    x_max: float = max(abs(xv) for xv in x_values) if x_values else 1.0
+    colors: list[str] = []
+    for x_val in x_values:
+        if np.isclose(x_val, 0, rtol=1e-9):
+            colors.append("#ffffff")
+        else:
+            t: float = abs(x_val) / x_max
+            if x_val > 0:
+                r: int = int(255 * (1 - t))
+                g: int = int(255 * (1 - t))
+                b: int = 255
+            elif x_val < 0:
+                r = 255
+                g = int(255 * (1 - t))
+                b = int(255 * (1 - t))
+            else:
+                r, g, b = 255, 255, 255
+            colors.append(f"#{r:02x}{g:02x}{b:02x}")
+
+    da_max: float = max(td["da"] for td in tooth_dicts)
+
+    zorder_circles: int = zorder + 6 * n_values
+
+    for i, td in enumerate(tooth_dicts):
+        color: str = colors[i]
+
+        # right involute
+        ax.plot(
+            td["points_inv_right"][0, :],
+            td["points_inv_right"][1, :],
+            color=color,
+            linewidth=lw,
+            zorder=zorder,
+        )
+        zorder += 1
+
+        # left involute
+        ax.plot(
+            td["points_inv_left"][0, :],
+            td["points_inv_left"][1, :],
+            color=color,
+            linewidth=lw,
+            zorder=zorder,
+        )
+        zorder += 1
+
+        # right undercut
+        ax.plot(
+            td["points_undercut_right"][0, :],
+            td["points_undercut_right"][1, :],
+            color=color,
+            linewidth=lw,
+            zorder=zorder,
+        )
+        zorder += 1
+
+        # left undercut
+        ax.plot(
+            td["points_undercut_left"][0, :],
+            td["points_undercut_left"][1, :],
+            color=color,
+            linewidth=lw,
+            zorder=zorder,
+        )
+        zorder += 1
+
+        # addendum arc connecting involute tips
+        angle_right: float = np.degrees(
+            np.arctan2(
+                td["points_inv_right"][1, -1], td["points_inv_right"][0, -1]
+            )
+        )
+        angle_left: float = np.degrees(
+            np.arctan2(
+                td["points_inv_left"][1, -1], td["points_inv_left"][0, -1]
+            )
+        )
+        if not np.isclose(angle_left, angle_right, rtol=1e-3):
+            ax.add_patch(
+                Arc(
+                    (0, 0),
+                    td["da"],
+                    td["da"],
+                    angle=0,
+                    theta1=angle_right,
+                    theta2=angle_left,
+                    color=color,
+                    linewidth=lw,
+                    zorder=zorder,
+                )
+            )
+            zorder += 1
+
+        # dedendum circle
+        ax.add_patch(
+            Circle(
+                (0, 0),
+                td["df"] / 2,
+                color="gray",
+                alpha=0.6,
+                fill=False,
+                linewidth=lw,
+                linestyle="dotted",
+                zorder=zorder_circles,
+            )
+        )
+        zorder_circles += 1
+
+        # addendum circle
+        ax.add_patch(
+            Circle(
+                (0, 0),
+                td["da"] / 2,
+                color="gray",
+                alpha=0.6,
+                fill=False,
+                linewidth=lw,
+                linestyle="dotted",
+                zorder=zorder_circles,
+            )
+        )
+        zorder_circles += 1
+
+    ax.set_aspect("equal")
+    xlim: tuple[float, float] = (0.0, 0.6 * da_max)
+    ylim: tuple[float, float] = (-0.3 * da_max, 0.3 * da_max)
     ax.set_xlim(*xlim)
     ax.set_ylim(*ylim)
     ax = add_background_rect(ax, xlim, ylim)

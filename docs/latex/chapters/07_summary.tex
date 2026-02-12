@@ -1,0 +1,126 @@
+\section{Summary}
+This section consolidates all final formulas needed to construct a single gear tooth. For derivations, refer to the corresponding sections.
+
+\subsection{Input Parameters and Derived Quantities}
+
+\begin{center}
+\begin{tabular}{@{}llll@{}}
+    \textbf{Symbol} & \textbf{Parameter} & \textbf{Default} & \textbf{Unit} \\
+    \hline
+    $m$         & Module                    & --            & mm \\
+    $z$         & Number of teeth           & --            & -- \\
+    $\alpha_n$  & Normal pressure angle     & $\SI{20}{\degree}$ & deg \\
+    $\beta$     & Helix angle               & $\SI{0}{\degree}$ (spur) & deg \\
+    $x$         & Profile shift coefficient & 0             & -- \\
+    $h_a^*$     & Addendum coefficient      & 1             & -- \\
+    $c^*$       & Tip clearance factor      & 0.25          & -- \\
+\end{tabular}
+\end{center}
+
+From these, compute the circle diameters (Section~\ref{sec:preliminaries}) and half tooth angle (Section~\ref{subsec:tooth_thickness}):
+\begin{align}
+    \alpha_t &= \arctan\!\left(\frac{\tan(\alpha_n)}{\cos(\beta)}\right) \\
+    d_p &= m \cdot z \\
+    d_b &= d_p \cos(\alpha_t) \\
+    d_a &= m\cdot(z + 2\,x + 2\cdot h_a^*) \\
+    d_f &= m\cdot(z + 2\,x - 2\cdot(h_a^*+c^*)) \\
+    \gamma &= \frac{m\pi + 4 \cdot m \cdot x \cdot \tan(\alpha_n)}{2\,d_p} + \left[\left(\frac{d_p}{d_b}\right)^2 - 1\right]^{\tfrac{1}{2}} - \arctan\left(\left[\left(\frac{d_p}{d_b}\right)^2 - 1\right]^{\tfrac{1}{2}}\right)
+\end{align}
+
+\subsection{Parametric Curves}
+
+\paragraph{Involute} (Section~\ref{sec:involute}):
+\begin{equation}
+    \vb{r_{inv}}(\phi) = \frac{d_b}{2} \begin{bmatrix}
+        \cos(\phi) + \phi\sin(\phi) \\
+        \sin(\phi) - \phi\cos(\phi)
+    \end{bmatrix}
+    \qq{,}
+    \phi(d^*) = \mypm\left[\left(\frac{d^*}{d_b}\right)^2 - 1\right]^{\frac{1}{2}}
+\end{equation}
+Start: $\phi_{start} = 0$ (base circle). \quad End: $\phi_{end} = \phi(d_a)$ (addendum circle).
+
+\paragraph{Positioned involute} (Section~\ref{sec:tooth_geometry_positioning}, rotated by $\mypm(-\gamma)$):
+\begin{equation}
+    \vb{r_{inv,pos}}(\phi) = \frac{d_b}{2} \begin{bmatrix}
+        \phantom{-}\cos(\myppm\gamma)\;\cos(\phi) +\cos(\myppm\gamma)\;\phi \sin(\phi) + \sin(\mypm\gamma)\;\sin(\phi) - \sin(\mypm\gamma)\;\phi\cos(\phi)\\
+        -\sin(\mypm\gamma)\;\cos(\phi) - \sin(\mypm\gamma)\;\phi \sin(\phi) + \cos(\myppm\gamma)\;\sin(\phi) - \cos(\myppm\gamma)\;\phi\cos(\phi)\\
+    \end{bmatrix}
+\end{equation}
+
+\paragraph{Undercut curve} (Section~\ref{sec:undercut}):
+\begin{equation}
+    \begin{gathered}
+        \vb{r_{undercut}}(\phi) = \frac{1}{2}\left(
+            \begin{bmatrix} a \\ b \end{bmatrix}\cos(\phi)
+            + \begin{bmatrix} -b \\ a \end{bmatrix}\sin(\phi)
+            + d_p\,\phi\;\begin{bmatrix} \sin(\phi) \\ -\cos(\phi) \end{bmatrix}
+        \right)
+    \\
+        a = d_f \quad\quad b = \mypm d_f\tan(\alpha_t)
+    \end{gathered}
+\end{equation}
+Start: $\phi_0 = \mypm\frac{d_f}{d_p}\tan(\alpha_t)$ (dedendum circle).
+
+\paragraph{Positioned undercut} (Section~\ref{sec:tooth_geometry_positioning}, rotated by $\mypm(-\gamma - \alpha_t)$):
+\begin{subequations}
+\begin{align}
+    &\vb{r_{undercut,pos}}(\phi) = \vb{R}(\mypm(-\gamma - \alpha_t))\;\vb{r_{undercut}}(\phi)
+\\[1ex]
+    &= \frac{1}{2}\bigg[\begin{array}{cc}
+            \phantom{-}a\cos(\myppm\;\gamma+\alpha_t\;)\;\cos(\phi) 
+            - b\cos(\myppm\;\gamma+\alpha_t\;)\;\sin(\phi)
+                + d_p\cos(\myppm\;\gamma+\alpha_t\;)\;\phi\sin(\phi)\dots \\
+            -a\sin(\mypm(\gamma+\alpha_t))\;\cos(\phi)
+                +b\sin(\mypm(\gamma+\alpha_t))\;\sin(\phi)
+                - d_p\sin(\mypm(\gamma+\alpha_t))\;\phi\sin(\phi)\dots
+        \end{array}
+\nonumber\\
+        &\phantom{= \frac{1}{2}\bigg[}\begin{array}{cc}
+            \hspace{1em}\dots + b\sin(\mypm(\gamma+\alpha_t))\;\cos(\phi) 
+                + a\sin(\mypm(\gamma+\alpha_t))\;\sin(\phi)
+                - d_p\sin(\mypm(\gamma+\alpha_t))\;\phi\cos(\phi)\\
+            \hspace{1em}\dots+ b\cos(\myppm\;\gamma+\alpha_t\;)\;\cos(\phi) 
+                + a\cos(\myppm\;\gamma+\alpha_t\;)\;\sin(\phi)
+                - d_p\cos(\myppm\;\gamma+\alpha_t\;)\;\phi\cos(\phi)
+        \end{array}\bigg]
+\end{align}
+\end{subequations}
+
+\subsection{Curve Intersections}
+
+\paragraph{Left--Right Involute Intersection} (Section~\ref{sec:curve_intersections}). Solve with 1D Newton-Raphson (Eq.~\eqref{eq:1D_newton_raphson}):
+\begin{equation}
+    \begin{gathered}
+        \phi_{n+1} = \phi_n - \frac{a}{\phi_n^2}\left(b - \tan(\gamma)\;a\right) \\[1ex]
+        a = \cos(\phi_n) + \phi_n\sin(\phi_n) \qq{,} b = \sin(\phi_n) - \phi_n\cos(\phi_n)
+    \end{gathered}
+\end{equation}
+If the intersection happens before the dedendum circle ($\phi_\infty < \phi(d_a)$), the involute end is updated to $\phi_{end} = \phi_\infty$ instead of $\phi(d_a)$.
+
+\paragraph{Involute--Undercut Intersection} Solve with 2D Newton-Raphson (Eq.~\eqref{eq:2D_newton_raphson}), using $x_1 = \phi_i$ (involute), $x_2 = \phi_u$ (undercut), $c = \cos(\alpha_t)$, $d = \sin(\mypm\alpha_t)$:
+\begin{equation}
+    \begin{bmatrix} x_1 \\ x_2 \end{bmatrix}^{(k+1)}
+    = \begin{bmatrix} x_1 \\ x_2 \end{bmatrix}^{(k)}
+    - \vb{J^{-1}} \cdot \begin{bmatrix} f_1 \\ f_2 \end{bmatrix}
+\end{equation}
+\begin{align}
+    f_1 &= d_bc\cos(x_1) + d_bcx_1\sin(x_1) - d_bd\sin(x_1) + d_bdx_1\cos(x_1) \nonumber\\
+        &\phantom{=}- a\cos(x_2) + b\sin(x_2) - d_px_2\sin(x_2) \\
+    f_2 &= d_bd\cos(x_1) + d_bdx_1\sin(x_1) + d_bc\sin(x_1) - d_bcx_1\cos(x_1) \nonumber\\
+        &\phantom{=}- b\cos(x_2) - a\sin(x_2) + d_px_2\cos(x_2)
+\end{align}
+\begin{equation}
+    \vb{J^{-1}} = \frac{1}{J_{11}J_{22} - J_{12}J_{21}}
+    \begin{bmatrix}
+        J_{22} & -J_{12} \\
+        -J_{21} & J_{11}
+    \end{bmatrix}
+\end{equation}
+\begin{align}
+    J_{11} &= d_bx_1[c\cos x_1 - d\sin x_1] &
+    J_{12} &= a\sin x_2 + b\cos x_2 - d_p\sin x_2 - d_px_2\cos x_2 \nonumber\\
+    J_{21} &= d_bx_1[d\cos x_1 + c\sin x_1] &
+    J_{22} &= b\sin x_2 - a\cos x_2 + d_p\cos x_2 - d_px_2\sin x_2
+\end{align}
+The intersection determines the actual start of the involute ($\phi_i$) and the end of the undercut ($\phi_u$).

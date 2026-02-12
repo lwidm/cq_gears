@@ -21,14 +21,14 @@ The additional tooth width due to profile shift is more easily computed on the c
 \end{equation}
 Resulting in:
 \begin{equation}
-    s_0 = \frac{m\pi}{2} + 2 \cdot n \cdot x \cdot \tan(\alpha_n)
+    s_0 = \frac{m\pi}{2} + 2 \cdot m \cdot x \cdot \tan(\alpha_n)
 \end{equation}
 Therefore, the angle spanned by half of the tooth at the pitch circle is:
 \begin{subequations}
 \begin{align}
     \gamma_0    &= \frac{s_0}{d_p} \\
-                &= \frac{1}{d_p}\left(\frac{m\pi}{2} + 2 \cdot n \cdot x \cdot \tan(\alpha_n)\right) \\
-                &= \frac{m\pi + 4 \cdot n \cdot x \cdot \tan(\alpha_n)}{2\,d_p}
+                &= \frac{1}{d_p}\left(\frac{m\pi}{2} + 2 \cdot m \cdot x \cdot \tan(\alpha_n)\right) \\
+                &= \frac{m\left(\pi + 4 \cdot x \cdot \tan(\alpha_n)\right)}{2\,d_p}
 \end{align}
 \end{subequations}
 
@@ -54,7 +54,7 @@ This results in a half tooth angle at the base circle of:
 \begin{subequations}
 \begin{align}
     \gamma &= \gamma_0+\Delta \gamma \\
-           &= \frac{m\pi + 4 \cdot n \cdot x \cdot \tan(\alpha_n)}{2\,d_p} + \left[\left(\frac{d_p}{d_b}\right)^2 - 1\right]^{\tfrac{1}{2}} - \arctan\left(\left[\left(\frac{d_p}{d_b}\right)^2 - 1\right]^{\tfrac{1}{2}}\right)
+           &= \frac{m\left(\pi + 4 \cdot x \cdot \tan(\alpha_n)\right)}{2\,d_p} + \left[\left(\frac{d_p}{d_b}\right)^2 - 1\right]^{\tfrac{1}{2}} - \arctan\left(\left[\left(\frac{d_p}{d_b}\right)^2 - 1\right]^{\tfrac{1}{2}}\right)
 \end{align}
 \end{subequations}
 

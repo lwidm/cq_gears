@@ -1,2 +1,8 @@
 \section{Introduction}
-(brief overview of what this document covers)
+This document presents a fully analytical parametric description of involute gear teeth, including both the involute tooth flank and the undercut (trochoid) curve at the tooth root. All equations are derived without approximations. The resulting curves are parametric, meaning they can be traced by stepping through a single parameter $\phi$, making them straightforward to evaluate and discretize for use in CAD.
+
+For each curve, the start and end values of $\phi$ are derived so that the curves cover exactly the required portion of the tooth geometry. These bounds are determined either by reaching a specific diameter (e.g.\ the addendum or dedendum circle) or by the intersection with another curve. Closed-form solutions for the curve intersections were not derived (may not even exist), the Newton-Raphson method is used instead. The complete iteration formulas, including all required derivatives and Jacobian entries, are fully derived and ready for direct implementation. With these bounds, the curves can be directly stitched together in CAD without requiring any Boolean intersection operations.
+
+Profile shift is fully supported and its effect on tooth thickness and curve positioning is described in detail.
+
+Currently, the formulation covers spur gears (\textit{Stirnräder}) only. Helical gears and bevel gears (\textit{Kegelräder}) are not yet addressed.

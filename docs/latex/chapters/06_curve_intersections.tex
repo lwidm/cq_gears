@@ -33,7 +33,6 @@ In certain configurations, particularly when profile shift is applied, the left 
 
 \subsubsection{System of Equations}
 The right and left involutes are rotated by $-\gamma$ and $+\gamma$ respectively:
-\begin{subequations}
 \begin{align}
     &\vb{r_{inv,pos,right}}(\phi) = \vb{R}(-\gamma)\;\vb{r_{inv}}(\phi)
 \nonumber\\[1ex]
@@ -50,7 +49,6 @@ The right and left involutes are rotated by $-\gamma$ and $+\gamma$ respectively
         -\sin(-\gamma)\;\cos(\phi) - \sin(-\gamma)\;\phi \sin(\phi) + \cos(\phantom{-}\gamma)\;\sin(\phi) - \cos(\phantom{-}\gamma)\;\phi\cos(\phi)\\
     \end{bmatrix}
 \end{align}
-\end{subequations}
 
 \subsubsection{Equating Curves}
 Setting the two curves equal yields two equations, one for each component.
@@ -111,7 +109,7 @@ Taking the difference (RHS $-$ LHS $= 0$) and simplifying:
 \subsubsection{Applying Newton-Raphson}
 This means we need to solve the following equation with Newton-Raphson:
 \begin{align}
-f(\phi) = \frac{\sin(\phi) - \phi\cos(\phi)}{\cos(\phi) + \phi\sin(\phi)} - \tan(\gamma) &=0\\
+    f(\phi) = \frac{\sin(\phi) - \phi\cos(\phi)}{\cos(\phi) + \phi\sin(\phi)} - \tan(\gamma) &=0
 \end{align}
 For this we need to compute the derivative of $f(\phi)$ first.
 
@@ -146,6 +144,7 @@ For this we need to compute the derivative of $f(\phi)$ first.
         \begin{equation}
             \dv{}{\phi}\left[\frac{u(\phi)}{v(\phi)}\right] = \frac{u'\;v - u\;v'}{v^2}
         \end{equation}
+        \begin{subequations}
         \begin{align}
             \dv{f(\phi)}{\phi} & = \frac{u'\;v - u\;v'}{v^2} \\
                 &= \frac{
@@ -162,15 +161,18 @@ For this we need to compute the derivative of $f(\phi)$ first.
                     {\left[\cos(\phi) + \phi\sin(\phi)\right]^2}\\[1ex]
                 &= \frac{\phi^2}{\left[\cos(\phi) + \phi\sin(\phi)\right]^2}
         \end{align}
+        \end{subequations}
 \end{enumerate}
 
 \paragraph{Newton-Raphson Iteration}
+\begin{subequations}
 \begin{align}
     \phi_{n+1} &= \phi_n - \frac{F(\phi_n)}{F'(\phi_n)} \\
                 &= \phi_n - \left(\frac{\sin(\phi_n) - \phi_n\cos(\phi_n)}{\cos(\phi_n) + \phi_n\sin(\phi_n)} - \tan(\gamma)\right)
                     \frac{\left[\cos(\phi_n) + \phi_n\sin(\phi_n)\right]^2}{\phi_n^2}\\[1ex]
                  &= \phi_n - \frac{\cos(\phi_n) + \phi_n\sin(\phi_n)}{\phi_n^2}\left(\sin(\phi_n) - \phi_n\cos(\phi_n) - \tan(\gamma)\;\left[\cos(\phi_n) + \phi_n\sin(\phi_n)\right]\right)
 \end{align}
+\end{subequations}
 In a more compact form:
 \begin{equation}
     \begin{gathered}
@@ -183,6 +185,7 @@ In a more compact form:
 \subsection{Involute–Undercut Intersection}
 In order to properly construct the tooth we need to find the intersection between involute and undercut which usually is just above the pitch circle. Using this we can draw the undercurve upto this intersection and start the involute from this intersection.
 \subsubsection{System of Equations}
+\begin{subequations}
 \begin{align}
     \vb{r_{inv}}(\phi_i) =
         \begin{bmatrix}
@@ -206,11 +209,13 @@ In order to properly construct the tooth we need to find the intersection betwee
     \right)\\[1ex]
     & a = d_f \quad\quad b = \mypm d_f\tan(\alpha_t) \nonumber
 \end{align}
+\end{subequations}
 By looking at how the two curves are defined (see Figures~\ref{fig:involute_construction}~and~\ref{fig:undercut_generated_video}) one can see that the involute needs to be rotated by $\mypm(-\gamma)$ and the undercut curve needs to be rotated by $\mypm(-\gamma - \alpha_t)$. When finding the intersection this is equivalent to rotating the involute by $\mypm \alpha_t$.
 
 Note: the red $\mypm$ refers to either the right flank ($\textcolor{red}{+}$) or left flank ($\textcolor{red}{-}$).
 
 Thus the rotated involute equation is:
+\begin{subequations}
 \begin{align}
     \vb{r_{inv,pos}}(\phi_i) &= \vb{R}(\mypm\alpha_t)\;\vb{r_{inv}}(\phi_i) \\[1ex]
     &=
@@ -227,8 +232,10 @@ Thus the rotated involute equation is:
         \sin(\mypm\alpha_t)\cos(\phi_i) +\sin(\mypm\alpha_t)\phi_i\sin(\phi_i) + \cos(\alpha_t)\sin(\phi_i) -\cos(\alpha_t)\phi_i\cos(\phi_i) \\
     \end{bmatrix}
 \end{align}
+\end{subequations}
 
 \subsubsection{Equating Curves}
+\begin{subequations}
 \begin{equation}
     \vb{r_{inv,pos}}(\phi_i) = \vb{r_{undercut}}(\phi_u)
 \end{equation}
@@ -255,6 +262,7 @@ Thus the rotated involute equation is:
         b\cos(\phi_u) + a \sin(\phi_u) - d_p\phi_u\cos(\phi_u)
     \end{bmatrix}
 \end{equation}
+\end{subequations}
 
 \paragraph{Equating in $\vb x$}
 \begin{equation}
@@ -297,6 +305,7 @@ Before we can numerically solve this using Newton-Raphson we first need to compu
 \end{aligned}
 \end{equation}
 
+\begin{subequations}
 \begin{align}
     \pdv{f_1}{x_1} &= \cancel{-d_bc\sin(x_1) + d_bc\sin(x_1)} + d_bcx_1\cos(x_1) \cancel{- d_bd\cos(x_1) + d_bd\cos(x_1)} - d_bdx_1\sin(x_1)\\
         &= d_bcx_1\cos(x_1) - d_bdx_1\sin(x_1)\\
@@ -307,6 +316,7 @@ Before we can numerically solve this using Newton-Raphson we first need to compu
         &= d_bx_1[d\cos(x_1) + c\sin(x_1)]\\
             \pdv{f_2}{x_2} &= b\sin x_2 - a\cos x_2 + d_p\cos x_2 - d_px_2\sin x_2
 \end{align}
+\end{subequations}
 Finally:
 \begin{align}
     \vb J =
@@ -336,7 +346,7 @@ Finally the intersection can be found by iterating:
     \begin{bmatrix}
         x_1 \\ x_2
     \end{bmatrix}^{(k+1)}
-    = 
+    =
     \begin{bmatrix}
         x_1 \\ x_2
     \end{bmatrix}^{(k)}
@@ -347,7 +357,7 @@ where
     x_1 = \phi_i \qq{,} x_2=\phi_u \\[3ex]
     f_1 &= d_bc\cos(x_1) + d_bcx_1\sin(x_1) - d_bd\sin(x_1) + d_bdx_1\cos(x_1)\nonumber\\
         &\phantom{=}- a\cos(x_2) + b\sin(x_2) - d_px_2\sin(x_2)\\[1ex]
-    f_2 &= d_bd\cos(x_1) + d_bdx_1\sin(x_1) + d_bc\sin(x_1) -d_bcx_1\cos(x_1)\nonumber\\ 
+    f_2 &= d_bd\cos(x_1) + d_bdx_1\sin(x_1) + d_bc\sin(x_1) -d_bcx_1\cos(x_1)\nonumber\\
         &\phantom{=}-b\cos(x_2) - a \sin(x_2) + d_px_2\cos(x_2) \\[3ex]
     \vb {J^{-1}} &= \frac{1}{J_{11}J_{22} - J_{12}J_{21}}
         \begin{bmatrix}

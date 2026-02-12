@@ -5,18 +5,31 @@
 \subsubsection*{Gear Geometry}
 \begin{tabular}{@{}lll@{}}
     $m$         & Module                    & \textit{Modul} \\
+    $m_n$       & Normal module                    & \textit{Normalmodul} \\
+    $m_t$       & Transverse module                    & \textit{Axialmodul} \\
     $z$         & Number of teeth           & \textit{Zähnezahl} \\
     $\alpha_t$  & Pressure angle (transverse) & \textit{Eingriffswinkel} \\
     $x$         & Profile shift coefficient & \textit{Profilverschiebungsfaktor} \\
+    $h_a^*$     & Addendum coefficient & \textit{Kopfhöhenfaktor} \\
+    $c^*$       & Tip clearance factor & \textit{Kopfspielfaktor} \\
+    $c$         & Tip clearance & \textit{Kopfspiel} \\
+    $p$         & Pith  & \textit{Teilung} \\
+    $\alpha_n$  & Normal pressure angle  & \textit{Normaleingriffswinkel} \\
+    $\alpha_t$  & Transverse pressure angle   & \textit{Stirneingriffswinkel} \\
+    $\beta$     & Helix angle & \textit{Schrägungswinkel} \\
+    $\beta_b$   & Base helix angle  & \textit{Grundschrägungswinkel} \\
+    $\gamma$    & Lead angle at reference cylinder  & \textit{Steigungswinkel auf dem Teilzylinder} \\
 \end{tabular}
 
 \subsubsection*{Diameters}
 \begin{tabular}{@{}lll@{}}
-    $d_p$   & Pitch circle diameter ($d_p = m \cdot z$)     & \textit{Teilkreisdurchmesser} \\
+    $d_p$   & Pitch (reference) circle diameter ($d_p = m \cdot z$)     & \textit{Teilkreisdurchmesser} \\
     $d_b$   & Base circle diameter ($d_b = d_p \cos\alpha_t$) & \textit{Grundkreisdurchmesser} \\
     $d_a$   & Addendum (tip) circle diameter                & \textit{Kopfkreisdurchmesser} \\
     $d_f$   & Dedendum (root) circle diameter               & \textit{Fusskreisdurchmesser} \\
     $d^*$   & Arbitrary diameter                            & -- \\
+    $h_a$   & Addendum from reference pitch circle  & \textit{Zahnkopfhöhe} \\
+    $h_f$   & Dedendum from reference circle  & \textit{Zahnfusshöhe}
 \end{tabular}
 
 \subsubsection*{Tooth Dimensions}
@@ -41,6 +54,35 @@
     $\vb{N}(\phi)$                  & Unit normal vector \\
     $\vb{R}(\theta)$                & 2D rotation matrix \\
 \end{tabular}
+
+\subsection{Basic Gear Geometry}
+
+The fundamental relationships between the gear parameters are summarized below. All formulas follow the (DIN) ISO 21771 standard.
+
+\subsubsection*{Circle Diameters}
+Given the module $m$, number of teeth $z$, transverse pressure angle $\alpha_t$, profile shift coefficient $x$, addendum coefficient $h_a^*$, and clearance coefficient $c^*$):
+
+\begin{align}
+    d_p &= m \cdot z \\
+    d_b &= d_p \cos(\alpha_t) \\
+    d_a &= d_p + 2\,h_a = m\cdot(z + 2\,x + 2\cdot h_a^*)\\
+    d_f &= d_p - 2\,h_f = m\cdot(z + 2\,x - 2\cdot(h_a^*+c^*))
+\end{align}
+
+The addendum and dedendum heights depend on the profile shift:
+\begin{align}
+    h_a &= (h_a^* + x) \cdot m \\
+    h_f &= (h_a^* + c^* - x) \cdot m
+\end{align}
+
+For standard spur gears according to (DIN) ISO 21771:
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+    $\alpha_t = \SI{20}{\degree}$ & Transverse pressure angle & \textit{Eingriffswinkel} \\
+    $h_a^* = 1$ & Addendum coefficient & \textit{Kopfhöhenfaktor} \\
+    $c^* = 0.25$ & Clearance coefficient & \textit{Kopfspielfaktor} \\
+\end{tabular}
+\end{center}
 
 \subsection{Sign Convention}
 The symbol $\mypm$ indicates a sign that depends on which flank is being described:

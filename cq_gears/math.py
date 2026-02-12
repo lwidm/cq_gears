@@ -31,10 +31,10 @@ def tangent_angles(points: np.ndarray) -> np.ndarray:
     return angles
 
 
-def half_base_tooth_angle(m: float, dp: float, db: float) -> float:
+def half_base_tooth_angle(m: float, x: float, dp: float, db: float, alpha_n_r: float) -> float:
     dp_db: float = dp / db
     theta_dp: float = np.sqrt(dp_db**2 - 1)
-    return (m * np.pi) / (2 * dp) + theta_dp - np.arctan(theta_dp)
+    return m*(np.pi + 2*x*np.tan(alpha_n_r)) / (2 * dp) + theta_dp - np.arctan(theta_dp)
 
 
 def involute(r: float, phi_r: np.ndarray) -> np.ndarray:
@@ -51,9 +51,9 @@ def involute_phi_d(d_star: float, db: float, flank: Literal["right", "left"]) ->
 
 
 def involute_self_intersection(
-    phi_0: float, m: float, dp: float, db: float, n_iter: int = 200
+    phi_0: float, m: float, x: float, dp: float, db: float, alpha_n_r: float, n_iter: int = 200
 ) -> float:
-    gamma: float = half_base_tooth_angle(m, dp, db)
+    gamma: float = half_base_tooth_angle(m, x, dp, db, alpha_n_r)
 
     def newton_raphson(phi: float) -> float:
         a: float = np.cos(phi) + phi * np.sin(phi)
@@ -69,41 +69,43 @@ def involute_self_intersection(
 
 
 def involute_positioned(
-    m: float, dp: float, db: float, phi_r: np.ndarray, flank: Literal["right", "left"]
+    m: float, x: float, dp: float, db: float, alpha_n_r: float, phi_r: np.ndarray, flank: Literal["right", "left"]
 ) -> np.ndarray:
-    gamma: float = half_base_tooth_angle(m, dp, db)
+    gamma: float = half_base_tooth_angle(m, x, dp, db, alpha_n_r)
     cos_phi: np.ndarray = np.cos(phi_r)
     sin_phi: np.ndarray = np.sin(phi_r)
     cos_gamma: float = np.cos(gamma)
     sin_gamma: float = np.sin(gamma)
     if flank == "left":
         sin_gamma = -sin_gamma
-    x: np.ndarray = (
+    x_coord: np.ndarray = (
         cos_gamma * cos_phi
         + cos_gamma * phi_r * sin_phi
         + sin_gamma * sin_phi
         - sin_gamma * phi_r * cos_phi
     )
-    y: np.ndarray = (
+    y_coord: np.ndarray = (
         -sin_gamma * cos_phi
         - sin_gamma * phi_r * sin_phi
         + cos_gamma * sin_phi
         - cos_gamma * phi_r * cos_phi
     )
-    return db / 2 * np.vstack([x, y])  # shape (2, N)
+    return db / 2 * np.vstack([x_coord, y_coord])  # shape (2, N)
 
 
 def involute_tooth(
     m: float,
+    x: float,
     dp: float,
     db: float,
+    alpha_n_r: float,
     phi_start_r: float,
     phi_end_r: float,
     n_points: int,
     flank: Literal["right", "left"],
 ) -> np.ndarray:
     phi_arr_r: np.ndarray = np.linspace(phi_start_r, phi_end_r, n_points)
-    return involute_positioned(m, dp, db, phi_arr_r, flank)
+    return involute_positioned(m, x, dp, db, alpha_n_r, phi_arr_r, flank)
 
 
 def rotate(points: np.ndarray, rotation: float) -> np.ndarray:
@@ -232,9 +234,11 @@ def undercut_involute_intersection(
 
 def undercut_curve_positioned(
     m: float,
+    x: float,
     df: float,
     dp: float,
     db: float,
+    alpha_n_r: float,
     alpha_t_r: float,
     phi: np.ndarray,
     flank: Literal["right", "left"],
@@ -243,7 +247,7 @@ def undercut_curve_positioned(
     a: float = df
     b: float = df * np.tan(alpha_t_r)
 
-    gamma: float = half_base_tooth_angle(m, dp, db)
+    gamma: float = half_base_tooth_angle(m, x, dp, db, alpha_n_r)
     angle: float = gamma + alpha_t_r
 
     cos_phi: np.ndarray = np.cos(phi)
@@ -255,7 +259,7 @@ def undercut_curve_positioned(
         sin_angle = -sin_angle
         b = -b
 
-    x: np.ndarray = (
+    x_coord: np.ndarray = (
         a * cos_angle * cos_phi
         - b * cos_angle * sin_phi
         + dp * cos_angle * phi * sin_phi
@@ -264,7 +268,7 @@ def undercut_curve_positioned(
         - dp * sin_angle * phi * cos_phi
     )
 
-    y: np.ndarray = (
+    y_coord: np.ndarray = (
         -a * sin_angle * cos_phi
         + b * sin_angle * sin_phi
         - dp * sin_angle * phi * sin_phi
@@ -273,14 +277,16 @@ def undercut_curve_positioned(
         - dp * cos_angle * phi * cos_phi
     )
 
-    return 0.5 * np.vstack([x, y])  # shape (2, N)
+    return 0.5 * np.vstack([x_coord, y_coord])  # shape (2, N)
 
 
 def undercut_tooth(
     m: float,
+    x: float,
     dp: float,
     db: float,
     df: float,
+    alpha_n_r: float,
     alpha_t_r: float,
     phi_end_r: float,
     n_points: int,
@@ -288,7 +294,7 @@ def undercut_tooth(
 ) -> np.ndarray:
     phi_start_r: float = undercut_phi_0(dp, df, alpha_t_r, flank)
     phi_arr_r: np.ndarray = np.linspace(phi_start_r, phi_end_r, n_points)
-    return undercut_curve_positioned(m, df, dp, db, alpha_t_r, phi_arr_r, flank)
+    return undercut_curve_positioned(m, x, df, dp, db, alpha_n_r, alpha_t_r, phi_arr_r, flank)
 
 
 def undercut_curve_intuitive(

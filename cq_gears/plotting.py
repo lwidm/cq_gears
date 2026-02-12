@@ -678,17 +678,19 @@ def tooth_plot_compute(
     geardata: GearData,
 ) -> dict[str, float | np.ndarray | GearData]:
     m: float = geardata.m
+    x: float = geardata.x
     df: float = geardata.df
     db: float = geardata.db
     dp: float = geardata.d
     da: float = geardata.da
+    alpha_n_r: float = geardata.alpha_n_r
     alpha_t_r: float = geardata.alpha_t_r
 
     n_points: int = 500
 
     phi_r_addendum: float = math.involute_phi_d(da, db, "right")
     phi_r_addendum_intersection: float = math.involute_self_intersection(
-        phi_r_addendum, m, dp, db
+        phi_r_addendum, m, x, dp, db, alpha_n_r
     )
 
     phi_inv_start: float = math.involute_phi_d(dp, db, "right")
@@ -704,16 +706,16 @@ def tooth_plot_compute(
         phi_r_end = phi_r_addendum
 
     points_inv_right: np.ndarray = math.involute_tooth(
-        m, dp, db, phi_inv_start, phi_r_end, n_points, "right"
+        m, x, dp, db, alpha_n_r, phi_inv_start, phi_r_end, n_points, "right"
     )
     points_inv_left: np.ndarray = math.involute_tooth(
-        m, dp, db, -phi_inv_start, -phi_r_end, n_points, "left"
+        m, x, dp, db, alpha_n_r, -phi_inv_start, -phi_r_end, n_points, "left"
     )
     points_undercut_right: np.ndarray = math.undercut_tooth(
-        m, dp, db, df, alpha_t_r, phi_undercut_end, n_points, "right"
+        m, x, dp, db, df, alpha_n_r, alpha_t_r, phi_undercut_end, n_points, "right"
     )
     points_undercut_left: np.ndarray = math.undercut_tooth(
-        m, dp, db, df, alpha_t_r, -phi_undercut_end, n_points, "left"
+        m, x, dp, db, df, alpha_n_r, alpha_t_r, -phi_undercut_end, n_points, "left"
     )
 
     result: dict[str, float | np.ndarray | GearData] = {

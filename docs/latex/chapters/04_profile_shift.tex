@@ -1,0 +1,24 @@
+\section{Profile Shift}
+
+Profile shift is the displacement of the cutting rack away or towards the gear blank during manufacturing. It serves two primary purposes:
+\begin{enumerate}
+    \item \textbf{Avoiding undercut:} For gears with a small number of teeth, the dedendum circle falls below the base circle, causing the cutting tool to remove material from the tooth root. Applying a positive profile shift moves the rack outward, reducing or eliminating undercut.
+    \item \textbf{Achieving desired center distances:} When two gears must mesh at a fixed separation distance that differs from the standard center distance, profile shift allows the gear geometry to be adjusted so that proper contact is maintained.
+\end{enumerate}
+
+A detailed explanation of undercut and profile shift can be found in the video by Gergely Bencsik~\cite{undercut_profile_shift_YTvideo} (Timestamp 7:48).
+
+\subsection{Effect on the Parametric Curves}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\textwidth]{profile_shift_intuition_YT_screenshot.png}
+    \caption{Geometric intuition for profile shift: the cutting rack is displaced parallel to its tooth flank~(\fullcite{undercut_profile_shift_YTvideo}).}
+    \label{fig:profile_shift_intuition}
+\end{figure}
+
+Figure~\ref{fig:profile_shift_intuition}, taken from \citeauthor{undercut_profile_shift_YTvideo}'s youtube video, shows his intuitive explenation of profile shift: When we fix the position of the left involute flank, applying a profile shift simply moves the cutting rack parallel to its left tooth flank. This causes the starting point of the right flank involute to move further away from the left involute's starting point.
+
+Crucially, the parametric equations for both the involute curve and the undercut curve are not affected by profile shift. The curves themselves remain the same, only their positioning relative to each other changes. This is because profile shift does not alter the shape of the cutting rack, only its offset from the gear center.
+
+Therefore, profile shift only needs to be accounted for when computing the tooth thickness before positioning the curves. The details follow in Section~\ref{subsec:tooth_thickness} below.

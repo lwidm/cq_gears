@@ -14,7 +14,7 @@ def render_to_image(
     tmp_dir: Path,
     filename: str,
     window_size: tuple[int, int] = (1920, 1080),
-    camera_position: tuple | None = None,
+    camera_position: pv.CameraPosition | None = None,
 ) -> None:
     """
     Render CadQuery objects to PNG image using PyVista.
@@ -32,7 +32,7 @@ def render_to_image(
     exporters.export(gear, str(temp_gear_stl), tolerance=0.01, angularTolerance=0.1)
 
     plotter = pv.Plotter(off_screen=True, window_size=list(window_size))
-    plotter.set_background("#E8E8E8") # type: ignore
+    plotter.set_background("#E8E8E8")  # type: ignore
 
     gear_mesh = pv.read(str(temp_gear_stl))
     gear_mesh = gear_mesh.clean(tolerance=1e-6)
@@ -164,7 +164,7 @@ def setup_visualization(
         exporters.export(gear_blank, str(temp_stl))
         plotter = pv.Plotter(off_screen=True)
         mesh = pv.read(str(temp_stl))
-        plotter.add_mesh(mesh) # type: ignore
+        plotter.add_mesh(mesh)  # type: ignore
         plotter.camera_position = "iso"
         plotter.camera.zoom(1.2)
         fixed_camera_position = plotter.camera_position

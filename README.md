@@ -2,6 +2,51 @@
 
 Parametric gear generation for CadQuery with DIN standard support.
 
+## Obtaining and running the code
+Make sure lfs is installed:
+```zsh
+git lfs install
+```
+Then clone:
+```zsh
+git clone git@github.com:lwidm/cq_gears.git
+```
+The project requires `conda` to work. So after making it available (e.g. through `miniconda`), `cd` into the repository:
+```zsh
+cd cq_gears
+```
+Then create and activate the environment:
+```zsh
+conda env create -f ./environment.yaml
+conda activate cqdev
+```
+Finally, install the package in editable mode so you can modify the source:
+```zsh
+pip install -e .
+```
+
+## Point array convention
+
+2D point sets in this codebase are stored as **column-stacked** `numpy` arrays of shape `(2, N)`:
+**This convention is very important due to rotation and translation opperations!**
+
+- Row 0 (`points[0]`) holds all x-coordinates
+- Row 1 (`points[1]`) holds all y-coordinates
+- Column `i` (`points[:, i]`) is the i-th point `[x, y]`
+
+
+### Extracting points
+
+```python
+pt = points[:, i]                        # i-th point, shape (2,)
+x, y = points[:, i]                      # unpack into scalars
+sub = points[:, start:end]               # slice a range, shape (2, end-start)
+xs, ys = points[0], points[1]            # all x's and y's separately
+```
+
+Note that `points[i]` returns **row `i`** (all x's or all y's), not the i-th point. Always index with `points[:, i]` to get a single point.
+
+
 ## Theory
 
 - [Theory (PDF)](https://lwidm.github.io/cq_gears/theory.pdf) — Derivations of the parametric equations used for gear tooth geometry, including involute, undercut, profile shift, curve positioning, and intersections.

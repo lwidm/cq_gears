@@ -30,7 +30,9 @@ def _simulate_gear_cutting(
     r: float = d / 2
     d_blank: float = d + 3 * m
 
-    gear_blank: cq.Workplane = cq.Workplane("XY").circle(d_blank / 2).extrude(b/2, both=True)
+    gear_blank: cq.Workplane = (
+        cq.Workplane("XY").circle(d_blank / 2).extrude(b / 2, both=True)
+    )
     cut_counter: int = 0
     output_dir: Path = Path("output")
     gear_subdir: str = str(gear_index)

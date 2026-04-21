@@ -1,3 +1,4 @@
+import math
 import numpy as np
 from typing import Literal
 
@@ -31,10 +32,16 @@ def tangent_angles(points: np.ndarray) -> np.ndarray:
     return angles
 
 
-def half_base_tooth_angle(m: float, x: float, dp: float, db: float, alpha_n_r: float) -> float:
+def half_base_tooth_angle(
+    m: float, x: float, dp: float, db: float, alpha_n_r: float
+) -> float:
     dp_db: float = dp / db
     theta_dp: float = np.sqrt(dp_db**2 - 1)
-    return m*(np.pi + 2*x*np.tan(alpha_n_r)) / (2 * dp) + theta_dp - np.arctan(theta_dp)
+    return (
+        m * (np.pi + 2 * x * np.tan(alpha_n_r)) / (2 * dp)
+        + theta_dp
+        - np.arctan(theta_dp)
+    )
 
 
 def involute(r: float, phi_r: np.ndarray) -> np.ndarray:
@@ -51,7 +58,13 @@ def involute_phi_d(d_star: float, db: float, flank: Literal["right", "left"]) ->
 
 
 def involute_self_intersection(
-    phi_0: float, m: float, x: float, dp: float, db: float, alpha_n_r: float, n_iter: int = 200
+    phi_0: float,
+    m: float,
+    x: float,
+    dp: float,
+    db: float,
+    alpha_n_r: float,
+    n_iter: int = 200,
 ) -> float:
     gamma: float = half_base_tooth_angle(m, x, dp, db, alpha_n_r)
 
@@ -69,7 +82,13 @@ def involute_self_intersection(
 
 
 def involute_positioned(
-    m: float, x: float, dp: float, db: float, alpha_n_r: float, phi_r: np.ndarray, flank: Literal["right", "left"]
+    m: float,
+    x: float,
+    dp: float,
+    db: float,
+    alpha_n_r: float,
+    phi_r: np.ndarray,
+    flank: Literal["right", "left"],
 ) -> np.ndarray:
     gamma: float = half_base_tooth_angle(m, x, dp, db, alpha_n_r)
     cos_phi: np.ndarray = np.cos(phi_r)
@@ -104,6 +123,8 @@ def involute_tooth(
     n_points: int,
     flank: Literal["right", "left"],
 ) -> np.ndarray:
+    if n_points < 3:
+        raise ValueError(f"n_points must be greater than 3. Instead got {n_points}")
     phi_arr_r: np.ndarray = np.linspace(phi_start_r, phi_end_r, n_points)
     return involute_positioned(m, x, dp, db, alpha_n_r, phi_arr_r, flank)
 
@@ -205,21 +226,20 @@ def undercut_involute_intersection(
         )
         f: np.ndarray = np.array(
             [
-                    db * c * np.cos(x[0])
-                    + db * c * x[0] * np.sin(x[0])
-                    - db * d * np.sin(x[0])
-                    + db * d * x[0] * np.cos(x[0])
-                    - a * np.cos(x[1])
-                    + b * np.sin(x[1])
-                    - dp * x[1] * np.sin(x[1])
-                ,
-                    db * d * np.cos(x[0])
-                    + db * d * x[0] * np.sin(x[0])
-                    + db * c * np.sin(x[0])
-                    - db * c * x[0] * np.cos(x[0])
-                    - b * np.cos(x[1])
-                    - a * np.sin(x[1])
-                    + dp * x[1] * np.cos(x[1])
+                db * c * np.cos(x[0])
+                + db * c * x[0] * np.sin(x[0])
+                - db * d * np.sin(x[0])
+                + db * d * x[0] * np.cos(x[0])
+                - a * np.cos(x[1])
+                + b * np.sin(x[1])
+                - dp * x[1] * np.sin(x[1]),
+                db * d * np.cos(x[0])
+                + db * d * x[0] * np.sin(x[0])
+                + db * c * np.sin(x[0])
+                - db * c * x[0] * np.cos(x[0])
+                - b * np.cos(x[1])
+                - a * np.sin(x[1])
+                + dp * x[1] * np.cos(x[1]),
             ]
         )
         return x - J_inv @ f
@@ -294,7 +314,9 @@ def undercut_tooth(
 ) -> np.ndarray:
     phi_start_r: float = undercut_phi_0(dp, df, alpha_t_r, flank)
     phi_arr_r: np.ndarray = np.linspace(phi_start_r, phi_end_r, n_points)
-    return undercut_curve_positioned(m, x, df, dp, db, alpha_n_r, alpha_t_r, phi_arr_r, flank)
+    return undercut_curve_positioned(
+        m, x, df, dp, db, alpha_n_r, alpha_t_r, phi_arr_r, flank
+    )
 
 
 def undercut_curve_intuitive(
@@ -326,7 +348,9 @@ def undercut_curve_intuitive(
     points_undercut: np.ndarray = np.zeros_like(points_inv)
     for i in np.arange(len(points_inv[0, :])):
         point: tuple[float, float] = (points_inv[0, i], points_inv[1, i])
-        point_undercut: np.ndarray = translate(rotate(v, phi_r[i]), (point[0], point[1]))
+        point_undercut: np.ndarray = translate(
+            rotate(v, phi_r[i]), (point[0], point[1])
+        )
         points_undercut[0, i] = point_undercut[0, 0]
         points_undercut[1, i] = point_undercut[1, 0]
 

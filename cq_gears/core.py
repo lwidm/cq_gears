@@ -65,8 +65,8 @@ class GearData:
 @dataclass
 class Gear:
     data: GearData
-    rack: cq.Workplane | None
-    workplane: cq.Workplane | None
+    rack: cq.Workplane
+    workplane: cq.Workplane
 
 
 @dataclass
@@ -97,7 +97,9 @@ def compute_gear_data(
 
     p: float = np.pi * m
 
-    beta_b_r: float = np.arctan(np.cos(alpha_t_r) / np.tan(beta_r)) if beta != 0 else 0.0
+    beta_b_r: float = (
+        np.arctan(np.cos(alpha_t_r) / np.tan(beta_r)) if beta != 0 else 0.0
+    )
     beta_b: float = np.degrees(beta_b_r)
 
     ha: float = (ha_star + x) * m

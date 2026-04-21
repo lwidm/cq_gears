@@ -6,7 +6,7 @@ import subprocess
 from typing import Literal
 from pathlib import Path
 
-from . import math
+from . import geometry
 from . import core
 from .core import GearData
 
@@ -137,7 +137,7 @@ def involute_plot_compute(
     phi_0_r: float = np.radians(phi_0)
     phi_r: float = np.radians(phi)
     phi_r_arr: np.ndarray = np.linspace(phi_0_r, phi_r, 500)
-    points_inv: np.ndarray = math.involute(r, phi_r_arr)
+    points_inv: np.ndarray = geometry.involute(r, phi_r_arr)
     inv_start: np.ndarray = np.vstack([points_inv[0, 0], points_inv[1, 0]])
     inv_end: np.ndarray = np.vstack([points_inv[0, -1], points_inv[1, -1]])
 
@@ -174,7 +174,7 @@ def involute_plot_compute(
     )
 
     def transform(points: np.ndarray) -> np.ndarray:
-        return math.rotate(points, rotate)
+        return geometry.rotate(points, rotate)
 
     result: dict[str, np.ndarray] = {
         "points_inv": transform(points_inv),
@@ -430,13 +430,13 @@ def undercut_plot_compute(
     phi_r_arr: np.ndarray = np.linspace(phi_0_r, phi_undercut_r, 500)
 
     phi_r_arr_inv: np.ndarray = np.linspace(0.0, np.radians(phi_inv), 500)
-    points_inv: np.ndarray = math.involute(db / 2, phi_r_arr_inv)
+    points_inv: np.ndarray = geometry.involute(db / 2, phi_r_arr_inv)
     if flank == "right":
-        points_inv = math.rotate(points_inv, alpha_t_r)
+        points_inv = geometry.rotate(points_inv, alpha_t_r)
     else:
-        points_inv = math.rotate(points_inv, -alpha_t_r)
+        points_inv = geometry.rotate(points_inv, -alpha_t_r)
 
-    points_undercut: np.ndarray = math.undercut_curve(
+    points_undercut: np.ndarray = geometry.undercut_curve(
         dp, df, alpha_t_r, phi_r_arr, flank
     )
 
@@ -690,14 +690,14 @@ def tooth_plot_compute(
 
     n_points: int = 500
 
-    phi_r_addendum: float = math.involute_phi_d(da, db, "right")
-    phi_r_addendum_intersection: float = math.involute_self_intersection(
+    phi_r_addendum: float = geometry.involute_phi_d(da, db, "right")
+    phi_r_addendum_intersection: float = geometry.involute_self_intersection(
         phi_r_addendum, m, x, dp, db, alpha_n_r
     )
 
-    phi_inv_start: float = math.involute_phi_d(dp, db, "right")
-    phi_undercut_end: float = math.undercut_phi_d(dp, dp, df, alpha_t_r, "right")
-    phi_inv_start, phi_undercut_end = math.undercut_involute_intersection(
+    phi_inv_start: float = geometry.involute_phi_d(dp, db, "right")
+    phi_undercut_end: float = geometry.undercut_phi_d(dp, dp, df, alpha_t_r, "right")
+    phi_inv_start, phi_undercut_end = geometry.undercut_involute_intersection(
         phi_inv_start, phi_undercut_end, df, dp, db, alpha_t_r, "right", 200
     )
 
@@ -707,16 +707,16 @@ def tooth_plot_compute(
     else:
         phi_r_end = phi_r_addendum
 
-    points_inv_right: np.ndarray = math.involute_tooth(
+    points_inv_right: np.ndarray = geometry.involute_tooth(
         m, x, dp, db, alpha_n_r, phi_inv_start, phi_r_end, n_points, "right"
     )
-    points_inv_left: np.ndarray = math.involute_tooth(
+    points_inv_left: np.ndarray = geometry.involute_tooth(
         m, x, dp, db, alpha_n_r, -phi_inv_start, -phi_r_end, n_points, "left"
     )
-    points_undercut_right: np.ndarray = math.undercut_tooth(
+    points_undercut_right: np.ndarray = geometry.undercut_tooth(
         m, x, dp, db, df, alpha_n_r, alpha_t_r, phi_undercut_end, n_points, "right"
     )
-    points_undercut_left: np.ndarray = math.undercut_tooth(
+    points_undercut_left: np.ndarray = geometry.undercut_tooth(
         m, x, dp, db, df, alpha_n_r, alpha_t_r, -phi_undercut_end, n_points, "left"
     )
 
@@ -929,14 +929,10 @@ def profile_shift_plot(
 
         # addendum arc connecting involute tips
         angle_right: float = np.degrees(
-            np.arctan2(
-                td["points_inv_right"][1, -1], td["points_inv_right"][0, -1]
-            )
+            np.arctan2(td["points_inv_right"][1, -1], td["points_inv_right"][0, -1])
         )
         angle_left: float = np.degrees(
-            np.arctan2(
-                td["points_inv_left"][1, -1], td["points_inv_left"][0, -1]
-            )
+            np.arctan2(td["points_inv_left"][1, -1], td["points_inv_left"][0, -1])
         )
         if not np.isclose(angle_left, angle_right, rtol=1e-3):
             ax.add_patch(

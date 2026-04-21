@@ -9,7 +9,7 @@ from .hobbing import _simulate_gear_cutting
 def initialize_gears(gear_data_list: list[GearData]) -> GearList:
     gear_list: list[Gear] = []
     for gear_data in gear_data_list:
-        gear_list.append(Gear(gear_data, None, None))
+        gear_list.append(Gear(gear_data, cq.Workplane(), cq.Workplane()))
     groups: list[set[int]] = _find_compatible_groups(gear_data_list)
 
     return GearList(gear_list, groups)
@@ -29,4 +29,6 @@ def cut_gears(
     visualize: Literal[None, "show", "step", "img"],
 ) -> None:
     for i, gear in enumerate(gear_list.gears):
-        gear_list.gears[i].workplane = _simulate_gear_cutting(gear, num_cut_positions, visualize, i)
+        gear_list.gears[i].workplane = _simulate_gear_cutting(
+            gear, num_cut_positions, visualize, i
+        )

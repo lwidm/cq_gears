@@ -65,7 +65,7 @@ class GearData:
 @dataclass
 class Gear:
     data: GearData
-    rack: cq.Workplane
+    rack: cq.Workplane | None
     workplane: cq.Workplane
 
 
@@ -155,7 +155,7 @@ def _are_compatible(
     )
 
 
-def _find_compatible_groups(
+def find_compatible_groups(
     gear_data_list: list[GearData], tolerance: float = 1e-6
 ) -> list[set[int]]:
     groups: list[set[int]] = []

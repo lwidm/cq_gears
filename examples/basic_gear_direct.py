@@ -3,8 +3,6 @@ from cadquery.vis import show
 from pathlib import Path
 
 import cq_gears
-from cq_gears.core import GearData
-from cq_gears import gear_direct
 
 m: float = 2.0
 b: float = 10.0
@@ -14,7 +12,7 @@ ha_star: float = 1.0
 c_star: float = 0.167
 rho_f_star: float = 0.3
 
-gear_data_1: GearData = cq_gears.compute_gear_data(
+gear_data_1: cq_gears.GearData = cq_gears.compute_gear_data(
     m=m,
     z=20,
     b=b,
@@ -27,7 +25,7 @@ gear_data_1: GearData = cq_gears.compute_gear_data(
     rho_f_star=rho_f_star,
 )
 
-gear_data_2: GearData = cq_gears.compute_gear_data(
+gear_data_2: cq_gears.GearData = cq_gears.compute_gear_data(
     m=m,
     z=20,
     b=b,
@@ -41,8 +39,8 @@ gear_data_2: GearData = cq_gears.compute_gear_data(
 )
 
 
-gear1: cq.Workplane = gear_direct.gear_direct(gear_data_1, 200)
-gear2: cq.Workplane = gear_direct.gear_direct(gear_data_2, 200)
+gear1: cq_gears.Gear = cq_gears.build_parametric_gear(gear_data_1, 200)
+gear2: cq_gears.Gear = cq_gears.build_parametric_gear(gear_data_2, 200)
 
-show(gear1)
-show(gear2)
+show(gear1.workplane)
+show(gear2.workplane)

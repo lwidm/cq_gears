@@ -8,7 +8,7 @@ from .core import Gear
 from .visualization import setup_visualization, visualize_step
 
 
-def _simulate_gear_cutting(
+def simulate_gear_cutting(
     gear: Gear,
     num_cut_positions: int,
     visualize: Literal[None, "show", "step", "img"],

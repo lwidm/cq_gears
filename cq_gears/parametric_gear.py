@@ -168,9 +168,9 @@ def _tooth_sketch(geardata: GearData, n_points: int) -> cq.Sketch:
     return result
 
 
-def gear_direct(geardata: GearData, n_points: int) -> cq.Workplane:
+def parametric_gear_workplane(geardata: GearData, n_points: int) -> cq.Workplane:
     if not np.isclose(geardata.delta_r, np.pi / 2):
-        raise NotImplementedError("No bevel gear implemented in gear_direct")
+        raise NotImplementedError("No bevel gear implemented in parametric_gear_workplane")
 
     tooth_sketch: cq.Sketch = _tooth_sketch(geardata, n_points)
 

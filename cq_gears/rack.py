@@ -79,7 +79,7 @@ def _create_single_rack_cutter(
     return rack
 
 
-def _create_rack_cutter_for_group(
+def create_rack_cutter_for_group(
     gear_data_list: list[GearData],
     group: set[int],
 ) -> cq.Workplane:

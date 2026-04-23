@@ -13,7 +13,7 @@ ha_star: float = 1.0
 c_star: float = 0.167
 rho_f_star: float = 0.3
 
-gear_data_1 = cq_gears.compute_gear_data(
+gear_data_1: cq_gears.GearData = cq_gears.compute_gear_data(
     m=m,
     z=20,
     b=b,
@@ -26,7 +26,7 @@ gear_data_1 = cq_gears.compute_gear_data(
     rho_f_star=rho_f_star,
 )
 
-gear_data_2 = cq_gears.compute_gear_data(
+gear_data_2: cq_gears.GearData = cq_gears.compute_gear_data(
     m=m,
     z=20,
     b=b,
@@ -39,8 +39,8 @@ gear_data_2 = cq_gears.compute_gear_data(
     rho_f_star=rho_f_star,
 )
 
-gear_list = cq_gears.initialize_gears([gear_data_1, gear_data_2])
-# gear_list = cq_gears.initialize_gears([gear_data_1])
+gear_list: cq_gears.GearList = cq_gears.initialize_gears([gear_data_1, gear_data_2])
+# gear_list: GearList = cq_gears.initialize_gears([gear_data_1])
 
 cq_gears.create_racks(gear_list)
 
@@ -56,8 +56,14 @@ cq_gears.create_video(
 gear1: cq.Workplane = gear_list.gears[0].workplane
 gear2: cq.Workplane = gear_list.gears[1].workplane
 
-rack1: cq.Workplane = gear_list.gears[0].rack
-rack2: cq.Workplane = gear_list.gears[1].rack
+rack1_extract: cq.Workplane | None = gear_list.gears[0].rack
+rack2_extract: cq.Workplane | None = gear_list.gears[1].rack
+rack1: cq.Workplane
+if rack1_extract is not None:
+    rack1 = rack1_extract
+rack2: cq.Workplane
+if rack2_extract is not None:
+    rack2 = rack2_extract
 
 # show_object(rack1)
 # show_object(rack2)

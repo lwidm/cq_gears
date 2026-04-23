@@ -113,10 +113,13 @@ def _tooth_sketch(geardata: GearData, n_points: int) -> cq.Sketch:
     points_undercut_left: np.ndarray = tooth_compute_dict["points_undercut_left"]  # type: ignore
     involutes_instersect: bool = tooth_compute_dict["involutes_intersect"]  # type: ignore
 
+    if involutes_instersect:
+        points_inv_left[:, -1] = points_inv_right[:, -1]
+
     arc_base: cq_bridge.CqArcTuple = cq_bridge.cq_arc_center_start_end(
         arc_center=np.array([0.0, 0.0]),
-        arc_start=points_inv_left[:, 0],
-        arc_end=points_inv_right[:, 0],
+        arc_start=points_undercut_left[:, 0],
+        arc_end=points_undercut_right[:, 0],
         counter_clock_wise=False,
     )
 
@@ -126,15 +129,23 @@ def _tooth_sketch(geardata: GearData, n_points: int) -> cq.Sketch:
     cq_inv_left: cq_bridge.CqSplineTuple = cq_bridge.cq_spline_from_array(
         points_inv_left[:, ::-1], skip_first=False, tangents=None, periodic=False
     )
+    cq_undercut_right: cq_bridge.CqSplineTuple = cq_bridge.cq_spline_from_array(
+        points_undercut_right, skip_first=False, tangents=None, periodic=False
+    )
+    cq_undercut_left: cq_bridge.CqSplineTuple = cq_bridge.cq_spline_from_array(
+        points_undercut_left[:, ::-1], skip_first=False, tangents=None, periodic=False
+    )
 
     result: cq.Sketch
     if involutes_instersect:
         result = (
             cq.Sketch()
             .arc(*arc_base)
+            .spline(*cq_undercut_right)
             .spline(*cq_inv_right)
             .spline(*cq_inv_left)
-            .close()
+            .spline(*cq_undercut_left)
+            .assemble()
         )
     else:
         arc_tip: cq_bridge.CqArcTuple = cq_bridge.cq_arc_center_start_end(
@@ -146,21 +157,41 @@ def _tooth_sketch(geardata: GearData, n_points: int) -> cq.Sketch:
         result = (
             cq.Sketch()
             .arc(*arc_base)
+            .spline(*cq_undercut_right)
             .spline(*cq_inv_right)
             .arc(*arc_tip)
             .spline(*cq_inv_left)
-            .close()
+            .spline(*cq_undercut_left)
+            .assemble()
         )
 
     return result
 
 
-def _circles(geardata: GearData) -> cq.Sketch:
-    result: cq.Sketch = (
-        cq.Sketch()
-        .circle(geardata.d / 2.0)
-        .circle(geardata.db / 2.0)
-        .circle(geardata.da / 2.0)
-        .circle(geardata.df / 2.0)
-    )
+def gear_direct(geardata: GearData, n_points: int) -> cq.Workplane:
+    if not np.isclose(geardata.delta_r, np.pi / 2):
+        raise NotImplementedError("No bevel gear implemented in gear_direct")
+
+    tooth_sketch: cq.Sketch = _tooth_sketch(geardata, n_points)
+
+    origin: cq.Workplane = cq.Workplane()
+    cylinder: cq.Workplane = origin.cylinder(geardata.b, geardata.df / 2.0, (0, 0, 1))
+    teeth: cq.Workplane
+    if np.isclose(geardata.beta_r, 0.0):
+        teeth = (
+            origin.polarArray(radius=0, startAngle=0, angle=360, count=geardata.z)
+            .placeSketch(tooth_sketch)
+            .extrude(geardata.b / 2, both=True)
+        )
+    else:
+        twist_deg = np.degrees(2 * geardata.b * np.tan(geardata.beta_r) / geardata.d)
+        teeth = (
+            origin.workplane(offset=-geardata.b / 2)
+            .polarArray(
+                radius=0, startAngle=-twist_deg / 2, angle=360, count=geardata.z
+            )
+            .placeSketch(tooth_sketch)
+            .twistExtrude(geardata.b, twist_deg)
+        )
+    result: cq.Workplane = cylinder.union(teeth).clean()
     return result

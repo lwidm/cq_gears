@@ -9,7 +9,6 @@ from cq_gears import gear_direct
 m: float = 2.0
 b: float = 10.0
 alpha_t: float = 20.0
-beta: float = 0.0
 delta: float = 90.0
 ha_star: float = 1.0
 c_star: float = 0.167
@@ -21,7 +20,7 @@ gear_data_1: GearData = cq_gears.compute_gear_data(
     b=b,
     x=0.0,
     alpha_t=alpha_t,
-    beta=beta,
+    beta=0.0,
     delta=delta,
     ha_star=ha_star,
     c_star=c_star,
@@ -32,9 +31,9 @@ gear_data_2: GearData = cq_gears.compute_gear_data(
     m=m,
     z=20,
     b=b,
-    x=0.5,
+    x=0.6,
     alpha_t=alpha_t,
-    beta=beta,
+    beta=5.0,
     delta=delta,
     ha_star=ha_star,
     c_star=c_star,
@@ -42,6 +41,8 @@ gear_data_2: GearData = cq_gears.compute_gear_data(
 )
 
 
-gear_sketch: cq.Sketch = gear_direct._tooth_sketch(gear_data_1, 200)
+gear1: cq.Workplane = gear_direct.gear_direct(gear_data_1, 200)
+gear2: cq.Workplane = gear_direct.gear_direct(gear_data_2, 200)
 
-show(gear_sketch)
+show(gear1)
+show(gear2)

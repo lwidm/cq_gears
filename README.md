@@ -76,7 +76,7 @@ Note that `points[i]` returns **row `i`** (all x's or all y's), not the i-th poi
 
 `cq_gears` builds tooth profiles from closed-form analytical equations rather than from approximations or boolean cuts. The flank of every involute gear obviously is an involute of the base circle and at the tooth root the rack tip sweeps out the undercut curve as it rolls along the pitch circle. Profile shift is also considered. Where these curves meet (the involute to undercut junction and the left to right self-intersection that can occur for small tooth counts with positive profile shift), Newton-Raphson computes the exact intersection point. Helical gears reduce to spur gears as the helix angle goes to zero, with the standardised flank normal inputs ($\alpha_n$, $m_n$) converted to the transverse (normal to the gear) parameters ($\alpha_t$, $m_t$) used to construct the 2D profile.
 
-Complete derivations, including all Jacobians and integration bounds, are available in the [Theory (PDF)](https://lwidm.github.io/cq_gears/theory.pdf). All conventions follow DIN / ISO 21771. The summary below mirrors the formula sheet at the end of the PDF.
+Complete derivations, including all Jacobians and integration bounds, are available in the [Theory (PDF)](https://lwidm.github.io/cq_gears/theory.pdf). All conventions follow DIN / ISO 21771. The summary below mirrors the formula sheet at the end of the PDF. Personally I do not recommend using the summary below as the PDF is more accurate in its description and renders the equations better. Also I pay more attention to the PDF so there is a chance the following summary is out of date.
 
 ### Notation and symbols
 

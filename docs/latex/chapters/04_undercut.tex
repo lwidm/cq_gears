@@ -1,6 +1,6 @@
 \section{The Undercut Curve}
 \label{sec:undercut}
-The parametric description of the undercut curve is significantly more complicated. Fortunately, Gergely Bencsik has made a YouTube video~\cite{undercut_profile_shift_YTvideo} which explains the geometry intuitively and presents a relatively simple way to describe it.
+The parametric description of the undercut curve is significantly more complicated. Fortunately, Gergely Bencsik has made a YouTube video~\cite{undercut_profile_shift_YTvideo} which explains the geometry intuitively and presents a relatively simple way of constructing the undercut curve.
 
 \subsection{Geometric construction}
 \begin{figure}[ht]
@@ -24,10 +24,10 @@ As with the involute, $\phi$ is used as the curve parameter. However, this time 
     \item Positive $x$-direction is downwards
     \item Positive $y$-direction is to the right
     \item A $\mypm$ is used to differentiate between the right ($\textcolor{red}{+}$) and left ($\textcolor{red}{-}$) flank.
-    \item Negative $\phi$ values will result in a right flank and positive values will result in a left flank.\footnote{Actually both flanks have positive and negative values for $\phi$ since the sign switches near the dedendum circle. What is meant here is that $\phi_{end}$ is negative (right flank) or positive (left flank), where the curve is drawn starting from the dedendum circle outwards.}
+    \item Negative $\phi$ values will result in a right flank and positive values will result in a left flank.\footnote{Actually both flanks have positive and negative values for $\phi$ since the sign switches near the dedendum circle. What is meant here is that $\phi_{end}$ is negative for the right flank and positive for the left flank, where the curve is drawn starting from the dedendum circle outwards.}
 \end{itemize}
 
-With this in mind, the shift vector at $\phi=0$ (the state shown in Figure~\ref{fig:undercut_video_screenshot}) is:
+With this in mind, the shift vector at $\phi=0$ is (i.e. the shift vector in the state shown in Figure~\ref{fig:undercut_video_screenshot}):
 \begin{equation}
     \vb v = \begin{bmatrix} v_x \\ v_y \end{bmatrix} = \begin{bmatrix} r_d - r_p \\ \mypm r_f \tan(\alpha_t) \end{bmatrix}
 \end{equation}
@@ -39,87 +39,88 @@ or using $d_f = 2\cdot r_d$ and $d_p = 2 \cdot r_p$
 
 \subsection{Differential Geometry of the Involute}
 \label{subsec:diff_geom_invo}
-Since the shift vector must be moved along the construction involute while keeping the angle w.r.t.\ the construction involute constant (see Figure~\ref{fig:undercut_generated_video}), it needs to be continuously rotated by an angle defined by the construction involute.
+Since the shift vector must be moved along the construction involute while keeping the angle w.r.t.\ the construction involute constant (see Figure~\ref{fig:undercut_generated_video}), the shift vector needs to be continuously rotated by an angle defined by the construction involute.
 
-The easiest way to do this is to compute the angle of the tangent vector to the construction involute w.r.t.\ the $x$-axis (keeping in mind the rotated orientation of Figure~\ref{fig:undercut_video_screenshot}), since at $\phi=0$ this angle is $0$. This requires computing the derivative of the construction involute w.r.t.\ $\phi$.
+This is done by computing the angle of the tangent vector to the construction involute w.r.t.\ the $x$-axis (keeping in mind the rotated orientation of Figure~\ref{fig:undercut_video_screenshot}), since at $\phi=0$ this angle is $0$. This requires computing the derivative of the construction involute w.r.t.\ $\phi$.
 
 \subsubsection{Derivative}
 Starting from the parametric involute equation, but using $d_p$ instead of $d_b$ since the construction involute is based on the pitch circle:
 \begin{equation}
-\vb{r_{inv}}(\phi) =
-\begin{bmatrix}
-x(\phi) \\
-y(\phi)
-\end{bmatrix}
-= \tfrac{d_p}{2} \begin{bmatrix}
-\cos(\phi) \\
-\sin(\phi)
-\end{bmatrix}
-+ \tfrac{d_p}{2}\phi \begin{bmatrix}
-\sin(\phi) \\
--\cos(\phi)
-\end{bmatrix}
+    \vb{r_{inv}}(\phi) =
+        \begin{bmatrix}
+            x(\phi) \\
+            y(\phi)
+        \end{bmatrix}
+        = \tfrac{d_p}{2} \begin{bmatrix}
+                \cos(\phi) \\
+                \sin(\phi)
+            \end{bmatrix}
+            + \tfrac{d_p}{2}\phi \begin{bmatrix}
+                \sin(\phi) \\
+                -\cos(\phi)
+            \end{bmatrix}
 \end{equation}
+
 First the $x$-component is differentiated
 \begin{subequations}
 \begin{align}
-x(\phi) &= \frac{d_p}{2}(\cos(\phi) + \phi \sin(\phi))\\
-x'(\phi) &= \frac{d_p}{2}(-\sin(\phi) + \sin(\phi) + \phi\cos(\phi)) \\
-&= \frac{d_p}{2}\phi\cos(\phi)
+    x(\phi)     &= \frac{d_p}{2}(\cos(\phi) + \phi \sin(\phi))\\
+    x'(\phi)    &= \frac{d_p}{2}(-\sin(\phi) + \sin(\phi) + \phi\cos(\phi)) \\
+                &= \frac{d_p}{2}\phi\cos(\phi)
 \end{align}
 \end{subequations}
 
 Next the $y$-component is differentiated
 \begin{subequations}
 \begin{align}
-y(\phi) &= \frac{d_p}{2}(\sin(\phi) - \phi \cos(\phi))\\
-y'(\phi) &= \frac{d_p}{2}(\cos(\phi) - \cos(\phi) + \phi\sin(\phi)) \\
-&= \frac{d_p}{2}\phi\sin(\phi)
+    y(\phi)     &= \frac{d_p}{2}(\sin(\phi) - \phi \cos(\phi))\\
+    y'(\phi)    &= \frac{d_p}{2}(\cos(\phi) - \cos(\phi) + \phi\sin(\phi)) \\
+                &= \frac{d_p}{2}\phi\sin(\phi)
 \end{align}
 \end{subequations}
 
 Resulting in:
 \begin{equation}
-\vb{r_{inv}}'(\phi) = \frac{d_p}{2}\phi\begin{bmatrix}\cos(\phi)\\\sin(\phi)\end{bmatrix}
+    \vb{r_{inv}}'(\phi) = \frac{d_p}{2}\phi\begin{bmatrix}\cos(\phi)\\\sin(\phi)\end{bmatrix}
 \end{equation}
 
 \subsubsection{Tangent and Normal Vectors}
 To get normalised vectors, the magnitude of the derivative is computed
 \begin{subequations}
 \begin{align}
-\norm{\vb{r_{inv}'}(\phi)} &= \frac{d_p}{2}\abs{\phi}\sqrt{\cos^2(\phi) + \sin^2(\phi)} \\
-&= \frac{d_p}{2}\abs{\phi}
+    \norm{\vb{r_{inv}'}(\phi)}  &= \frac{d_p}{2}\abs{\phi}\sqrt{\cos^2(\phi) + \sin^2(\phi)} \\
+                                &= \frac{d_p}{2}\abs{\phi}
 \end{align}
 \end{subequations}
 
 \paragraph{The unit tangent vector} is computed as:
 \begin{subequations}
 \begin{align}
-\vb{T}(\phi) &= \frac{\vb{r_{inv}}'(\phi)}{\norm{\vb{r_{inv}}'(\phi)}}\\
-&= \frac{\phi}{\abs{\phi}}\begin{bmatrix}\cos(\phi)\\\sin(\phi)\end{bmatrix}\\
-&= \operatorname{sgn}(\phi) \begin{bmatrix}\cos(\phi)\\\sin(\phi)\end{bmatrix}
+    \vb{T}(\phi)    &= \frac{\vb{r_{inv}}'(\phi)}{\norm{\vb{r_{inv}}'(\phi)}}\\
+                    &= \frac{\phi}{\abs{\phi}}\begin{bmatrix}\cos(\phi)\\\sin(\phi)\end{bmatrix}\\
+                    &= \operatorname{sgn}(\phi) \begin{bmatrix}\cos(\phi)\\\sin(\phi)\end{bmatrix}
 \end{align}
 \end{subequations}
 
 \paragraph{The unit normal vector} is obtained by rotating the unit tangent by $+90^\circ$.
 \begin{equation}
-\vb{N}(\phi) = \operatorname{sgn}(\phi)\begin{bmatrix}-\sin(\phi)\\\cos(\phi)\end{bmatrix}
+    \vb{N}(\phi) = \operatorname{sgn}(\phi)\begin{bmatrix}-\sin(\phi)\\\cos(\phi)\end{bmatrix}
 \end{equation}
 
 \subsubsection{Angle of Tangent/Normal}
 The angle $\theta_t$ of the tangent relative to the $x$-axis is computed as:
 \begin{equation}
-\tan(\theta_t) = \frac{y'(\phi)}{x'(\phi)} = \frac{\phi\sin(\phi)}{\phi\cos(\phi)}=\tan{\phi}
+    \tan(\theta_t) = \frac{y'(\phi)}{x'(\phi)} = \frac{\phi\sin(\phi)}{\phi\cos(\phi)}=\tan{\phi}
 \end{equation}
 
 Hence:
 \begin{equation}
-\theta_t(\phi) = \phi
+    \theta_t(\phi) = \phi
 \end{equation}
 
 Similarly for the angle of the normal vector:
 \begin{equation}
-\theta_n(\phi) = \phi + \tfrac{\pi}{2}
+    \theta_n(\phi) = \phi + \tfrac{\pi}{2}
 \end{equation}
 
 \subsection{Parametric Equation}
@@ -270,19 +271,19 @@ As described in previous sections, the shift vector is first rotated by the angl
 \dots in compact notation:
 \begin{equation}
 \begin{gathered}
-\vb{r_{undercut}}(\phi) = \frac{1}{2} \left(
-    \begin{bmatrix}
-        a \\ b
-    \end{bmatrix} \cos(\phi)
-    + \begin{bmatrix}
-        -b \\ a
-    \end{bmatrix} \sin(\phi)
-    + d_p\,\phi\; \begin{bmatrix}
-        \sin(\phi) \\ - \cos(\phi)
-    \end{bmatrix}
-    \right)
+    \vb{r_{undercut}}(\phi) = \frac{1}{2} \left(
+        \begin{bmatrix}
+            a \\ b
+        \end{bmatrix} \cos(\phi)
+        + \begin{bmatrix}
+            -b \\ a
+        \end{bmatrix} \sin(\phi)
+        + d_p\,\phi\; \begin{bmatrix}
+            \sin(\phi) \\ - \cos(\phi)
+        \end{bmatrix}
+        \right)
 \\
-a = d_f \quad\quad b = \pm d_f\tan(\alpha_t)
+    a = d_f \quad\quad b = \pm d_f\tan(\alpha_t)
 \label{eq:undercut_compact_notation}
 \end{gathered}
 \end{equation}
@@ -293,17 +294,19 @@ a = d_f \quad\quad b = \pm d_f\tan(\alpha_t)
 Starting from Eq.~\eqref{eq:undercut_compact_notation}, the $x$ and $y$ components are separated:
 \begin{subequations}
 \begin{align}
-x_{undercut}(\phi) &= \frac{1}{2}\left(a\cos\phi - b \sin\phi + d_p\phi\sin\phi\right) \\
-y_{undercut}(\phi) &= \frac{1}{2}\left(b\cos\phi + a \sin\phi - d_p\phi\cos\phi\right)
+    x_{undercut}(\phi) &= \frac{1}{2}\left(a\cos\phi - b \sin\phi + d_p\phi\sin\phi\right) \\
+    y_{undercut}(\phi) &= \frac{1}{2}\left(b\cos\phi + a \sin\phi - d_p\phi\cos\phi\right)
 \end{align}
 \end{subequations}
 
 With these, the diameter can be determined:
 \begin{subequations}
 \begin{align}
-d^* &\stackrel{!}{=} \sqrt{x_{inv}(\phi)^2 + y_{inv}(\phi)^2} \;\;\cdot 2 \\
-&= \sqrt{\frac{1}{4}\cdot \left(\left(a\cos\phi - b \sin\phi + d_p\phi\sin\phi\right)^2 + \left(b\cos\phi + a \sin\phi - d_p\phi\cos\phi\right)^2\right)} \;\;\cdot 2 \\
-&= \sqrt{\left(a\cos\phi - b \sin\phi + d_p\phi\sin\phi\right)^2 + \left(b\cos\phi + a \sin\phi - d_p\phi\cos\phi\right)^2}
+    d^* &\stackrel{!}{=} \sqrt{x_{inv}(\phi)^2 + y_{inv}(\phi)^2} \;\;\cdot 2 \\
+    &= \sqrt{\frac{1}{4}\cdot \left(\left(a\cos\phi - b \sin\phi + d_p\phi\sin\phi\right)^2
+                            + \left(b\cos\phi + a \sin\phi - d_p\phi\cos\phi\right)^2\right)} \;\;\cdot 2 \\
+    &= \sqrt{\left(a\cos\phi - b \sin\phi + d_p\phi\sin\phi\right)^2
+           + \left(b\cos\phi + a \sin\phi - d_p\phi\cos\phi\right)^2}
 \label{eq:main_d_star_undercut}
 \end{align}
 \end{subequations}
@@ -311,67 +314,66 @@ d^* &\stackrel{!}{=} \sqrt{x_{inv}(\phi)^2 + y_{inv}(\phi)^2} \;\;\cdot 2 \\
 Simplifying the terms under the square root in Eq.~\eqref{eq:main_d_star_undercut}:
 \begin{subequations}
 \begin{align}
-\left(a\cos\phi - b \sin\phi + d_p\phi\sin\phi\right)^2 &= a^2\cos^2\phi + b^2\sin^2\phi + d_p^2\phi^2\sin^2\phi \nonumber\\
-&\phantom{=} - 2ab\cos\phi\sin\phi + 2ad_p\phi\cos\phi\sin\phi - 2bd_p\phi\sin^2\phi
+    \left(a\cos\phi - b \sin\phi + d_p\phi\sin\phi\right)^2
+        &= a^2\cos^2\phi + b^2\sin^2\phi + d_p^2\phi^2\sin^2\phi \nonumber\\
+        &\phantom{=} - 2ab\cos\phi\sin\phi + 2ad_p\phi\cos\phi\sin\phi - 2bd_p\phi\sin^2\phi
 \\
-\left(b\cos\phi + a \sin\phi - d_p\phi\cos\phi\right)^2 &= b^2\cos^2\phi + a^2\sin^2\phi + d_p^2\phi^2\cos^2\phi \nonumber\\
-&\phantom{=} + 2ab\cos\phi\sin\phi - 2bd_p\phi\cos^2\phi - 2ad_p\phi\sin\phi\cos\phi
+    \left(b\cos\phi + a \sin\phi - d_p\phi\cos\phi\right)^2
+        &= b^2\cos^2\phi + a^2\sin^2\phi + d_p^2\phi^2\cos^2\phi \nonumber\\
+        &\phantom{=} + 2ab\cos\phi\sin\phi - 2bd_p\phi\cos^2\phi - 2ad_p\phi\sin\phi\cos\phi
 \end{align}
 \end{subequations}
 
 Inserting into Eq.~\eqref{eq:main_d_star_undercut}:
 \begin{subequations}
 \begin{align}
-d^* &= \Big[ 
-\nonumber\\
-    &\phantom{= [ \;\;} \big( a^2\cos^2\phi + b^2\sin^2\phi + d_p^2\phi^2\sin^2\phi 
-\nonumber\\
-    &\phantom{= [ \;\; \big ( a^2}\textcolor{orange}{\cancel{- 2ab\cos\phi\sin\phi}} \textcolor{blue}{\cancel{+ 2ad_p\phi\cos\phi\sin\phi}} - 2bd_p\phi\sin^2\phi \big) + 
-\\
-    &\phantom{= [ \;\; } \big( b^2\cos^2\phi + a^2\sin^2\phi + d_p^2\phi^2\cos^2\phi
-\nonumber \\
-    &\phantom{= [ \;\; \big( b^2} \textcolor{orange}{\cancel{+ 2ab\cos\phi\sin\phi}} - 2bd_p\phi\cos^2\phi \textcolor{blue}{\cancel{- 2ad_p\phi\sin\phi\cos\phi}} \big)
-\nonumber \\
-    &\phantom{= [ }\Big]^{\tfrac{1}{2}}
-\nonumber \\
-    &= \sqrt{(a^2 + b^2)\cos^2\phi + (a^2 + b^2) \sin^2\phi +d_p^2\phi^2(\sin^2\phi + \cos^2\phi) - 2bd_p\phi(\sin^2+\cos^2)}
-\\
-    &= \sqrt{(a^2 + b^2)(\cos^2\phi + \sin^2\phi) +d_p^2\phi^2(\sin^2\phi + \cos^2\phi) - 2bd_p\phi(\sin^2+\cos^2)}
-\\
-    &= \sqrt{a^2 + b^2 +d_p^2\phi^2 - 2bd_p\phi}
+    d^* &= \Big[ \nonumber\\
+            &\phantom{= [ \;\;} \big( a^2\cos^2\phi + b^2\sin^2\phi + d_p^2\phi^2\sin^2\phi \nonumber\\
+            &\phantom{= [ \;\; \big ( a^2}\textcolor{orange}{\cancel{- 2ab\cos\phi\sin\phi}}
+                                          \textcolor{blue}{  \cancel{+ 2ad_p\phi\cos\phi\sin\phi}}
+                - 2bd_p\phi\sin^2\phi \big) + \\
+            &\phantom{= [ \;\; } \big( b^2\cos^2\phi + a^2\sin^2\phi + d_p^2\phi^2\cos^2\phi \nonumber \\
+            &\phantom{= [ \;\; \big( b^2} \textcolor{orange}{\cancel{+ 2ab\cos\phi\sin\phi}}
+                    - 2bd_p\phi\cos^2\phi \textcolor{blue}{  \cancel{- 2ad_p\phi\sin\phi\cos\phi}} \big) \nonumber \\
+            &\phantom{= [ }
+        \Big]^{\tfrac{1}{2}} \nonumber \\
+        &= \sqrt{(a^2 + b^2)\cos^2\phi + (a^2 + b^2) \sin^2\phi +d_p^2\phi^2(\sin^2\phi + \cos^2\phi) - 2bd_p\phi(\sin^2+\cos^2)}\\
+        &= \sqrt{(a^2 + b^2)(\cos^2\phi + \sin^2\phi) +d_p^2\phi^2(\sin^2\phi + \cos^2\phi) - 2bd_p\phi(\sin^2+\cos^2)}\\
+        &= \sqrt{ a^2 + b^2 + d_p^2\phi^2 - 2bd_p\phi}
 \end{align}
 \end{subequations}
 
 Now solving for $\phi(d^*)$
 \begin{subequations}
 \begin{align}
-d^* &= \sqrt{a^2 + b^2 +d_p^2\phi^2 - 2bd_p\phi}\\
-{d^*}^2 &= a^2 + b^2 +d_p^2\phi^2 - 2bd_p\phi\\
-(d_p^2)\cdot\phi^2 - (2bd_p)\cdot\phi + (a^2 + b^2 - {d^*}^2)& = 0
+    d^*         &= \sqrt{a^2 + b^2 +d_p^2\phi^2 - 2bd_p\phi}\\
+    {d^*}^2     &= a^2 + b^2 +d_p^2\phi^2 - 2bd_p\phi\\
+    (d_p^2)\cdot\phi^2 - (2bd_p)\cdot\phi + (a^2 + b^2 - {d^*}^2)   &= 0
 \end{align}
 \end{subequations}
 
 Using the quadratic formula:
 \begin{equation*}
-ax^2+bx + c = 0 \qq{$\Longrightarrow$} x = \frac{-b \pm \sqrt{b^2 -4ac}}{2a}
+    ax^2+bx + c = 0 \qq{$\Longrightarrow$} x = \frac{-b \pm \sqrt{b^2 -4ac}}{2a}
 \end{equation*}
 
 Results in:
 \begin{subequations}
 \begin{align}
-\phi(d^*) &= \frac{2bd_p \pm \sqrt{4b^2d_p^2 - 4d_p^2(a^2 + b^2 - {d^*}^2)}}{2d_p^2} \\
-&= \frac{2bd_p \pm \sqrt{\cancel{4b^2d_p^2} - 4a^2d_p^2 \cancel{- 4b^2d_p^2} + 4{d^*}^2d_p^2}}{2d_p^2} \\
-&= \frac{2bd_p \pm 2d_p\sqrt{- a^2 + {d^*}^2}}{2d_p^2}\\
-&= \frac{b \pm \sqrt{{d^*}^2- a^2}}{d_p} \\
-&= \frac{b}{d_p} \pm \sqrt{\left(\frac{d^*}{d_p}\right)^2- \left(\frac{a}{d_p}\right)^2}
+    \phi(d^*)   &= \frac{2bd_p \pm \sqrt{4b^2d_p^2 - 4d_p^2(a^2 + b^2 - {d^*}^2)}}{2d_p^2} \\
+                &= \frac{2bd_p \pm \sqrt{\cancel{ 4b^2d_p^2} - 4a^2d_p^2
+                                         \cancel{-4b^2d_p^2} + 4{d^*}^2d_p^2}}{2d_p^2} \\
+                &= \frac{2bd_p \pm 2d_p\sqrt{-a^2 + {d^*}^2}}{2d_p^2}\\
+                &= \frac{b \pm \sqrt{{d^*}^2- a^2}}{d_p} \\
+                &= \frac{b}{d_p} \pm \sqrt{\left(\frac{d^*}{d_p}\right)^2- \left(\frac{a}{d_p}\right)^2}
 \end{align}
 \end{subequations}
 
 Inserting $a=d_f$ and $b=\mypm d_f \tan(\alpha_t)$:
 \begin{subequations}
 \begin{align}
-\phi(d^*) &= \mypm\frac{b}{d_p} \pm \sqrt{\left(\frac{d^*}{d_p}\right)^2- \left(\frac{a}{d_p}\right)^2} \\
-&= \mypm\frac{d_f}{d_p}\tan{\alpha_t} \pm \sqrt{\left(\frac{d^*}{d_p}\right)^2- \left(\frac{d_f}{d_p}\right)^2} \\
+    \phi(d^*)   &= \mypm\frac{b}{d_p} \pm \sqrt{\left(\frac{d^*}{d_p}\right)^2- \left(\frac{a}{d_p}\right)^2} \\
+                &= \mypm\frac{d_f}{d_p}\tan{\alpha_t} \pm \sqrt{\left(\frac{d^*}{d_p}\right)^2- \left(\frac{d_f}{d_p}\right)^2} \\
 \end{align}
 \end{subequations}
 
@@ -379,9 +381,9 @@ Inserting $a=d_f$ and $b=\mypm d_f \tan(\alpha_t)$:
 
 \paragraph{Right Flank:}
 \begin{equation*}
-b = \textcolor{red}{+}d_f\tan(\alpha_t)
+    b = \textcolor{red}{+}d_f\tan(\alpha_t)
 \end{equation*}
-When dealing with the right flank, the construction involute rotates clockwise, therefore the smaller (usually negative) solution for $\phi$ is relevant. Hence, the square root term is subtracted.
+When dealing with the right flank, the construction involute rotates clockwise, therefore the smaller (usually negative) solution for $\phi$ is relevant. Therefore, the square root term must be subtracted.
 \begin{equation}
     \phi_{right}(d^*) = \frac{d_f}{d_p}\tan{\alpha_t} - \sqrt{\left(\frac{d^*}{d_p}\right)^2 - \left(\frac{d_f}{d_p}\right)^2}
 \end{equation}
@@ -390,7 +392,7 @@ When dealing with the right flank, the construction involute rotates clockwise, 
 \begin{equation*}
 b = \textcolor{red}{-}d_f\tan(\alpha_t)
 \end{equation*}
-When dealing with the left flank, the construction involute rotates counterclockwise, therefore the larger (usually positive) solution for $\phi$ is relevant. Hence, the square root term is added.
+When dealing with the left flank, the construction involute rotates counterclockwise, therefore the larger (usually positive) solution for $\phi$ is relevant. Therefore, the square root term must be added.
 \begin{equation}
     \phi_{left}(d^*) = \textcolor{red}{-}\frac{d_f}{d_p}\tan{\alpha_t} + \sqrt{\left(\frac{d^*}{d_p}\right)^2 - \left(\frac{d_f}{d_p}\right)^2}
 \end{equation}
@@ -399,38 +401,36 @@ When dealing with the left flank, the construction involute rotates counterclock
 \subsubsection{Special Case \texorpdfstring{$\phi_0 = \phi(d_f)$}{φ₀ = φ(dₓ)}}
 The case of $d^* = d_f$ is interesting since this is the starting angle where one generally wants to start the undercut curve:
 \begin{align}
-\phi_0 = \phi(d_f) &=  \mypm\frac{d_f}{d_p}\tan{\alpha_t} \pm \sqrt{\cancel{\left(\frac{d_f}{d_p}\right)^2- \left(\frac{d_f}{d_p}\right)^2}}
-\nonumber\\
-&= \mypm\frac{d_f}{d_p}\tan{\alpha_t}
+    \phi_0 = \phi(d_f)
+        &=  \mypm\frac{d_f}{d_p}\tan{\alpha_t} \pm \sqrt{\cancel{\left(\frac{d_f}{d_p}\right)^2- \left(\frac{d_f}{d_p}\right)^2}} \nonumber\\
+        &= \mypm\frac{d_f}{d_p}\tan{\alpha_t}
 \end{align}
 
 \subsection{Summary}
 \begin{equation}
 \begin{gathered}
-\vb{r_{undercut}}(\phi) = \frac{1}{2} \left(
-    \begin{bmatrix}
-        a \\ b
-    \end{bmatrix} \cos(\phi)
-    + \begin{bmatrix}
-        -b \\ a
-    \end{bmatrix} \sin(\phi)
-    + d_p\,\phi\; \begin{bmatrix}
-        \sin(\phi) \\ - \cos(\phi)
-    \end{bmatrix}
+    \vb{r_{undercut}}(\phi) = \frac{1}{2} \left(
+        \begin{bmatrix}
+            a \\ b
+        \end{bmatrix} \cos(\phi)
+        + \begin{bmatrix}
+            -b \\ a
+        \end{bmatrix} \sin(\phi)
+        + d_p\,\phi\; \begin{bmatrix}
+            \sin(\phi) \\ - \cos(\phi)
+        \end{bmatrix}
     \right)
 \\
-a = d_f \quad\quad b = \pm d_f\tan(\alpha_t)
+    a = d_f \quad\quad b = \pm d_f\tan(\alpha_t)
 \end{gathered}
 \end{equation}
 
 \begin{align}
-    \phi(d^*) &= \mypm\frac{d_f}{d_p}\tan{\alpha_t} \pm \sqrt{\left(\frac{d^*}{d_p}\right)^2- \left(\frac{d_f}{d_p}\right)^2}
-    \\
-    \phi_{right}(d^*) &= \frac{d_f}{d_p}\tan{\alpha_t} - \sqrt{\left(\frac{d^*}{d_p}\right)^2 - \left(\frac{d_f}{d_p}\right)^2}
-    \\
-    \phi_{left}(d^*) &= \textcolor{red}{-}\frac{d_f}{d_p}\tan{\alpha_t} + \sqrt{\left(\frac{d^*}{d_p}\right)^2 - \left(\frac{d_f}{d_p}\right)^2}
-    \\
-    \phi_0 = \phi(d_f) &= \mypm\frac{d_f}{d_p}\tan{\alpha_t}
+    \phi(d^*)           &= \mypm\frac{d_f}{d_p}\tan{\alpha_t} \pm \sqrt{\left(\frac{d^*}{d_p}\right)^2- \left(\frac{d_f}{d_p}\right)^2} \\
+    \phi_{right}(d^*)   &= \frac{d_f}{d_p}\tan{\alpha_t} - \sqrt{\left(\frac{d^*}{d_p}\right)^2 - \left(\frac{d_f}{d_p}\right)^2} \\
+    \phi_{left}(d^*)    &= \textcolor{red}{-}\frac{d_f}{d_p}\tan{\alpha_t}
+                            +\sqrt{\left(\frac{d^*}{d_p}\right)^2 -\left(\frac{d_f}{d_p}\right)^2} \\
+    \phi_0 = \phi(d_f)  &= \mypm\frac{d_f}{d_p}\tan{\alpha_t}
 \end{align}
 
 \paragraph{Note:} The $\mypm$ depends on which flank

@@ -1,8 +1,25 @@
 \section{Introduction}
-This document presents a fully analytical parametric description of involute gear teeth, including both the involute tooth flank and the undercut (trochoid) curve at the tooth root. All equations are derived without approximations. The resulting curves are parametric, meaning they can be traced by stepping through a single parameter $\phi$, making them straightforward to evaluate and discretize for use in CAD.
+In this text analytical derivations of parametric involute gears is presented. This includes both the involute curve of the tooth flank as well as the undercut curve below the pitch circle. The resulting curves all are parametric, meaning the curves can be traced by stepping through a single parameter $\phi$. This allows the parametric equations to be used in CAD by connecting the traced points using a spline.
 
-For each curve, the start and end values of $\phi$ are derived so that the curves cover exactly the required portion of the tooth geometry. These bounds are determined either by reaching a specific diameter (e.g.\ the addendum or dedendum circle) or by the intersection with another curve. Closed-form solutions for the curve intersections were not derived (may not even exist), the Newton-Raphson method is used instead. The complete iteration formulas, including all required derivatives and Jacobian entries, are fully derived and ready for direct implementation. With these bounds, the curves can be directly stitched together in CAD without requiring any Boolean intersection operations.
+Also shown here is a way to compute the start and end values of $\phi$ for each curve. These bounds are determined either by reaching a specific diameter (e.g.\ the addendum or dedendum circle) or by the intersection with another curve. Closed-form solutions for the curve intersections are not derived (it is possible they may not even exist), the Newton-Raphson method is used instead.
+
+The complete iteration formulas, including all required derivatives and Jacobian entries, are fully derived and ready for direct implementation. With these bounds, the curves can be directly stitched together in CAD without requiring any Boolean intersection operations.
 
 Profile shift is fully supported and its effect on tooth thickness and curve positioning is described in detail.
 
-Currently, the formulation covers spur gears (\textit{Stirnräder}) only. Helical gears and bevel gears (\textit{Kegelräder}) are not yet addressed.
+Currently, the formulation covers spur gears (\textit{Stirnräder}).
+
+This document is incomplete and should feature the following gear types later:
+\begin{itemize}
+    \item helical gears (\textit{Schrägverzahnung})
+    \item internal gears (internal helical gears)
+    \item bevel gears (\textit{Kegelräder})
+    \item worm gears (\textit{Schneckenräder})
+    \item crossed helical gears / screw gears (hyperboloid gears) (\textit{Schraubenverzahnung (Hyperboloidräder)})
+    \item hypoid gears (\textit{Schraubenkegelräder (Hypoidräder)})
+\end{itemize}
+
+\subsection{Acknowledgement}
+The Videos from~\textcite{undercut_profile_shift_YTvideo} were a massive help in deriving the parametric equations as he provides amazing visuals. Additionally, the Website~\textcite{tecScience_zahnstange} provided a more detailed description of the geometry and norms used in gear design. Although all is combined with my own notes form lectures as well as me staring at gears I cut from cupboard for hours until the curve construction finally made sense ;)
+
+More detailed citations are provided throughout and can be reviewed in the bibliography \ref{sec:bibliography}.

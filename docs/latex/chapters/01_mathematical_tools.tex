@@ -1,0 +1,55 @@
+\section{Mathematical Tools}
+\label{sec:mathematical_tools}
+
+This section collects general mathematical tools used for the parametric curve derivations. They are independent of any specific gear type and serve as building blocks referenced from the gear-specific chapters that follow.
+
+\subsection{Rotation Matrix}
+\label{subsec:rotation_matrix}
+The 2D rotation matrix for angle $\theta$ (counterclockwise positive):
+\begin{equation}
+    \vb{R}(\theta) = \begin{bmatrix}
+        \cos\theta & -\sin\theta \\
+        \sin\theta & \cos\theta
+    \end{bmatrix}
+\end{equation}
+
+Applied to a 2D point or curve $\vb{r}(\phi)$:
+\begin{equation}
+    \vb{r}_{\text{rot}}(\phi) = \vb{R}(\theta)\,\vb{r}(\phi)
+\end{equation}
+
+\subsection{Translation}
+\label{subsec:translation}
+Translation of a 2D point or curve $\vb{r}(\phi)$ by a vector $\vb{v} = (v_x, v_y)^{\!\top}$ is the vector addition:
+\begin{equation}
+    \vb{r}_{\text{trans}}(\phi) = \vb{r}(\phi) + \vb{v}
+\end{equation}
+
+\subsection{Newton-Raphson Method}
+\label{subsec:newton_raphson}
+Finding analytical solutions for intersections of the parametric curves is extremely difficult, so a numerical approach is used instead. The Newton-Raphson method is a simple iterative way to find roots of nonlinear equations.
+
+\subsubsection{1D Newton-Raphson}
+For a single variable, the method iteratively refines an estimate of the root:
+\begin{equation}
+\begin{gathered}
+f(x) \stackrel{!}{=} 0 \\
+x^{k+1} = x^k - \frac{f(x^k)}{f'(x^k)}
+\end{gathered}
+\label{eq:1D_newton_raphson}
+\end{equation}
+
+\subsubsection{2D Newton-Raphson}
+For systems of two equations, the derivative is replaced by the Jacobian matrix. Given a vector function $\vb F$ and its Jacobian $\vb J$, the iteration becomes:
+\begin{equation}
+\begin{gathered}
+    \vb F(\vb x) = \begin{bmatrix} f_1(x_1, x_2) \\ f_2(x_1, x_2) \end{bmatrix} \stackrel{!}{=} \vb 0
+    \\[1ex]
+    \vb J(\vb x) = \begin{bmatrix} J_{11} & J_{12} \\ J_{21} & J_{22} \end{bmatrix} = \begin{bmatrix} \pdv{f_1}{x_1} & \pdv{f_1}{x_2} \\ \pdv{f_2}{x_1} & \pdv{f_2}{x_2} \end{bmatrix}
+    \\[1ex]
+    \vb J^{-1} = \frac{1}{J_{11}J_{22} - J_{12}J_{21}} \begin{bmatrix}J_{22} & - J_{12} \\ -J_{21} & J_{11}\end{bmatrix}
+    \\[1ex]
+\vb x^{k+1} = \vb x^k - \vb J^{-1}(\vb x^k)\;\vb F(\vb x^k)
+\end{gathered}
+\label{eq:2D_newton_raphson}
+\end{equation}

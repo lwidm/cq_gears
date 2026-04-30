@@ -1,19 +1,17 @@
-import cadquery as cq
+import cq_gears
 from matplotlib import pyplot as plt
 from pathlib import Path
 
 from cq_gears import plotting
-from cq_gears import core
-from cq_gears.core import GearData
 
 output_dir: Path = Path("output")
 
-geardata: GearData = core.compute_gear_data(
-    m=1.0,
+geardata: cq_gears.GearData = cq_gears.compute_gear_data(
+    m_n=1.0,
     z=8,
     b=1.0,
     x=0.0,
-    alpha_t=20.0,
+    alpha_n=20.0,
     beta=0.0,
     delta=90.0,
     ha_star=1.0,

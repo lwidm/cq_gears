@@ -406,11 +406,11 @@ def undercut_plot_compute(
     phi_undercut_max: float | None = None,
 ) -> dict[str, float | np.ndarray | GearData | dict]:
     geardata: GearData = core.compute_gear_data(
-        m=1.0,
+        m_n=1.0,
         z=7,
         b=1.0,
         x=0.0,
-        alpha_t=20.0,
+        alpha_n=20.0,
         beta=0.0,
         delta=90.0,
         ha_star=1.0,
@@ -679,7 +679,7 @@ def create_undercut_video(output_dir: Path, video_length: float):
 def tooth_plot_compute(
     geardata: GearData,
 ) -> dict[str, float | np.ndarray | GearData]:
-    m: float = geardata.m
+    m: float = geardata.m_t
     x: float = geardata.x
     df: float = geardata.df
     db: float = geardata.db
@@ -845,11 +845,11 @@ def profile_shift_plot(
     n_values: int = len(x_values)
     geardatas: list[GearData] = [
         core.compute_gear_data(
-            m=m,
+            m_n=m,
             z=z,
             b=1.0,
             x=x_val,
-            alpha_t=20.0,
+            alpha_n=20.0,
             beta=0.0,
             delta=90.0,
             ha_star=1.0,

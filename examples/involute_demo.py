@@ -1,4 +1,3 @@
-import cadquery as cq
 from matplotlib import pyplot as plt
 from pathlib import Path
 

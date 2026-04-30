@@ -90,7 +90,7 @@ def create_rack_cutter_for_group(
     b_max: float = max(gd.b for gd in gear_data_in_group)
 
     return _create_single_rack_cutter(
-        first.m,
+        first.m_t,
         z_max,
         b_max,
         first.alpha_t,

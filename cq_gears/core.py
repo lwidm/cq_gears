@@ -5,8 +5,10 @@ from dataclasses import dataclass
 
 @dataclass
 class GearData:
-    # module (DE: Modul)
-    m: float
+    # normal module (DE: Normalmodul) - input
+    m_n: float
+    # transverse module (DE: Stirnmodul) - derived as m_n / cos(beta)
+    m_t: float
     # number of teeth (DE: Zähnezahl)
     z: int
     # face width (DE: Zahnbreite) - the axial/z-direction thickness
@@ -76,11 +78,11 @@ class GearList:
 
 
 def compute_gear_data(
-    m: float,
+    m_n: float,
     z: int,
     b: float,
     x: float,
-    alpha_t: float,
+    alpha_n: float,
     beta: float,
     delta: float,
     ha_star: float,
@@ -88,31 +90,31 @@ def compute_gear_data(
     rho_f_star: float,
 ) -> GearData:
 
-    alpha_t_r: float = np.radians(alpha_t)
+    alpha_n_r: float = np.radians(alpha_n)
     beta_r: float = np.radians(beta)
     delta_r: float = np.radians(delta)
 
-    alpha_n_r: float = np.arctan(np.tan(alpha_t_r) * np.sin(beta_r))
-    alpha_n: float = np.degrees(alpha_n_r)
+    alpha_t_r: float = np.arctan(np.tan(alpha_n_r) / np.cos(beta_r))
+    alpha_t: float = np.degrees(alpha_t_r)
 
-    p: float = np.pi * m
+    m_t: float = m_n / np.cos(beta_r)
+    p: float = np.pi * m_t
 
-    beta_b_r: float = (
-        np.arctan(np.cos(alpha_t_r) / np.tan(beta_r)) if beta != 0 else 0.0
-    )
+    beta_b_r: float = np.arctan(np.tan(beta_r) * np.cos(alpha_t_r))
     beta_b: float = np.degrees(beta_b_r)
 
-    ha: float = (ha_star + x) * m
-    hf: float = (ha_star + c_star - x) * m
-    rho_f: float = abs(rho_f_star) * m
+    ha: float = (ha_star + x) * m_n
+    hf: float = (ha_star + c_star - x) * m_n
+    rho_f: float = abs(rho_f_star) * m_n
 
-    d: float = m * float(z)
+    d: float = m_t * float(z)
     db: float = d * np.cos(alpha_t_r)
     df: float = d - 2 * hf
     da: float = d + 2 * ha
 
     return GearData(
-        m=m,
+        m_n=m_n,
+        m_t=m_t,
         z=z,
         b=b,
         x=x,
@@ -144,8 +146,7 @@ def _are_compatible(
     gear_data_a: GearData, gear_data_b: GearData, tolerance: float = 1e-6
 ) -> bool:
     return (
-        abs(gear_data_a.m - gear_data_b.m) < tolerance
-        and abs(gear_data_a.alpha_t - gear_data_b.alpha_t) < tolerance
+        abs(gear_data_a.m_n - gear_data_b.m_n) < tolerance
         and abs(gear_data_a.alpha_n - gear_data_b.alpha_n) < tolerance
         and abs(abs(gear_data_a.beta) - abs(gear_data_b.beta)) < tolerance
         and abs(gear_data_a.delta - gear_data_b.delta) < tolerance

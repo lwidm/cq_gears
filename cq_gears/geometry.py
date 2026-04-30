@@ -1,4 +1,3 @@
-import math
 import numpy as np
 from typing import Literal
 
@@ -38,7 +37,7 @@ def half_base_tooth_angle(
     dp_db: float = dp / db
     theta_dp: float = np.sqrt(dp_db**2 - 1)
     return (
-        m * (np.pi + 2 * x * np.tan(alpha_n_r)) / (2 * dp)
+        m * (np.pi + 4 * x * np.tan(alpha_n_r)) / (2 * dp)
         + theta_dp
         - np.arctan(theta_dp)
     )

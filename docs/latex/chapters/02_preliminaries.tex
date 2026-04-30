@@ -68,26 +68,38 @@ The following is a brief summary of all symbols used including both english and 
 
 The fundamental relationships between the gear parameters are summarized below. All formulas follow the (DIN) ISO 21771 standard.
 
+\subsubsection*{Helical Parameter Conversions}
+\label{subsec:helical_conversions}
+The standardised inputs for an involute gear are the normal pressure angle $\alpha_n$ (typically $\SI{20}{\degree}$) and the normal module $m_n$, both defined in the section perpendicular to the tooth direction. For a helical gear with helix angle $\beta$, the construction of the tooth profile takes place in the transverse plane (perpendicular to the gear axis), which uses the transverse pressure angle $\alpha_t$ and transverse module $m_t$. The two pairs are related by:
+\begin{align}
+    \tan(\alpha_t) &= \frac{\tan(\alpha_n)}{\cos(\beta)} \\
+    m_t &= \frac{m_n}{\cos(\beta)} \\
+    \tan(\beta_b) &= \tan(\beta) \cdot \cos(\alpha_t)
+\end{align}
+The base helix angle $\beta_b$ describes the helix on the base cylinder, which is steeper than $\beta$ on the pitch cylinder. For spur gears ($\beta = 0$), the conversions collapse to $\alpha_t = \alpha_n$, $m_t = m_n$, and $\beta_b = 0$, so the transverse and normal sections coincide and the distinction can be ignored.
+
 \subsubsection*{Circle Diameters}
-Given the module $m$, number of teeth $z$, transverse pressure angle $\alpha_t$, profile shift coefficient $x$, addendum coefficient $h_a^*$, and clearance coefficient $c^*$):
+Given the normal module $m_n$, number of teeth $z$, normal pressure angle $\alpha_n$, helix angle $\beta$, profile shift coefficient $x$, addendum coefficient $h_a^*$, and clearance coefficient $c^*$ (with $\alpha_t$ and $m_t$ derived as above):
 
 \begin{align}
-    d_p &= m \cdot z \\
+    d_p &= m_t \cdot z \\
     d_b &= d_p \cos(\alpha_t) \\
-    d_a &= d_p + 2\,h_a = m\cdot(z + 2\,x + 2\cdot h_a^*)\\
-    d_f &= d_p - 2\,h_f = m\cdot(z + 2\,x - 2\cdot(h_a^*+c^*))
+    d_a &= d_p + 2\,h_a = m_t \cdot z + 2\,m_n\cdot(h_a^* + x) \\
+    d_f &= d_p - 2\,h_f = m_t \cdot z - 2\,m_n\cdot(h_a^* + c^* - x)
 \end{align}
 
-The addendum and dedendum heights depend on the profile shift:
+The addendum and dedendum heights depend on the profile shift and use the normal module since profile shift is applied perpendicular to the tooth direction:
 \begin{align}
-    h_a &= (h_a^* + x) \cdot m \\
-    h_f &= (h_a^* + c^* - x) \cdot m
+    h_a &= (h_a^* + x) \cdot m_n \\
+    h_f &= (h_a^* + c^* - x) \cdot m_n
 \end{align}
 
-For standard spur gears:
+For spur gears ($\beta = 0$, so $m_t = m_n = m$), the diameter formulas collapse to the familiar single-module form $d_a = m\cdot(z + 2\,x + 2\,h_a^*)$ and $d_f = m\cdot(z + 2\,x - 2\,(h_a^*+c^*))$.
+
+For standard involute gears:
 \begin{center}
 \begin{tabular}{@{}lll@{}}
-    $\alpha_t = \SI{20}{\degree}$ & Transverse pressure angle & \textit{Eingriffswinkel} \\
+    $\alpha_n = \SI{20}{\degree}$ & Normal pressure angle & \textit{Normaleingriffswinkel} \\
     $h_a^* = 1$ & Addendum coefficient & \textit{Kopfhöhenfaktor} \\
     $c^* = 0.25$ & Clearance coefficient & \textit{Kopfspielfaktor} \\
 \end{tabular}

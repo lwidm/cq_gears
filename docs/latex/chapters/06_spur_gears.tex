@@ -1,7 +1,9 @@
-\section{Spur Gears}
+\section{Spur and Helical Spur Gears}
 \label{sec:spur_gears}
 
 This section assembles the parametric curves derived in the previous sections into a complete spur gear tooth. This includes determining start and end values of curve parameters $\phi$ necetetating deriving curve intersections. Lastly all results are collected in a summary.
+
+The construction in this section is identical for spur and helical spur gears: the tooth profile is built in the transverse plane (perpendicular to the gear axis) using the transverse pressure angle $\alpha_t$ and transverse module $m_t$. For helical gears these are derived from the standardised normal-section inputs $\alpha_n$, $m_n$ and helix angle $\beta$ using the conversions in Section~\ref{subsec:helical_conversions}. Spur gears are simply the $\beta = 0$ special case for which $\alpha_t = \alpha_n$ and $m_t = m_n$, so no conversion is needed. The only difference between the two cases is the extrusion of the 2D tooth profile into the third dimension (straight extrude for spur, helical sweep for helical).
 
 \subsection{Tooth Geometry and Positioning of Curves}
 \label{sec:tooth_geometry_positioning}
@@ -17,26 +19,30 @@ The tooth thickness (in arc length) at the pitch circle, assuming \textbf{no pro
 \begin{figure}[ht]
     \centering
     \includegraphics[width=\textwidth]{de-evolventenverzahnung-zahnrad-profilverschiebung-vergroesserung-zahndicke.jpg}
-    \caption{Gemetric description of additional tooth width due to profile shift. Here $V=x\cdot m :=$ Absolute profile shift value. (\textcite{profileshift})}
+    \caption{Gemetric description of additional tooth width due to profile shift. Here \mbox{$V:=x\cdot m$, the absolute profile shift value}. (\textcite{profileshift})}
     \label{fig:profile_shift_geometry}
 \end{figure}
 The additional tooth width due to profile shift is more easily computed on the cutting rack as the linear addiional width corresponds to the additional arc length of the tooth on the gear. Figure~\ref{fig:profile_shift_geometry} geometrically shows how the additional tooth width, $\Delta s$ is computed:
-\begin{equation}
-    \Delta s = m\cdot x \cdot \tan(\alpha_n)
-\end{equation}
+\begin{subequations}
+\begin{align}
+    \Delta s    &= 2 \cdot V \cdot \tan(\alpha_n) \\
+                &= 2 \cdot m \cdot x \cdot \tan(\alpha_n)
+\end{align}
+\end{subequations}
+
 Resulting in:
 \begin{subequations}
 \begin{align}
     s_0 &= \frac{p_0}{2} + \Delta s \\
-        &= \frac{m\pi}{2} + m \cdot x \cdot \tan(\alpha_n) \\
-        &= \frac{m}{2}\left(\pi + 2 \cdot x \cdot \tan(\alpha_n)\right)
+        &= \frac{m\pi}{2} + 2 \cdot m \cdot x \cdot \tan(\alpha_n) \\
+        &= \frac{m}{2}\left(\pi + 4 \cdot x \cdot \tan(\alpha_n)\right)
 \end{align}
 \end{subequations}
 Therefore, the angle spanned by half of the tooth at the pitch circle is:
 \begin{subequations}
 \begin{align}
     \gamma_0    &= \frac{s_0}{d_p} \\
-                &= \frac{m\left(\pi + 2 \cdot x \cdot \tan(\alpha_n)\right)}{2\,d_p}
+                &= \frac{m\left(\pi + 4 \cdot x \cdot \tan(\alpha_n)\right)}{2\,d_p}
 \end{align}
 \end{subequations}
 
@@ -62,7 +68,7 @@ This results in a half tooth angle at the base circle of:
 \begin{subequations}
 \begin{align}
     \gamma &= \gamma_0+\Delta \gamma \\
-           &= \frac{m\left(\pi + 2 \cdot x \cdot \tan(\alpha_n)\right)}{2\,d_p} + \left[\left(\frac{d_p}{d_b}\right)^2 - 1\right]^{\tfrac{1}{2}} - \arctan\left(\left[\left(\frac{d_p}{d_b}\right)^2 - 1\right]^{\tfrac{1}{2}}\right)
+           &= \frac{m\left(\pi + 4 \cdot x \cdot \tan(\alpha_n)\right)}{2\,d_p} + \left[\left(\frac{d_p}{d_b}\right)^2 - 1\right]^{\tfrac{1}{2}} - \arctan\left(\left[\left(\frac{d_p}{d_b}\right)^2 - 1\right]^{\tfrac{1}{2}}\right)
 \end{align}
 \end{subequations}
 
@@ -551,7 +557,7 @@ From these, compute the circle diameters (Section~\ref{sec:preliminaries}) and h
     d_b &= d_p \cos(\alpha_t) \\
     d_a &= m\cdot(z + 2\,x + 2\cdot h_a^*) \\
     d_f &= m\cdot(z + 2\,x - 2\cdot(h_a^*+c^*)) \\
-    \gamma &= \frac{m\left(\pi + 2 \cdot x \cdot \tan(\alpha_n)\right)}{2\,d_p} + \left[\left(\frac{d_p}{d_b}\right)^2 - 1\right]^{\tfrac{1}{2}} - \arctan\left(\left[\left(\frac{d_p}{d_b}\right)^2 - 1\right]^{\tfrac{1}{2}}\right)
+    \gamma &= \frac{m\left(\pi + 4 \cdot x \cdot \tan(\alpha_n)\right)}{2\,d_p} + \left[\left(\frac{d_p}{d_b}\right)^2 - 1\right]^{\tfrac{1}{2}} - \arctan\left(\left[\left(\frac{d_p}{d_b}\right)^2 - 1\right]^{\tfrac{1}{2}}\right)
 \end{align}
 
 \subsubsection{Parametric Curves}

@@ -15,7 +15,7 @@ def _compute_tooth_points(
     phi_r_addendum: float = geometry.involute_phi_d(geardata.da, geardata.db, "right")
     phi_r_addendum_intersection: float = geometry.involute_self_intersection(
         phi_r_addendum,
-        geardata.m,
+        geardata.m_t,
         geardata.x,
         geardata.d,
         geardata.db,
@@ -46,7 +46,7 @@ def _compute_tooth_points(
         involutes_instersect = False
 
     points_inv_right: np.ndarray = geometry.involute_tooth(
-        geardata.m,
+        geardata.m_t,
         geardata.x,
         geardata.d,
         geardata.db,
@@ -57,7 +57,7 @@ def _compute_tooth_points(
         "right",
     )
     points_inv_left: np.ndarray = geometry.involute_tooth(
-        geardata.m,
+        geardata.m_t,
         geardata.x,
         geardata.d,
         geardata.db,
@@ -68,7 +68,7 @@ def _compute_tooth_points(
         "left",
     )
     points_undercut_right: np.ndarray = geometry.undercut_tooth(
-        geardata.m,
+        geardata.m_t,
         geardata.x,
         geardata.d,
         geardata.db,
@@ -80,7 +80,7 @@ def _compute_tooth_points(
         "right",
     )
     points_undercut_left: np.ndarray = geometry.undercut_tooth(
-        geardata.m,
+        geardata.m_t,
         geardata.x,
         geardata.d,
         geardata.db,

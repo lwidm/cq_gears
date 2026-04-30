@@ -92,8 +92,8 @@ Complete derivations, including all Jacobians and integration bounds, are availa
 | $\beta$ | Helix angle (at pitch cylinder) | *Schrägungswinkel* |
 | $\beta_b$ | Base helix angle | *Grundschrägungswinkel* |
 | $x$ | Profile shift coefficient | *Profilverschiebungsfaktor* |
-| $h_a^{*}$ | Addendum coefficient | *Kopfhöhenfaktor* |
-| $c^{*}$ | Tip clearance factor | *Kopfspielfaktor* |
+| $h_a^{\ast}$ | Addendum coefficient | *Kopfhöhenfaktor* |
+| $c^{\ast}$ | Tip clearance factor | *Kopfspielfaktor* |
 | $p$ | Pitch | *Teilung* |
 
 #### Diameters and tooth heights
@@ -104,7 +104,7 @@ Complete derivations, including all Jacobians and integration bounds, are availa
 | $d_b$ | Base circle diameter | *Grundkreisdurchmesser* |
 | $d_a$ | Addendum (tip) circle diameter | *Kopfkreisdurchmesser* |
 | $d_f$ | Dedendum (root) circle diameter | *Fusskreisdurchmesser* |
-| $d^{*}$ | Arbitrary diameter | — |
+| $d^{\ast}$ | Arbitrary diameter | — |
 | $h_a$ | Addendum height | *Zahnkopfhöhe* |
 | $h_f$ | Dedendum height | *Zahnfusshöhe* |
 | $s_0$ | Tooth thickness at pitch circle | — |
@@ -128,7 +128,7 @@ The sign $\pm$ refers to the flank: $+$ for the right flank (counterclockwise ro
 
 ### Equation summary
 
-Inputs: $m_n$, $z$, $\alpha_n$, $\beta$, $x$, $h_a^{*}$, $c^{*}$. Standard involute gears use $\alpha_n = 20°$, $h_a^{*} = 1$, $c^{*} = 0.25$.
+Inputs: $m_n$, $z$, $\alpha_n$, $\beta$, $x$, $h_a^{\ast}$, $c^{\ast}$. Standard involute gears use $\alpha_n = 20°$, $h_a^{\ast} = 1$, $c^{\ast} = 0.25$.
 
 #### Helical-to-transverse conversions
 
@@ -147,10 +147,10 @@ d_p = m_t \cdot z, \qquad d_b = d_p \cos(\alpha_t)
 $$
 
 $$
-d_a = d_p + 2 h_a = m_t z + 2 m_n (h_a^{*} + x), \qquad d_f = d_p - 2 h_f = m_t z - 2 m_n (h_a^{*} + c^{*} - x)
+d_a = d_p + 2 h_a = m_t z + 2 m_n (h_a^{\ast} + x), \qquad d_f = d_p - 2 h_f = m_t z - 2 m_n (h_a^{\ast} + c^{\ast} - x)
 $$
 
-with $h_a = (h_a^{*} + x)  m_n$ and $h_f = (h_a^{*} + c^{*} - x)  m_n$.
+with $h_a = (h_a^{\ast} + x)  m_n$ and $h_f = (h_a^{\ast} + c^{\ast} - x)  m_n$.
 
 #### Half tooth angle γ at base circle
 
@@ -163,7 +163,7 @@ The first term is the half tooth thickness at the pitch circle (including profil
 #### Involute curve
 
 $$
-\mathbf{r}_\text{inv}(\phi) = \frac{d_b}{2}\begin{bmatrix} \cos(\phi) + \phi \sin(\phi) \\ \sin(\phi) - \phi \cos(\phi) \end{bmatrix}, \qquad \phi(d^{*}) = \pm \sqrt{\left(\frac{d^{*}}{d_b}\right)^2 - 1}
+\mathbf{r}_\text{inv}(\phi) = \frac{d_b}{2}\begin{bmatrix} \cos(\phi) + \phi \sin(\phi) \\ \sin(\phi) - \phi \cos(\phi) \end{bmatrix}, \qquad \phi(d^{\ast}) = \pm \sqrt{\left(\frac{d^{\ast}}{d_b}\right)^2 - 1}
 $$
 
 Bounds: $\phi_\text{start} = 0$ (base circle) and $\phi_\text{end} = \phi(d_a)$ (addendum circle), unless truncated by one of the intersections below.

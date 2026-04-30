@@ -74,7 +74,7 @@ Note that `points[i]` returns **row `i`** (all x's or all y's), not the i-th poi
 
 ## Theory
 
-`cq_gears` builds tooth profiles from closed-form analytical equations rather than from approximations or boolean cuts. The flank of every involute gear tooth is itself an involute of the base circle, and at the tooth root the rack tip sweeps out the undercut curve as it rolls along the pitch circle. Profile shift is also considered. Where these curves meet (the involute to undercut junction, and the left to right self-intersection that can occur for small tooth counts with positive profile shift), Newton-Raphson computes the exact intersection point. Helical gears reduce to spur gears as the helix angle goes to zero, with the standardised normal-section inputs ($\alpha_n$, $m_n$) converted to the transverse-section parameters ($\alpha_t$, $m_t$) used to construct the 2D profile.
+`cq_gears` builds tooth profiles from closed-form analytical equations rather than from approximations or boolean cuts. The flank of every involute gear obviously is an involute of the base circle and at the tooth root the rack tip sweeps out the undercut curve as it rolls along the pitch circle. Profile shift is also considered. Where these curves meet (the involute to undercut junction and the left to right self-intersection that can occur for small tooth counts with positive profile shift), Newton-Raphson computes the exact intersection point. Helical gears reduce to spur gears as the helix angle goes to zero, with the standardised flank normal inputs ($\alpha_n$, $m_n$) converted to the transverse (normal to the gear) parameters ($\alpha_t$, $m_t$) used to construct the 2D profile.
 
 Complete derivations, including all Jacobians and integration bounds, are available in the [Theory (PDF)](https://lwidm.github.io/cq_gears/theory.pdf). All conventions follow DIN / ISO 21771. The summary below mirrors the formula sheet at the end of the PDF.
 
@@ -92,8 +92,8 @@ Complete derivations, including all Jacobians and integration bounds, are availa
 | $\beta$ | Helix angle (at pitch cylinder) | *Schrägungswinkel* |
 | $\beta_b$ | Base helix angle | *Grundschrägungswinkel* |
 | $x$ | Profile shift coefficient | *Profilverschiebungsfaktor* |
-| $h_a^*$ | Addendum coefficient | *Kopfhöhenfaktor* |
-| $c^*$ | Tip clearance factor | *Kopfspielfaktor* |
+| $h_a^{*}$ | Addendum coefficient | *Kopfhöhenfaktor* |
+| $c^{*}$ | Tip clearance factor | *Kopfspielfaktor* |
 | $p$ | Pitch | *Teilung* |
 
 #### Diameters and tooth heights
@@ -104,7 +104,7 @@ Complete derivations, including all Jacobians and integration bounds, are availa
 | $d_b$ | Base circle diameter | *Grundkreisdurchmesser* |
 | $d_a$ | Addendum (tip) circle diameter | *Kopfkreisdurchmesser* |
 | $d_f$ | Dedendum (root) circle diameter | *Fusskreisdurchmesser* |
-| $d^*$ | Arbitrary diameter | — |
+| $d^{*}$ | Arbitrary diameter | — |
 | $h_a$ | Addendum height | *Zahnkopfhöhe* |
 | $h_f$ | Dedendum height | *Zahnfusshöhe* |
 | $s_0$ | Tooth thickness at pitch circle | — |
@@ -116,7 +116,8 @@ Complete derivations, including all Jacobians and integration bounds, are availa
 |--------|---------|
 | $\phi$ | Curve parameter (rolling angle) |
 | $\theta$ | Angle with respect to x-axis |
-| $\phi_0$ | Starting parameter value |
+| $\phi_0, \phi_{start}$ | Starting parameter value |
+| $\phi_{end}$ | Ending parameter value |
 | $\mathbf{r}_\text{inv}(\phi)$ | Involute position vector |
 | $\mathbf{r}_\text{undercut}(\phi)$ | Undercut curve position vector |
 | $\mathbf{T}(\phi)$ | Unit tangent vector |
@@ -127,39 +128,51 @@ The sign $\pm$ refers to the flank: $+$ for the right flank (counterclockwise ro
 
 ### Equation summary
 
-Inputs: $m_n$, $z$, $\alpha_n$, $\beta$, $x$, $h_a^*$, $c^*$. Standard involute gears use $\alpha_n = 20°$, $h_a^* = 1$, $c^* = 0.25$.
+Inputs: $m_n$, $z$, $\alpha_n$, $\beta$, $x$, $h_a^{*}$, $c^{*}$. Standard involute gears use $\alpha_n = 20°$, $h_a^{*} = 1$, $c^{*} = 0.25$.
 
 #### Helical-to-transverse conversions
 
 For a helical gear with helix angle $\beta$, the tooth profile is constructed in the transverse plane (perpendicular to the gear axis); the transverse pressure angle $\alpha_t$, transverse module $m_t$, and base helix angle $\beta_b$ are derived from the standardised normal-section inputs by:
 
-$$\tan(\alpha_t) = \frac{\tan(\alpha_n)}{\cos(\beta)}, \qquad m_t = \frac{m_n}{\cos(\beta)}, \qquad \tan(\beta_b) = \tan(\beta) \cos(\alpha_t)$$
+$$
+\tan(\alpha_t) = \frac{\tan(\alpha_n)}{\cos(\beta)}, \qquad m_t = \frac{m_n}{\cos(\beta)}, \qquad \tan(\beta_b) = \tan(\beta) \cos(\alpha_t)
+$$
 
 For spur gears ($\beta = 0$) these collapse to $\alpha_t = \alpha_n$, $m_t = m_n$, $\beta_b = 0$.
 
 #### Circle diameters
 
-$$d_p = m_t \cdot z, \qquad d_b = d_p \cos(\alpha_t)$$
+$$
+d_p = m_t \cdot z, \qquad d_b = d_p \cos(\alpha_t)
+$$
 
-$$d_a = d_p + 2 h_a = m_t z + 2 m_n (h_a^* + x), \qquad d_f = d_p - 2 h_f = m_t z - 2 m_n (h_a^* + c^* - x)$$
+$$
+d_a = d_p + 2 h_a = m_t z + 2 m_n (h_a^{*} + x), \qquad d_f = d_p - 2 h_f = m_t z - 2 m_n (h_a^{*} + c^{*} - x)
+$$
 
-with $h_a = (h_a^* + x)\, m_n$ and $h_f = (h_a^* + c^* - x)\, m_n$.
+with $h_a = (h_a^{*} + x)  m_n$ and $h_f = (h_a^{*} + c^{*} - x)  m_n$.
 
 #### Half tooth angle γ at base circle
 
-$$\gamma = \frac{m_t \pi + 4\, x\, m_n \tan(\alpha_n)}{2\, d_p} + \sqrt{\left(\frac{d_p}{d_b}\right)^2 - 1} - \arctan\sqrt{\left(\frac{d_p}{d_b}\right)^2 - 1}$$
+$$
+\gamma = \frac{m_t \pi + 4  x  m_n \tan(\alpha_n)}{2  d_p} + \sqrt{\left(\frac{d_p}{d_b}\right)^2 - 1} - \arctan\sqrt{\left(\frac{d_p}{d_b}\right)^2 - 1}
+$$
 
 The first term is the half tooth thickness at the pitch circle (including profile shift); the remaining two terms account for the involute angle from base to pitch circle.
 
 #### Involute curve
 
-$$\mathbf{r}_\text{inv}(\phi) = \frac{d_b}{2}\begin{bmatrix} \cos(\phi) + \phi \sin(\phi) \\ \sin(\phi) - \phi \cos(\phi) \end{bmatrix}, \qquad \phi(d^*) = \pm \sqrt{\left(\frac{d^*}{d_b}\right)^2 - 1}$$
+$$
+\mathbf{r}_\text{inv}(\phi) = \frac{d_b}{2}\begin{bmatrix} \cos(\phi) + \phi \sin(\phi) \\ \sin(\phi) - \phi \cos(\phi) \end{bmatrix}, \qquad \phi(d^{*}) = \pm \sqrt{\left(\frac{d^{*}}{d_b}\right)^2 - 1}
+$$
 
 Bounds: $\phi_\text{start} = 0$ (base circle) and $\phi_\text{end} = \phi(d_a)$ (addendum circle), unless truncated by one of the intersections below.
 
 #### Undercut curve
 
-$$\mathbf{r}_\text{undercut}(\phi) = \frac{1}{2}\left( \begin{bmatrix} a \\ b \end{bmatrix} \cos(\phi) + \begin{bmatrix} -b \\ a \end{bmatrix} \sin(\phi) + d_p \phi \begin{bmatrix} \sin(\phi) \\ -\cos(\phi) \end{bmatrix} \right)$$
+$$
+\mathbf{r}_\text{undercut}(\phi) = \frac{1}{2}\left( \begin{bmatrix} a \\ b \end{bmatrix} \cos(\phi) + \begin{bmatrix} -b \\ a \end{bmatrix} \sin(\phi) + d_p \phi \begin{bmatrix} \sin(\phi) \\ -\cos(\phi) \end{bmatrix} \right)
+$$
 
 with $a = d_f$ and $b = \pm d_f \tan(\alpha_t)$. Start: $\phi_0 = \pm \tfrac{d_f}{d_p} \tan(\alpha_t)$ (dedendum circle). End: at the involute–undercut intersection (below).
 
@@ -176,11 +189,15 @@ The opposite flank is obtained by mirroring across the x-axis.
 
 **Left–right involute self-intersection.** Relevant for small $z$ with positive profile shift, where the two flanks of one tooth meet before reaching $d_a$. Solve
 
-$$\frac{\sin(\phi) - \phi \cos(\phi)}{\cos(\phi) + \phi \sin(\phi)} = \tan(\gamma)$$
+$$
+\frac{\sin(\phi) - \phi \cos(\phi)}{\cos(\phi) + \phi \sin(\phi)} = \tan(\gamma)
+$$
 
 with iteration
 
-$$\phi_{n+1} = \phi_n - \frac{a}{\phi_n^2}\left(b - a \tan(\gamma)\right), \quad a = \cos(\phi_n) + \phi_n \sin(\phi_n), \quad b = \sin(\phi_n) - \phi_n \cos(\phi_n)$$
+$$
+\phi_{n+1} = \phi_n - \frac{a}{\phi_n^2}\left(b - a \tan(\gamma)\right), \quad a = \cos(\phi_n) + \phi_n \sin(\phi_n), \quad b = \sin(\phi_n) - \phi_n \cos(\phi_n)
+$$
 
 If the solution $\phi_\infty < \phi(d_a)$, the involute is truncated at $\phi_\infty$ instead of the addendum circle.
 
@@ -193,9 +210,11 @@ f_2 &= d_b d \cos(\phi_i) + d_b d \phi_i \sin(\phi_i) + d_b c \sin(\phi_i) - d_b
     &\quad - b \cos(\phi_u) - a \sin(\phi_u) + d_p \phi_u \cos(\phi_u)
 \end{aligned}$$
 
-via $\mathbf{x}^{(k+1)} = \mathbf{x}^{(k)} - \mathbf{J}^{-1}\, \mathbf{F}(\mathbf{x}^{(k)})$ where $\mathbf{x} = (\phi_i, \phi_u)^\top$ and the Jacobian is
+via $\mathbf{x}^{(k+1)} = \mathbf{x}^{(k)} - \mathbf{J}^{-1}  \mathbf{F}(\mathbf{x}^{(k)})$ where $\mathbf{x} = (\phi_i, \phi_u)^\top$ and the Jacobian is
 
-$$\mathbf{J} = \begin{bmatrix} d_b \phi_i \big(c \cos\phi_i - d \sin\phi_i\big) & a \sin\phi_u + b \cos\phi_u - d_p \sin\phi_u - d_p \phi_u \cos\phi_u \\ d_b \phi_i \big(d \cos\phi_i + c \sin\phi_i\big) & b \sin\phi_u - a \cos\phi_u + d_p \cos\phi_u - d_p \phi_u \sin\phi_u \end{bmatrix}$$
+$$
+\mathbf{J} = \begin{bmatrix} d_b \phi_i \big(c \cos\phi_i - d \sin\phi_i\big) & a \sin\phi_u + b \cos\phi_u - d_p \sin\phi_u - d_p \phi_u \cos\phi_u \\ d_b \phi_i \big(d \cos\phi_i + c \sin\phi_i\big) & b \sin\phi_u - a \cos\phi_u + d_p \cos\phi_u - d_p \phi_u \sin\phi_u \end{bmatrix}
+$$
 
 The solution gives the actual start of the involute ($\phi_i$) and end of the undercut ($\phi_u$). Initial guesses come from the diameters of the involute–pitch and undercut–pitch crossings.
 

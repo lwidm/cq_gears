@@ -129,6 +129,7 @@ def involute_tooth(
 
 
 def rotate(points: np.ndarray, rotation: float) -> np.ndarray:
+    """Rotate (2, N) points around origin. Positive angle = counterclockwise (radians)."""
     R: np.ndarray = np.array(
         [[np.cos(rotation), -np.sin(rotation)], [np.sin(rotation), np.cos(rotation)]]
     )

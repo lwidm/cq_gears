@@ -1,6 +1,7 @@
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
+from matplotlib.figure import Figure
 from matplotlib.patches import Circle, Rectangle, Arc
 import subprocess
 from typing import Literal
@@ -393,7 +394,7 @@ def create_involute_video(
         raise ValueError(f"No frames found in {temp_dir}")
 
     framerate = int(total_frames / video_length)
-    output_path = output_dir / "involute.mp4"
+    output_path: Path = output_dir / "involute.mp4"
 
     ffmpeg_video(temp_dir, output_path, "involute", framerate)
 
@@ -671,9 +672,70 @@ def create_undercut_video(output_dir: Path, video_length: float):
         raise ValueError(f"No frames found in {temp_dir}")
 
     framerate = int(total_frames / video_length)
-    output_path = output_dir / "undercut.mp4"
+    output_path: Path = output_dir / "undercut.mp4"
 
     ffmpeg_video(temp_dir, output_path, "undercut", framerate)
+
+def plot_rolling_circle(ax: Axes, dp_ring: float, dp_pinion: float, phi: float) -> Axes:
+    ax.set_aspect("equal")
+    lim = dp_ring / 2 + 1
+    ax.set_xlim((-lim, lim))
+    ax.set_ylim((-lim, lim))
+
+    # internal_gear
+    ring_pts: np.ndarray = _arc_points(dp_ring / 2, 0, 2 * np.pi, unit="radian")
+    ax.plot(ring_pts[0], ring_pts[1], linewidth=1.5, linestyle="--", color="black")
+    ax.scatter([0], [0], marker="x", color="black")
+
+    # Rotated copy with a radial tick to make rotation visible
+    alpha: float = dp_pinion / dp_ring * phi
+    beta: float = (1 - dp_pinion / dp_ring) * phi
+    translate_x: float = np.cos(alpha) * (dp_ring - dp_pinion) / 2
+    translate_y: float = np.sin(alpha) * (dp_ring - dp_pinion) / 2
+
+    pinion_pts: np.ndarray = _arc_points(dp_pinion / 2, 0, 2 * np.pi, unit="radian")
+    pinion_pts = geometry.rotate(pinion_pts, -beta)
+    pinion_pts = geometry.translate(pinion_pts, (translate_x, translate_y))
+    ax.plot(pinion_pts[0], pinion_pts[1], linewidth=1.5, linestyle="--", color="red")
+    ax.scatter([translate_x], [translate_y], marker="x", color="red")
+
+    return ax
+
+def create_rolling_circle_video(output_dir: Path, video_length: float):
+    temp_dir = output_dir / "internal_rolling_circles"
+    temp_dir.mkdir(exist_ok=True)
+
+    phi_min: float = 0.0
+    phi_max: float = 360 * np.pi / 180
+    n_frames: int = 360
+    phi_arr: np.ndarray = np.linspace(phi_min, phi_max, n_frames, endpoint=True)
+
+    plt.ion()
+    fig: Figure
+    ax: Axes
+    fig, ax = plt.subplots(figsize=(5, 5))
+    plt.show(block=False)
+
+    for i, phi in enumerate(phi_arr):
+        ax.clear()
+        ax = plot_rolling_circle(ax, 3.0, 2.0, phi)
+        fig.canvas.draw()
+        fig.canvas.flush_events()
+        plt.pause(0.001)  # Brief pause to update display
+        fig.savefig(temp_dir / f"rolling_{i:03d}.png", dpi=300)
+
+    plt.ioff()
+    plt.close(fig)
+
+    frame_files: list[Path] = sorted(temp_dir.glob("rolling_*.png"))
+    total_frames: int = len(frame_files)
+    if total_frames == 0:
+        raise ValueError(f"No frames found in {temp_dir}")
+
+    framerate = int(total_frames / video_length)
+    output_path: Path = output_dir / "rolling_circle.mp4"
+
+    ffmpeg_video(temp_dir, output_path, "rolling", framerate)
 
 
 def tooth_plot_compute(

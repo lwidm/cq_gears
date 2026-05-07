@@ -1,6 +1,8 @@
 import numpy as np
 from typing import NamedTuple
 
+from . import geometry
+
 
 class CqArcTuple(NamedTuple):
     center: tuple[float, float]
@@ -15,26 +17,15 @@ def cq_arc_center_start_end(
     arc_end: np.ndarray,
     counter_clock_wise: bool,
 ) -> CqArcTuple:
-    if arc_center.shape != (2,):
-        raise ValueError(
-            f"arc_center not a point! Expected point shape (2,), got {arc_center.shape}"
-        )
-    if arc_start.shape != (2,):
-        raise ValueError(
-            f"arc_start not a point! Expected point shape (2,), got {arc_start.shape}"
-        )
-    if arc_end.shape != (2,):
-        raise ValueError(
-            f"arc_end not a point! Expected point shape (2,), got {arc_end.shape}"
-        )
-
-    cx: float = arc_center[0]
-    cy: float = arc_center[1]
-    r: float = np.sqrt((arc_start[0] - cx) ** 2 + (arc_start[1] - cy) ** 2)
-    a0: float = np.degrees(np.arctan2(arc_start[1] - cy, arc_start[0] - cx))
-    a1: float = np.degrees(np.arctan2(arc_end[1] - cy, arc_end[0] - cx))
-    da: float = (a1 - a0) % 360 if counter_clock_wise else -((a0 - a1) % 360)
-    return CqArcTuple(center=(cx, cy), radius=r, start_angle_deg=a0, sweep_angle_deg=da)
+    center, radius, start_angle, sweep = geometry.arc_from_endpoints(
+        arc_center, arc_start, arc_end, counter_clock_wise
+    )
+    return CqArcTuple(
+        center=center,
+        radius=radius,
+        start_angle_deg=start_angle,
+        sweep_angle_deg=sweep,
+    )
 
 
 class CqSplineTuple(NamedTuple):

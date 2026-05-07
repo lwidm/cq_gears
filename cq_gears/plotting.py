@@ -7,8 +7,12 @@ import subprocess
 from typing import Literal
 from pathlib import Path
 
+from numpy._core.numeric import ndarray
+from pyvista import points
+
 from . import geometry
 from . import core
+from . import parametric_gear
 from .core import GearData
 
 
@@ -41,6 +45,12 @@ def ffmpeg_video(img_dir: Path, output_path: Path, name: str, framerate) -> None
     for f in img_dir.iterdir():
         f.unlink()
     img_dir.rmdir()
+
+
+def plot_points(ax: Axes, points_list: list[np.ndarray], *args, **kwargs) -> Axes:
+    for i in np.arange(len(points_list)):
+        ax.plot(points_list[i][0], points_list[i][1], *args, **kwargs)
+    return ax
 
 
 def add_background_rect(
@@ -101,6 +111,7 @@ def _arc_points(
     r: float,
     phi_start: float,
     phi_end: float,
+    center: tuple[float, float],
     unit: Literal["degree", "radian"] = "degree",
     dir: Literal["clockwise", "counterclockwise"] = "counterclockwise",
     n: int = 200,
@@ -109,21 +120,18 @@ def _arc_points(
         phi_start = np.radians(phi_start)
         phi_end = np.radians(phi_end)
 
-    # if phi_end < phi_start:
-    #     phi_end += 2 * np.pi
-
     theta = np.linspace(
         phi_start,
         phi_end,
         n,
     )
 
-    x: np.ndarray = r * np.cos(theta)
+    x: np.ndarray = center[0] + r * np.cos(theta)
     y: np.ndarray
     if dir == "clockwise":
-        y = -r * np.sin(theta)
+        y = center[1] - r * np.sin(theta)
     else:
-        y = r * np.sin(theta)
+        y = center[1] + r * np.sin(theta)
 
     return np.vstack([x, y])
 
@@ -146,6 +154,7 @@ def involute_plot_compute(
         r=r,
         phi_start=0.0,
         phi_end=phi_r - np.sign(phi_r) * 2 * np.pi,
+        center=(0.0, 0.0),
         unit="radian",
         dir="counterclockwise",
     )
@@ -676,6 +685,7 @@ def create_undercut_video(output_dir: Path, video_length: float):
 
     ffmpeg_video(temp_dir, output_path, "undercut", framerate)
 
+
 def plot_rolling_circle(ax: Axes, dp_ring: float, dp_pinion: float, phi: float) -> Axes:
     ax.set_aspect("equal")
     lim = dp_ring / 2 + 1
@@ -683,7 +693,9 @@ def plot_rolling_circle(ax: Axes, dp_ring: float, dp_pinion: float, phi: float) 
     ax.set_ylim((-lim, lim))
 
     # internal_gear
-    ring_pts: np.ndarray = _arc_points(dp_ring / 2, 0, 2 * np.pi, unit="radian")
+    ring_pts: np.ndarray = _arc_points(
+        dp_ring / 2, 0, 2 * np.pi, center=(0.0, 0.0), unit="radian"
+    )
     ax.plot(ring_pts[0], ring_pts[1], linewidth=1.5, linestyle="--", color="black")
     ax.scatter([0], [0], marker="x", color="black")
 
@@ -693,13 +705,16 @@ def plot_rolling_circle(ax: Axes, dp_ring: float, dp_pinion: float, phi: float) 
     translate_x: float = np.cos(alpha) * (dp_ring - dp_pinion) / 2
     translate_y: float = np.sin(alpha) * (dp_ring - dp_pinion) / 2
 
-    pinion_pts: np.ndarray = _arc_points(dp_pinion / 2, 0, 2 * np.pi, unit="radian")
+    pinion_pts: np.ndarray = _arc_points(
+        dp_pinion / 2, 0, 2 * np.pi, center=(0.0, 0.0), unit="radian"
+    )
     pinion_pts = geometry.rotate(pinion_pts, -beta)
     pinion_pts = geometry.translate(pinion_pts, (translate_x, translate_y))
     ax.plot(pinion_pts[0], pinion_pts[1], linewidth=1.5, linestyle="--", color="red")
     ax.scatter([translate_x], [translate_y], marker="x", color="red")
 
     return ax
+
 
 def create_rolling_circle_video(output_dir: Path, video_length: float):
     temp_dir = output_dir / "internal_rolling_circles"
@@ -738,66 +753,6 @@ def create_rolling_circle_video(output_dir: Path, video_length: float):
     ffmpeg_video(temp_dir, output_path, "rolling", framerate)
 
 
-def tooth_plot_compute(
-    geardata: GearData,
-) -> dict[str, float | np.ndarray | GearData]:
-    m: float = geardata.m_t
-    x: float = geardata.x
-    df: float = geardata.df
-    db: float = geardata.db
-    dp: float = geardata.d
-    da: float = geardata.da
-    alpha_n_r: float = geardata.alpha_n_r
-    alpha_t_r: float = geardata.alpha_t_r
-
-    n_points: int = 500
-
-    phi_r_addendum: float = geometry.involute_phi_d(da, db, "right")
-    phi_r_addendum_intersection: float = geometry.involute_self_intersection(
-        phi_r_addendum, m, x, dp, db, alpha_n_r
-    )
-
-    phi_inv_start: float = geometry.involute_phi_d(dp, db, "right")
-    phi_undercut_end: float = geometry.undercut_phi_d(dp, dp, df, alpha_t_r, "right")
-    phi_inv_start, phi_undercut_end = geometry.undercut_involute_intersection(
-        phi_inv_start, phi_undercut_end, df, dp, db, alpha_t_r, "right", 200
-    )
-
-    phi_r_end: float
-    if phi_r_addendum > phi_r_addendum_intersection:
-        phi_r_end = phi_r_addendum_intersection
-    else:
-        phi_r_end = phi_r_addendum
-
-    points_inv_right: np.ndarray = geometry.involute_tooth(
-        m, x, dp, db, alpha_n_r, phi_inv_start, phi_r_end, n_points, "right"
-    )
-    points_inv_left: np.ndarray = geometry.involute_tooth(
-        m, x, dp, db, alpha_n_r, -phi_inv_start, -phi_r_end, n_points, "left"
-    )
-    points_undercut_right: np.ndarray = geometry.undercut_tooth(
-        m, x, dp, db, df, alpha_n_r, alpha_t_r, phi_undercut_end, n_points, "right"
-    )
-    points_undercut_left: np.ndarray = geometry.undercut_tooth(
-        m, x, dp, db, df, alpha_n_r, alpha_t_r, -phi_undercut_end, n_points, "left"
-    )
-
-    result: dict[str, float | np.ndarray | GearData] = {
-        "m": m,
-        "df": df,
-        "db": db,
-        "dp": dp,
-        "da": da,
-        "geardata": geardata,
-        "points_inv_right": points_inv_right,
-        "points_inv_left": points_inv_left,
-        "points_undercut_right": points_undercut_right,
-        "points_undercut_left": points_undercut_left,
-    }
-
-    return result
-
-
 def tooth_plot(
     ax: Axes,
     geardata: GearData,
@@ -806,11 +761,13 @@ def tooth_plot(
 
     zorder: int = 100
 
-    tooth_dict: dict = tooth_plot_compute(geardata)
+    tooth_dict: dict[str, bool | np.ndarray] = parametric_gear.compute_tooth_points(
+        geardata, 500
+    )
 
     dedendum_circle = Circle(
         (0, 0),
-        tooth_dict["df"] / 2,
+        geardata.df / 2,
         color="gray",
         alpha=1,
         fill=False,
@@ -820,7 +777,7 @@ def tooth_plot(
     zorder += 1
     pitch_circle = Circle(
         (0, 0),
-        tooth_dict["dp"] / 2,
+        geardata.d / 2,
         color="gray",
         alpha=1,
         fill=False,
@@ -830,7 +787,7 @@ def tooth_plot(
     zorder += 1
     base_circle = Circle(
         (0, 0),
-        tooth_dict["db"] / 2,
+        geardata.db / 2,
         color="gray",
         alpha=1,
         fill=False,
@@ -840,7 +797,7 @@ def tooth_plot(
     zorder += 1
     base_circle = Circle(
         (0, 0),
-        tooth_dict["da"] / 2,
+        geardata.da / 2,
         color="gray",
         alpha=1,
         fill=False,
@@ -850,16 +807,16 @@ def tooth_plot(
     zorder += 1
 
     ax.plot(
-        tooth_dict["points_inv_right"][0, :],
-        tooth_dict["points_inv_right"][1, :],
+        tooth_dict["points_inv_right"][0, :],  # type: ignore
+        tooth_dict["points_inv_right"][1, :],  # type: ignore
         color="white",
         linewidth=lw,
         zorder=zorder,
     )
     zorder += 1
     ax.plot(
-        tooth_dict["points_inv_left"][0, :],
-        tooth_dict["points_inv_left"][1, :],
+        tooth_dict["points_inv_left"][0, :],  # type: ignore
+        tooth_dict["points_inv_left"][1, :],  # type: ignore
         color="white",
         linewidth=lw,
         zorder=zorder,
@@ -867,16 +824,16 @@ def tooth_plot(
     zorder += 1
 
     ax.plot(
-        tooth_dict["points_undercut_right"][0, :],
-        tooth_dict["points_undercut_right"][1, :],
+        tooth_dict["points_undercut_right"][0, :],  # type: ignore
+        tooth_dict["points_undercut_right"][1, :],  # type: ignore
         color="white",
         linewidth=lw,
         zorder=zorder,
     )
     zorder += 1
     ax.plot(
-        tooth_dict["points_undercut_left"][0, :],
-        tooth_dict["points_undercut_left"][1, :],
+        tooth_dict["points_undercut_left"][0, :],  # type: ignore
+        tooth_dict["points_undercut_left"][1, :],  # type: ignore
         color="white",
         linewidth=lw,
         zorder=zorder,
@@ -884,13 +841,146 @@ def tooth_plot(
     zorder += 1
 
     ax.set_aspect("equal")
-    xlim: tuple[float, float] = (0.0, 0.6 * tooth_dict["da"])
-    ylim: tuple[float, float] = (-0.3 * tooth_dict["da"], 0.3 * tooth_dict["da"])
+    xlim: tuple[float, float] = (0.0, 0.6 * geardata.da)
+    ylim: tuple[float, float] = (-0.3 * geardata.da, 0.3 * geardata.da)
     ax.set_xlim(*xlim)
     ax.set_ylim(*ylim)
     ax = add_background_rect(ax, xlim, ylim)
     ax.set_position((0, 0, 1, 1))
     ax.set_axis_off()
+
+    return ax
+
+
+def gear_plot(
+    ax: Axes,
+    geardata: GearData,
+    center: tuple[float, float],
+    n_points: int,
+    arc_types: Literal["Arc", "points"],
+    **kwargs,
+) -> Axes:
+
+    tooth_dict: dict = parametric_gear.compute_tooth_points(geardata, n_points)
+    tooth_dict["points_undercut_right"] = geometry.translate(
+        tooth_dict["points_undercut_right"], center
+    )
+    tooth_dict["points_undercut_left"] = geometry.translate(
+        tooth_dict["points_undercut_left"], center
+    )
+    tooth_dict["points_inv_right"] = geometry.translate(
+        tooth_dict["points_inv_right"], center
+    )
+    tooth_dict["points_inv_left"] = geometry.translate(
+        tooth_dict["points_inv_left"], center
+    )
+
+    inv_intersect: bool = tooth_dict["involutes_intersect"]
+    points_list: list[np.ndarray] = [
+        tooth_dict["points_undercut_right"],
+        tooth_dict["points_inv_right"],
+    ]
+
+    next_undercut: np.ndarray = geometry.translate(
+        geometry.rotate(
+            geometry.translate(
+                tooth_dict["points_undercut_right"], (-center[0], -center[1])
+            ),
+            2 * np.pi / geardata.z,
+        ),
+        center,
+    )
+
+    radius_base: float
+    start_angle_base: float
+    sweep_angle_base: float
+
+    _, radius_base, start_angle_base, sweep_angle_base = geometry.arc_from_endpoints(
+        center=np.array([center[0], center[1]]),
+        start=tooth_dict["points_undercut_left"][:, 0],
+        end=next_undercut[:, 0],
+        ccw=True,
+    )
+
+    radius_tip: float = -9999
+    start_angle_tip: float = -9999
+    sweep_angle_tip: float = -9999
+
+    if not inv_intersect:
+        _, radius_tip, start_angle_tip, sweep_angle_tip = geometry.arc_from_endpoints(
+            center=np.array([center[0], center[1]]),
+            start=tooth_dict["points_inv_right"][:, -1],
+            end=tooth_dict["points_inv_left"][:, -1],
+            ccw=True,
+        )
+
+        if arc_types == "points":
+            points_list.append(
+                _arc_points(
+                    radius_tip,
+                    start_angle_tip,
+                    start_angle_tip + sweep_angle_tip,
+                    center=center,
+                    unit="degree",
+                )
+            )
+
+    points_list += [
+        tooth_dict["points_inv_left"][:, ::-1],
+        tooth_dict["points_undercut_left"][:, ::-1],
+    ]
+
+    if arc_types == "points":
+        points_list.append(
+            _arc_points(
+                radius_base,
+                start_angle_base,
+                start_angle_base + sweep_angle_base,
+                center=center,
+                unit="degree",
+            )
+        )
+
+    points_list = geometry.polar_pattern_list(
+        points_list,
+        center,
+        2 * np.pi,
+        geardata.z,
+        endpoint=False,
+        direction="counterclockwise",
+    )
+
+    if arc_types == "Arc":
+        ax = plot_points(ax, points_list, **kwargs)
+    else:
+        ax = plot_points(ax, [np.hstack(points_list)], **kwargs)
+
+    if arc_types == "Arc":
+        for i in range(geardata.z):
+            rotation: float = 360 / geardata.z * i
+            ax.add_patch(
+                Arc(
+                    center,
+                    radius_base * 2,
+                    radius_base * 2,
+                    theta1=start_angle_base + rotation,
+                    theta2=start_angle_base + sweep_angle_base + rotation,
+                    fill=False,
+                    **kwargs,
+                )
+            )
+            if not inv_intersect:
+                ax.add_patch(
+                    Arc(
+                        center,
+                        radius_tip * 2,
+                        radius_tip * 2,
+                        theta1=start_angle_tip + rotation,
+                        theta2=start_angle_tip + sweep_angle_tip + rotation,
+                        fill=False,
+                        **kwargs,
+                    )
+                )
 
     return ax
 
@@ -921,7 +1011,9 @@ def profile_shift_plot(
         for x_val in x_values
     ]
 
-    tooth_dicts: list[dict] = [tooth_plot_compute(gd) for gd in geardatas]
+    tooth_dicts: list[dict[str, bool | np.ndarray]] = [
+        parametric_gear.compute_tooth_points(gd, 500) for gd in geardatas
+    ]
 
     x_max: float = max(abs(xv) for xv in x_values) if x_values else 1.0
     colors: list[str] = []
@@ -942,17 +1034,17 @@ def profile_shift_plot(
                 r, g, b = 255, 255, 255
             colors.append(f"#{r:02x}{g:02x}{b:02x}")
 
-    da_max: float = max(td["da"] for td in tooth_dicts)
+    da_max: float = max(gd.da for gd in geardatas)
 
     zorder_circles: int = zorder + 6 * n_values
 
-    for i, td in enumerate(tooth_dicts):
+    for i, (gd, td) in enumerate(zip(geardatas, tooth_dicts)):
         color: str = colors[i]
 
         # right involute
         ax.plot(
-            td["points_inv_right"][0, :],
-            td["points_inv_right"][1, :],
+            td["points_inv_right"][0, :],  # type: ignore
+            td["points_inv_right"][1, :],  # type: ignore
             color=color,
             linewidth=lw,
             zorder=zorder,
@@ -961,8 +1053,8 @@ def profile_shift_plot(
 
         # left involute
         ax.plot(
-            td["points_inv_left"][0, :],
-            td["points_inv_left"][1, :],
+            td["points_inv_left"][0, :],  # type: ignore
+            td["points_inv_left"][1, :],  # type: ignore
             color=color,
             linewidth=lw,
             zorder=zorder,
@@ -971,8 +1063,8 @@ def profile_shift_plot(
 
         # right undercut
         ax.plot(
-            td["points_undercut_right"][0, :],
-            td["points_undercut_right"][1, :],
+            td["points_undercut_right"][0, :],  # type: ignore
+            td["points_undercut_right"][1, :],  # type: ignore
             color=color,
             linewidth=lw,
             zorder=zorder,
@@ -981,8 +1073,8 @@ def profile_shift_plot(
 
         # left undercut
         ax.plot(
-            td["points_undercut_left"][0, :],
-            td["points_undercut_left"][1, :],
+            td["points_undercut_left"][0, :],  # type: ignore
+            td["points_undercut_left"][1, :],  # type: ignore
             color=color,
             linewidth=lw,
             zorder=zorder,
@@ -991,17 +1083,17 @@ def profile_shift_plot(
 
         # addendum arc connecting involute tips
         angle_right: float = np.degrees(
-            np.arctan2(td["points_inv_right"][1, -1], td["points_inv_right"][0, -1])
+            np.arctan2(td["points_inv_right"][1, -1], td["points_inv_right"][0, -1])  # type: ignore
         )
         angle_left: float = np.degrees(
-            np.arctan2(td["points_inv_left"][1, -1], td["points_inv_left"][0, -1])
+            np.arctan2(td["points_inv_left"][1, -1], td["points_inv_left"][0, -1])  # type: ignore
         )
         if not np.isclose(angle_left, angle_right, rtol=1e-3):
             ax.add_patch(
                 Arc(
                     (0, 0),
-                    td["da"],
-                    td["da"],
+                    gd.da,
+                    gd.da,
                     angle=0,
                     theta1=angle_right,
                     theta2=angle_left,
@@ -1016,7 +1108,7 @@ def profile_shift_plot(
         ax.add_patch(
             Circle(
                 (0, 0),
-                td["df"] / 2,
+                gd.df / 2,
                 color="gray",
                 alpha=0.6,
                 fill=False,
@@ -1031,7 +1123,7 @@ def profile_shift_plot(
         ax.add_patch(
             Circle(
                 (0, 0),
-                td["da"] / 2,
+                gd.da / 2,
                 color="gray",
                 alpha=0.6,
                 fill=False,

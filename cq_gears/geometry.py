@@ -128,6 +128,38 @@ def involute_tooth(
     return involute_positioned(m, x, dp, db, alpha_n_r, phi_arr_r, flank)
 
 
+def arc_from_endpoints(
+    center: np.ndarray,
+    start: np.ndarray,
+    end: np.ndarray,
+    ccw: bool,
+) -> tuple[tuple[float, float], float, float, float]:
+    if center.shape != (2,):
+        raise ValueError(
+            f"center not a point! Expected point shape (2,), got {center.shape}"
+        )
+    if start.shape != (2,):
+        raise ValueError(
+            f"start not a point! Expected point shape (2,), got {start.shape}"
+        )
+    if end.shape != (2,):
+        raise ValueError(
+            f"end not a point! Expected point shape (2,), got {end.shape}"
+        )
+
+    cx: float = center[0]
+    cy: float = center[1]
+    r: float = np.sqrt((start[0] - cx) ** 2 + (start[1] - cy) ** 2)
+    start_angle: float = np.degrees(np.arctan2(start[1] - cy, start[0] - cx))
+    end_angle: float = np.degrees(np.arctan2(end[1] - cy, end[0] - cx))
+    sweep: float = (
+        (end_angle - start_angle) % 360
+        if ccw
+        else -((start_angle - end_angle) % 360)
+    )
+    return ((cx, cy), r, start_angle, sweep)
+
+
 def rotate(points: np.ndarray, rotation: float) -> np.ndarray:
     """Rotate (2, N) points around origin. Positive angle = counterclockwise (radians)."""
     R: np.ndarray = np.array(
@@ -137,11 +169,91 @@ def rotate(points: np.ndarray, rotation: float) -> np.ndarray:
     return rotated
 
 
+def rotate_list(points_list: list[np.ndarray], rotation: float) -> list[np.ndarray]:
+    """Positive angle = counterclockwise (radians)."""
+    rotated: list[np.ndarray] = []
+    for points in points_list:
+        rotated.append(rotate(points, rotation))
+    return rotated
+
+
 def translate(points: np.ndarray, translation: tuple[float, float]) -> np.ndarray:
     dx, dy = translation
     translated: np.ndarray = points + np.array([[dx], [dy]])
 
     return translated
+
+
+def translate_list(
+    points_list: np.ndarray, translation: tuple[float, float]
+) -> list[np.ndarray]:
+    translated: list[np.ndarray] = []
+    for points in points_list:
+        translated.append(translate(points, translation))
+    return translated
+
+
+def polar_pattern(
+    points: np.ndarray,
+    center: tuple[float, float],
+    sweep_angle: float,
+    count: int,
+    endpoint: bool,
+    direction: Literal["clockwise", "counterclockwise"],
+) -> list[np.ndarray]:
+    if count < 2:
+        raise ValueError(
+            f"count in polar pattern must be greater or equal to 2. Got {count}"
+        )
+    result: list[np.ndarray] = [points.copy()]
+
+    angle_step: float
+    if endpoint:
+        angle_step = sweep_angle / (count - 1)
+    else:
+        angle_step = sweep_angle / count
+    if direction == "clockwise":
+        angle_step = -angle_step
+
+    neg_center = (-center[0], -center[1])
+    centered: np.ndarray = translate(points, neg_center)
+    for i in range(1, count):
+        new_points: np.ndarray = rotate(centered, angle_step * i)
+        new_points = translate(new_points, center)
+        result.append(new_points)
+    return result
+
+
+def polar_pattern_list(
+    points_list: list[np.ndarray],
+    center: tuple[float, float],
+    sweep_angle: float,
+    count: int,
+    endpoint: bool,
+    direction: Literal["clockwise", "counterclockwise"],
+) -> list[np.ndarray]:
+    if count < 2:
+        raise ValueError(
+            f"count in polar pattern must be greater or equal to 2. Got {count}"
+        )
+
+    angle_step: float
+    if endpoint:
+        angle_step = sweep_angle / (count - 1)
+    else:
+        angle_step = sweep_angle / count
+    if direction == "clockwise":
+        angle_step = -angle_step
+
+    neg_center = (-center[0], -center[1])
+    centered_list: list[np.ndarray] = [translate(p, neg_center) for p in points_list]
+
+    result: list[np.ndarray] = []
+    for i in range(count):
+        for centered in centered_list:
+            rotated: np.ndarray = rotate(centered, angle_step * i)
+            result.append(translate(rotated, center))
+    return result
 
 
 def undercut_curve(

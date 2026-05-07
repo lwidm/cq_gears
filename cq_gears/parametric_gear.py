@@ -6,7 +6,7 @@ from . import cq_bridge
 from .core import GearData
 
 
-def _compute_tooth_points(
+def compute_tooth_points(
     geardata: GearData, n_points: int
 ) -> dict[str, bool | np.ndarray]:
     if n_points < 3:
@@ -104,7 +104,7 @@ def _compute_tooth_points(
 
 
 def _tooth_sketch(geardata: GearData, n_points: int) -> cq.Sketch:
-    tooth_compute_dict: dict[str, bool | np.ndarray] = _compute_tooth_points(
+    tooth_compute_dict: dict[str, bool | np.ndarray] = compute_tooth_points(
         geardata, n_points
     )
     points_inv_right: np.ndarray = tooth_compute_dict["points_inv_right"]  # type: ignore

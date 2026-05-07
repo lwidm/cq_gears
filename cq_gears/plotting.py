@@ -7,9 +7,6 @@ import subprocess
 from typing import Literal
 from pathlib import Path
 
-from numpy._core.numeric import ndarray
-from pyvista import points
-
 from . import geometry
 from . import core
 from . import parametric_gear
@@ -89,8 +86,8 @@ def _plot_arrow(
     if length == 0:
         return ax
     scale: float = 1 - head_length / length
-    dx: float = scale * dx
-    dy: float = scale * dy
+    dx = scale * dx
+    dy = scale * dy
     ax.arrow(
         x=x1,
         y=y1,
@@ -686,18 +683,19 @@ def create_undercut_video(output_dir: Path, video_length: float):
     ffmpeg_video(temp_dir, output_path, "undercut", framerate)
 
 
-def plot_rolling_circle(ax: Axes, dp_ring: float, dp_pinion: float, phi: float) -> Axes:
-    ax.set_aspect("equal")
-    lim = dp_ring / 2 + 1
-    ax.set_xlim((-lim, lim))
-    ax.set_ylim((-lim, lim))
-
+def plot_rolling_circle(
+    ax: Axes,
+    dp_ring: float,
+    dp_pinion: float,
+    phi: float,
+    show_gears: bool,
+    geardata_ring: GearData | None = None,
+    geardata_pinion: GearData | None = None,
+) -> Axes:
     # internal_gear
     ring_pts: np.ndarray = _arc_points(
         dp_ring / 2, 0, 2 * np.pi, center=(0.0, 0.0), unit="radian"
     )
-    ax.plot(ring_pts[0], ring_pts[1], linewidth=1.5, linestyle="--", color="black")
-    ax.scatter([0], [0], marker="x", color="black")
 
     # Rotated copy with a radial tick to make rotation visible
     alpha: float = dp_pinion / dp_ring * phi
@@ -710,13 +708,48 @@ def plot_rolling_circle(ax: Axes, dp_ring: float, dp_pinion: float, phi: float) 
     )
     pinion_pts = geometry.rotate(pinion_pts, -beta)
     pinion_pts = geometry.translate(pinion_pts, (translate_x, translate_y))
+
+    if show_gears:
+        if geardata_ring is None or geardata_pinion is None:
+            raise ValueError(
+                "if show_gears is true geardata_ring and geardata_pinion must be non None"
+            )
+        ax = gear_plot(
+            ax,
+            geardata_pinion,
+            (translate_x, translate_y),
+            -beta,
+            200,
+            "Arc",
+            linewidth=1.0,
+            linestyle="-",
+            color="red",
+            alpha=0.6,
+        )
+
+    ax.set_aspect("equal")
+    lim = dp_ring / 2 + 1
+    ax.set_xlim((-lim, lim))
+    ax.set_ylim((-lim, lim))
+
+    # internal_gear
+    ax.plot(ring_pts[0], ring_pts[1], linewidth=1.5, linestyle="--", color="black")
+    ax.scatter([0], [0], marker="x", color="black")
+
+    # Rotated copy with a radial tick to make rotation visible
     ax.plot(pinion_pts[0], pinion_pts[1], linewidth=1.5, linestyle="--", color="red")
     ax.scatter([translate_x], [translate_y], marker="x", color="red")
 
     return ax
 
 
-def create_rolling_circle_video(output_dir: Path, video_length: float):
+def create_rolling_circle_video(
+    output_dir: Path,
+    video_length: float,
+    show_gears: bool,
+    geardata_ring: GearData | None = None,
+    geardata_pinion: GearData | None = None,
+):
     temp_dir = output_dir / "internal_rolling_circles"
     temp_dir.mkdir(exist_ok=True)
 
@@ -733,7 +766,26 @@ def create_rolling_circle_video(output_dir: Path, video_length: float):
 
     for i, phi in enumerate(phi_arr):
         ax.clear()
-        ax = plot_rolling_circle(ax, 3.0, 2.0, phi)
+        if geardata_ring is not None and geardata_pinion is not None:
+            ax = plot_rolling_circle(
+                ax,
+                geardata_ring.d,
+                geardata_pinion.d,
+                phi,
+                show_gears=show_gears,
+                geardata_ring=geardata_ring,
+                geardata_pinion=geardata_pinion,
+            )
+        else:
+            ax = plot_rolling_circle(
+                ax,
+                3.0,
+                2.0,
+                phi,
+                show_gears=False,
+                geardata_ring=None,
+                geardata_pinion=None,
+            )
         fig.canvas.draw()
         fig.canvas.flush_events()
         plt.pause(0.001)  # Brief pause to update display
@@ -857,6 +909,7 @@ def gear_plot(
     ax: Axes,
     geardata: GearData,
     center: tuple[float, float],
+    rotation: float,
     n_points: int,
     arc_types: Literal["Arc", "points"],
     **kwargs,
@@ -866,29 +919,42 @@ def gear_plot(
     tooth_pitch: float = 2 * np.pi / geardata.z
 
     tooth_dict: dict = parametric_gear.compute_tooth_points(geardata, n_points)
-    inv_right: np.ndarray = geometry.translate(tooth_dict["points_inv_right"], center)
-    inv_left: np.ndarray = geometry.translate(tooth_dict["points_inv_left"], center)
+    inv_right: np.ndarray = geometry.translate(
+        geometry.rotate(tooth_dict["points_inv_right"], rotation), center
+    )
+    inv_left: np.ndarray = geometry.translate(
+        geometry.rotate(tooth_dict["points_inv_left"], rotation), center
+    )
     inv_intersect: bool = tooth_dict["involutes_intersect"]
     has_undercut: bool = tooth_dict["has_undercut"]
 
     undercut_right: np.ndarray | None = None
     undercut_left: np.ndarray | None = None
     if has_undercut:
-        undercut_right = geometry.translate(tooth_dict["points_undercut_right"], center)
-        undercut_left = geometry.translate(tooth_dict["points_undercut_left"], center)
+        undercut_right = geometry.translate(
+            geometry.rotate(tooth_dict["points_undercut_right"], rotation), center
+        )
+        undercut_left = geometry.translate(
+            geometry.rotate(tooth_dict["points_undercut_left"], rotation), center
+        )
 
-    base_start: np.ndarray = (
-        undercut_left[:, 0] if has_undercut else inv_left[:, 0]
-    )
-    base_end_local: np.ndarray = (
-        undercut_right[:, 0] if has_undercut else inv_right[:, 0]
-    )
+    base_start: np.ndarray
+    base_end_local: np.ndarray
+    if undercut_left is not None:
+        base_start = undercut_left[:, 0]
+    else:
+        base_start = inv_left[:, 0]
+    if undercut_right is not None:
+        base_end_local = undercut_right[:, 0]
+    else:
+        base_end_local = inv_right[:, 0]
     next_base_end: np.ndarray = geometry.translate(
         geometry.rotate(
             geometry.translate(base_end_local[:, None], neg_center), tooth_pitch
         ),
         center,
     )[:, 0]
+
     _, radius_base, start_angle_base, sweep_angle_base = geometry.arc_from_endpoints(
         center=center_arr,
         start=base_start,
@@ -908,7 +974,7 @@ def gear_plot(
         )
 
     points_list: list[np.ndarray] = []
-    if has_undercut:
+    if undercut_right is not None:
         points_list.append(undercut_right)
     points_list.append(inv_right)
     if arc_types == "points" and not inv_intersect:
@@ -922,7 +988,7 @@ def gear_plot(
             )
         )
     points_list.append(inv_left[:, ::-1])
-    if has_undercut:
+    if undercut_left is not None:
         points_list.append(undercut_left[:, ::-1])
     if arc_types == "points":
         points_list.append(
@@ -949,14 +1015,14 @@ def gear_plot(
     else:
         ax = plot_points(ax, points_list, **kwargs)
         for i in range(geardata.z):
-            rotation: float = np.degrees(tooth_pitch) * i
+            tooth_offset_deg: float = np.degrees(tooth_pitch) * i
             ax.add_patch(
                 Arc(
                     center,
                     radius_base * 2,
                     radius_base * 2,
-                    theta1=start_angle_base + rotation,
-                    theta2=start_angle_base + sweep_angle_base + rotation,
+                    theta1=start_angle_base + tooth_offset_deg,
+                    theta2=start_angle_base + sweep_angle_base + tooth_offset_deg,
                     fill=False,
                     **kwargs,
                 )
@@ -967,8 +1033,8 @@ def gear_plot(
                         center,
                         radius_tip * 2,
                         radius_tip * 2,
-                        theta1=start_angle_tip + rotation,
-                        theta2=start_angle_tip + sweep_angle_tip + rotation,
+                        theta1=start_angle_tip + tooth_offset_deg,
+                        theta2=start_angle_tip + sweep_angle_tip + tooth_offset_deg,
                         fill=False,
                         **kwargs,
                     )

@@ -689,9 +689,20 @@ def plot_rolling_circle(
     dp_pinion: float,
     phi: float,
     show_gears: bool,
+    show_line: bool,
+    show_string: bool,
+    *,
     geardata_ring: GearData | None = None,
     geardata_pinion: GearData | None = None,
+    phi_0: float | None = None,
+    phi_max: float | None = None,
 ) -> Axes:
+    if show_line and show_string:
+        raise ValueError("show_line and show_string cannot both be True")
+
+    lw: float = 1.0
+    zorder: int = 100
+
     # internal_gear
     ring_pts: np.ndarray = _arc_points(
         dp_ring / 2, 0, 2 * np.pi, center=(0.0, 0.0), unit="radian"
@@ -714,32 +725,141 @@ def plot_rolling_circle(
             raise ValueError(
                 "if show_gears is true geardata_ring and geardata_pinion must be non None"
             )
+        half_angle_at_pitch: float = geometry.half_pitch_tooth_angle(
+            geardata_pinion.m_t,
+            geardata_pinion.x,
+            geardata_pinion.d,
+            geardata_pinion.alpha_t_r,
+        )
         ax = gear_plot(
             ax,
             geardata_pinion,
             (translate_x, translate_y),
-            -beta,
+            -beta + half_angle_at_pitch,
             200,
             "Arc",
-            linewidth=1.0,
+            linewidth=lw,
             linestyle="-",
-            color="red",
-            alpha=0.6,
+            color="white",
+            zorder=zorder,
         )
+        zorder += 1
 
     ax.set_aspect("equal")
     lim = dp_ring / 2 + 1
-    ax.set_xlim((-lim, lim))
-    ax.set_ylim((-lim, lim))
+    xlim: tuple[float, float] = (-lim, lim + dp_ring / 4)
+    ylim: tuple[float, float] = (-lim, lim)
+    ax.set_xlim(xlim)
+    ax.set_ylim(ylim)
+    ax = add_background_rect(ax, xlim, ylim)
 
     # internal_gear
-    ax.plot(ring_pts[0], ring_pts[1], linewidth=1.5, linestyle="--", color="black")
-    ax.scatter([0], [0], marker="x", color="black")
+    ax.plot(
+        ring_pts[0],
+        ring_pts[1],
+        linewidth=lw,
+        linestyle="--",
+        color="gray",
+        zorder=zorder,
+    )
+    zorder += 1
+    ax.scatter([0], [0], marker="x", color="white", zorder=zorder)
+    zorder += 1
 
     # Rotated copy with a radial tick to make rotation visible
-    ax.plot(pinion_pts[0], pinion_pts[1], linewidth=1.5, linestyle="--", color="red")
-    ax.scatter([translate_x], [translate_y], marker="x", color="red")
+    ax.plot(
+        pinion_pts[0],
+        pinion_pts[1],
+        linewidth=lw,
+        linestyle="--",
+        color="gray",
+        zorder=zorder,
+    )
+    zorder += 1
+    ax.scatter([translate_x], [translate_y], marker="x", color="white", zorder=zorder)
+    zorder += 1
 
+    if show_line or show_string:
+        if geardata_pinion is None:
+            raise ValueError(
+                "if show_line or show_string is true geardata_ring and geardata_pinion must be non None"
+            )
+        if phi_0 is None:
+            raise ValueError(
+                "if show_line or show_string is true geardata_ring and phi_0 must be non None"
+            )
+        involute_dict = involute_plot_compute(
+            r=geardata_pinion.d / 2,
+            phi_0=np.degrees(phi_0),
+            phi=np.degrees(phi),
+            rotate=-beta,
+            phi_max=np.degrees(phi_max) if phi_max is not None else None,
+        )
+        if show_string:
+            involute_dict["unrolling_string"] = geometry.translate(
+                involute_dict["unrolling_string"], (translate_x, translate_y)
+            )
+            ax.plot(
+                involute_dict["unrolling_string"][0, :],
+                involute_dict["unrolling_string"][1, :],
+                color="red",
+                lw=lw,
+                ls="--",
+                zorder=zorder,
+            )
+            zorder += 1
+        if show_line:
+            involute_dict["rolling_line_inv"] = geometry.translate(
+                involute_dict["rolling_line_inv"], (translate_x, translate_y)
+            )
+            involute_dict["rolling_line_start"] = geometry.translate(
+                involute_dict["rolling_line_start"], (translate_x, translate_y)
+            )
+            involute_dict["rolling_line_end"] = geometry.translate(
+                involute_dict["rolling_line_end"], (translate_x, translate_y)
+            )
+            ax.plot(
+                [
+                    involute_dict["rolling_line_inv"][0, 0],
+                    involute_dict["rolling_line_end"][0, 0],
+                ],
+                [
+                    involute_dict["rolling_line_inv"][1, 0],
+                    involute_dict["rolling_line_end"][1, 0],
+                ],
+                color="red",
+                lw=lw,
+                ls="--",
+                zorder=zorder,
+            )
+            zorder += 1
+            ax.plot(
+                [
+                    involute_dict["rolling_line_inv"][0, 0],
+                    involute_dict["rolling_line_start"][0, 0],
+                ],
+                [
+                    involute_dict["rolling_line_inv"][1, 0],
+                    involute_dict["rolling_line_start"][1, 0],
+                ],
+                color="red",
+                lw=lw,
+                ls="--",
+                zorder=zorder,
+            )
+            zorder += 1
+            circle = Circle(
+                (
+                    involute_dict["rolling_line_inv"][0, 0],
+                    involute_dict["rolling_line_inv"][1, 0],
+                ),
+                geardata_pinion.d / 40,
+                color="yellow",
+                alpha=1,
+                zorder=zorder,
+            )
+            ax.add_patch(circle)
+            zorder += 1
     return ax
 
 
@@ -747,14 +867,16 @@ def create_rolling_circle_video(
     output_dir: Path,
     video_length: float,
     show_gears: bool,
+    show_line: bool,
+    show_string: bool,
     geardata_ring: GearData | None = None,
     geardata_pinion: GearData | None = None,
 ):
     temp_dir = output_dir / "internal_rolling_circles"
     temp_dir.mkdir(exist_ok=True)
 
-    phi_min: float = 0.0
-    phi_max: float = 360 * np.pi / 180
+    phi_min: float = -90.0 * np.pi / 180
+    phi_max: float = 140.0 * np.pi / 180
     n_frames: int = 360
     phi_arr: np.ndarray = np.linspace(phi_min, phi_max, n_frames, endpoint=True)
 
@@ -773,8 +895,12 @@ def create_rolling_circle_video(
                 geardata_pinion.d,
                 phi,
                 show_gears=show_gears,
+                show_line=show_line,
+                show_string=show_string,
                 geardata_ring=geardata_ring,
                 geardata_pinion=geardata_pinion,
+                phi_0=0.0,
+                phi_max=phi_max,
             )
         else:
             ax = plot_rolling_circle(
@@ -783,8 +909,12 @@ def create_rolling_circle_video(
                 2.0,
                 phi,
                 show_gears=False,
+                show_line=show_line,
+                show_string=show_string,
                 geardata_ring=None,
                 geardata_pinion=None,
+                phi_0=0.0,
+                phi_max=phi_max,
             )
         fig.canvas.draw()
         fig.canvas.flush_events()

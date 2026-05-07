@@ -45,6 +45,8 @@ geardata_pinion: cq_gears.GearData = cq_gears.compute_gear_data(
 def main() -> None:
     output_dir: Path = Path("output")
     show_gears: bool = True
+    show_line: bool = True
+    show_string: bool = False
 
     fig: Figure
     ax: Axes
@@ -55,8 +57,11 @@ def main() -> None:
         geardata_pinion.d,
         20.0 / 180 * 2 * np.pi,
         show_gears=show_gears,
+        show_line=show_line,
+        show_string=show_string,
         geardata_ring=geardata_ring,
         geardata_pinion=geardata_pinion,
+        phi_0=0.0
     )
     fig.savefig(output_dir / f"rolling_circle.png", dpi=300)
     plt.show()
@@ -65,6 +70,8 @@ def main() -> None:
         output_dir=output_dir,
         video_length=10,
         show_gears=show_gears,
+        show_line=show_line,
+        show_string=show_string,
         geardata_ring=geardata_ring,
         geardata_pinion=geardata_pinion,
     )

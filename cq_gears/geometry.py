@@ -31,13 +31,17 @@ def tangent_angles(points: np.ndarray) -> np.ndarray:
     return angles
 
 
+def half_pitch_tooth_angle(m: float, x: float, dp: float, alpha_n_r: float) -> float:
+    return m * (np.pi + 4 * x * np.tan(alpha_n_r)) / (2 * dp)
+
+
 def half_base_tooth_angle(
     m: float, x: float, dp: float, db: float, alpha_n_r: float
 ) -> float:
     dp_db: float = dp / db
     theta_dp: float = np.sqrt(dp_db**2 - 1)
     return (
-        m * (np.pi + 4 * x * np.tan(alpha_n_r)) / (2 * dp)
+        half_pitch_tooth_angle(m, x, dp, alpha_n_r)
         + theta_dp
         - np.arctan(theta_dp)
     )

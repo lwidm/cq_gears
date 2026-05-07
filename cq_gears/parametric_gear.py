@@ -12,6 +12,8 @@ def compute_tooth_points(
     if n_points < 3:
         raise ValueError(f"n_points must be greater than 3. Instead got {n_points}")
 
+    has_undercut: bool = geardata.df < geardata.d
+
     phi_r_addendum: float = geometry.involute_phi_d(geardata.da, geardata.db, "right")
     phi_r_addendum_intersection: float = geometry.involute_self_intersection(
         phi_r_addendum,
@@ -21,29 +23,35 @@ def compute_tooth_points(
         geardata.db,
         geardata.alpha_n_r,
     )
-    phi_inv_start: float = geometry.involute_phi_d(geardata.d, geardata.db, "right")
-    phi_undercut_end: float = geometry.undercut_phi_d(
-        geardata.d, geardata.d, geardata.df, geardata.alpha_t_r, "right"
-    )
-    phi_inv_start, phi_undercut_end = geometry.undercut_involute_intersection(
-        phi_inv_start,
-        phi_undercut_end,
-        geardata.df,
-        geardata.d,
-        geardata.db,
-        geardata.alpha_t_r,
-        "right",
-        200,
-    )
+
+    phi_inv_start: float
+    phi_undercut_end: float = 0.0
+    if has_undercut:
+        phi_inv_start = geometry.involute_phi_d(geardata.d, geardata.db, "right")
+        phi_undercut_end = geometry.undercut_phi_d(
+            geardata.d, geardata.d, geardata.df, geardata.alpha_t_r, "right"
+        )
+        phi_inv_start, phi_undercut_end = geometry.undercut_involute_intersection(
+            phi_inv_start,
+            phi_undercut_end,
+            geardata.df,
+            geardata.d,
+            geardata.db,
+            geardata.alpha_t_r,
+            "right",
+            200,
+        )
+    else:
+        phi_inv_start = geometry.involute_phi_d(geardata.df, geardata.db, "right")
 
     phi_r_end: float
-    involutes_instersect: bool
+    involutes_intersect: bool
     if phi_r_addendum > phi_r_addendum_intersection:
         phi_r_end = phi_r_addendum_intersection
-        involutes_instersect = True
+        involutes_intersect = True
     else:
         phi_r_end = phi_r_addendum
-        involutes_instersect = False
+        involutes_intersect = False
 
     points_inv_right: np.ndarray = geometry.involute_tooth(
         geardata.m_t,
@@ -67,38 +75,39 @@ def compute_tooth_points(
         n_points,
         "left",
     )
-    points_undercut_right: np.ndarray = geometry.undercut_tooth(
-        geardata.m_t,
-        geardata.x,
-        geardata.d,
-        geardata.db,
-        geardata.df,
-        geardata.alpha_n_r,
-        geardata.alpha_t_r,
-        phi_undercut_end,
-        n_points,
-        "right",
-    )
-    points_undercut_left: np.ndarray = geometry.undercut_tooth(
-        geardata.m_t,
-        geardata.x,
-        geardata.d,
-        geardata.db,
-        geardata.df,
-        geardata.alpha_n_r,
-        geardata.alpha_t_r,
-        -phi_undercut_end,
-        n_points,
-        "left",
-    )
 
     result: dict[str, bool | np.ndarray] = {
         "points_inv_right": points_inv_right,
         "points_inv_left": points_inv_left,
-        "points_undercut_right": points_undercut_right,
-        "points_undercut_left": points_undercut_left,
-        "involutes_intersect": involutes_instersect,
+        "involutes_intersect": involutes_intersect,
+        "has_undercut": has_undercut,
     }
+
+    if has_undercut:
+        result["points_undercut_right"] = geometry.undercut_tooth(
+            geardata.m_t,
+            geardata.x,
+            geardata.d,
+            geardata.db,
+            geardata.df,
+            geardata.alpha_n_r,
+            geardata.alpha_t_r,
+            phi_undercut_end,
+            n_points,
+            "right",
+        )
+        result["points_undercut_left"] = geometry.undercut_tooth(
+            geardata.m_t,
+            geardata.x,
+            geardata.d,
+            geardata.db,
+            geardata.df,
+            geardata.alpha_n_r,
+            geardata.alpha_t_r,
+            -phi_undercut_end,
+            n_points,
+            "left",
+        )
 
     return result
 
@@ -109,17 +118,25 @@ def _tooth_sketch(geardata: GearData, n_points: int) -> cq.Sketch:
     )
     points_inv_right: np.ndarray = tooth_compute_dict["points_inv_right"]  # type: ignore
     points_inv_left: np.ndarray = tooth_compute_dict["points_inv_left"]  # type: ignore
-    points_undercut_right: np.ndarray = tooth_compute_dict["points_undercut_right"]  # type: ignore
-    points_undercut_left: np.ndarray = tooth_compute_dict["points_undercut_left"]  # type: ignore
-    involutes_instersect: bool = tooth_compute_dict["involutes_intersect"]  # type: ignore
+    involutes_intersect: bool = tooth_compute_dict["involutes_intersect"]  # type: ignore
+    has_undercut: bool = tooth_compute_dict["has_undercut"]  # type: ignore
 
-    if involutes_instersect:
+    if involutes_intersect:
         points_inv_left[:, -1] = points_inv_right[:, -1]
+
+    if has_undercut:
+        points_undercut_right: np.ndarray = tooth_compute_dict["points_undercut_right"]  # type: ignore
+        points_undercut_left: np.ndarray = tooth_compute_dict["points_undercut_left"]  # type: ignore
+        arc_base_start: np.ndarray = points_undercut_left[:, 0]
+        arc_base_end: np.ndarray = points_undercut_right[:, 0]
+    else:
+        arc_base_start = points_inv_left[:, 0]
+        arc_base_end = points_inv_right[:, 0]
 
     arc_base: cq_bridge.CqArcTuple = cq_bridge.cq_arc_center_start_end(
         arc_center=np.array([0.0, 0.0]),
-        arc_start=points_undercut_left[:, 0],
-        arc_end=points_undercut_right[:, 0],
+        arc_start=arc_base_start,
+        arc_end=arc_base_end,
         counter_clock_wise=False,
     )
 
@@ -129,43 +146,35 @@ def _tooth_sketch(geardata: GearData, n_points: int) -> cq.Sketch:
     cq_inv_left: cq_bridge.CqSplineTuple = cq_bridge.cq_spline_from_array(
         points_inv_left[:, ::-1], skip_first=False, tangents=None, periodic=False
     )
-    cq_undercut_right: cq_bridge.CqSplineTuple = cq_bridge.cq_spline_from_array(
-        points_undercut_right, skip_first=False, tangents=None, periodic=False
-    )
-    cq_undercut_left: cq_bridge.CqSplineTuple = cq_bridge.cq_spline_from_array(
-        points_undercut_left[:, ::-1], skip_first=False, tangents=None, periodic=False
-    )
 
-    result: cq.Sketch
-    if involutes_instersect:
-        result = (
-            cq.Sketch()
-            .arc(*arc_base)
-            .spline(*cq_undercut_right)
-            .spline(*cq_inv_right)
-            .spline(*cq_inv_left)
-            .spline(*cq_undercut_left)
-            .assemble()
+    sketch: cq.Sketch = cq.Sketch().arc(*arc_base)
+
+    if has_undercut:
+        cq_undercut_right: cq_bridge.CqSplineTuple = cq_bridge.cq_spline_from_array(
+            points_undercut_right, skip_first=False, tangents=None, periodic=False
         )
-    else:
+        cq_undercut_left: cq_bridge.CqSplineTuple = cq_bridge.cq_spline_from_array(
+            points_undercut_left[:, ::-1], skip_first=False, tangents=None, periodic=False
+        )
+        sketch = sketch.spline(*cq_undercut_right)
+
+    sketch = sketch.spline(*cq_inv_right)
+
+    if not involutes_intersect:
         arc_tip: cq_bridge.CqArcTuple = cq_bridge.cq_arc_center_start_end(
             arc_center=np.array([0.0, 0.0]),
             arc_start=points_inv_right[:, -1],
             arc_end=points_inv_left[:, -1],
             counter_clock_wise=True,
         )
-        result = (
-            cq.Sketch()
-            .arc(*arc_base)
-            .spline(*cq_undercut_right)
-            .spline(*cq_inv_right)
-            .arc(*arc_tip)
-            .spline(*cq_inv_left)
-            .spline(*cq_undercut_left)
-            .assemble()
-        )
+        sketch = sketch.arc(*arc_tip)
 
-    return result
+    sketch = sketch.spline(*cq_inv_left)
+
+    if has_undercut:
+        sketch = sketch.spline(*cq_undercut_left)
+
+    return sketch.assemble()
 
 
 def parametric_gear_workplane(geardata: GearData, n_points: int) -> cq.Workplane:

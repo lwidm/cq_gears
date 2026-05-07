@@ -823,22 +823,23 @@ def tooth_plot(
     )
     zorder += 1
 
-    ax.plot(
-        tooth_dict["points_undercut_right"][0, :],  # type: ignore
-        tooth_dict["points_undercut_right"][1, :],  # type: ignore
-        color="white",
-        linewidth=lw,
-        zorder=zorder,
-    )
-    zorder += 1
-    ax.plot(
-        tooth_dict["points_undercut_left"][0, :],  # type: ignore
-        tooth_dict["points_undercut_left"][1, :],  # type: ignore
-        color="white",
-        linewidth=lw,
-        zorder=zorder,
-    )
-    zorder += 1
+    if tooth_dict["has_undercut"]:
+        ax.plot(
+            tooth_dict["points_undercut_right"][0, :],  # type: ignore
+            tooth_dict["points_undercut_right"][1, :],  # type: ignore
+            color="white",
+            linewidth=lw,
+            zorder=zorder,
+        )
+        zorder += 1
+        ax.plot(
+            tooth_dict["points_undercut_left"][0, :],  # type: ignore
+            tooth_dict["points_undercut_left"][1, :],  # type: ignore
+            color="white",
+            linewidth=lw,
+            zorder=zorder,
+        )
+        zorder += 1
 
     ax.set_aspect("equal")
     xlim: tuple[float, float] = (0.0, 0.6 * geardata.da)
@@ -860,76 +861,69 @@ def gear_plot(
     arc_types: Literal["Arc", "points"],
     **kwargs,
 ) -> Axes:
+    center_arr: np.ndarray = np.array(center)
+    neg_center: tuple[float, float] = (-center[0], -center[1])
+    tooth_pitch: float = 2 * np.pi / geardata.z
 
     tooth_dict: dict = parametric_gear.compute_tooth_points(geardata, n_points)
-    tooth_dict["points_undercut_right"] = geometry.translate(
-        tooth_dict["points_undercut_right"], center
-    )
-    tooth_dict["points_undercut_left"] = geometry.translate(
-        tooth_dict["points_undercut_left"], center
-    )
-    tooth_dict["points_inv_right"] = geometry.translate(
-        tooth_dict["points_inv_right"], center
-    )
-    tooth_dict["points_inv_left"] = geometry.translate(
-        tooth_dict["points_inv_left"], center
-    )
-
+    inv_right: np.ndarray = geometry.translate(tooth_dict["points_inv_right"], center)
+    inv_left: np.ndarray = geometry.translate(tooth_dict["points_inv_left"], center)
     inv_intersect: bool = tooth_dict["involutes_intersect"]
-    points_list: list[np.ndarray] = [
-        tooth_dict["points_undercut_right"],
-        tooth_dict["points_inv_right"],
-    ]
+    has_undercut: bool = tooth_dict["has_undercut"]
 
-    next_undercut: np.ndarray = geometry.translate(
+    undercut_right: np.ndarray | None = None
+    undercut_left: np.ndarray | None = None
+    if has_undercut:
+        undercut_right = geometry.translate(tooth_dict["points_undercut_right"], center)
+        undercut_left = geometry.translate(tooth_dict["points_undercut_left"], center)
+
+    base_start: np.ndarray = (
+        undercut_left[:, 0] if has_undercut else inv_left[:, 0]
+    )
+    base_end_local: np.ndarray = (
+        undercut_right[:, 0] if has_undercut else inv_right[:, 0]
+    )
+    next_base_end: np.ndarray = geometry.translate(
         geometry.rotate(
-            geometry.translate(
-                tooth_dict["points_undercut_right"], (-center[0], -center[1])
-            ),
-            2 * np.pi / geardata.z,
+            geometry.translate(base_end_local[:, None], neg_center), tooth_pitch
         ),
         center,
-    )
-
-    radius_base: float
-    start_angle_base: float
-    sweep_angle_base: float
-
+    )[:, 0]
     _, radius_base, start_angle_base, sweep_angle_base = geometry.arc_from_endpoints(
-        center=np.array([center[0], center[1]]),
-        start=tooth_dict["points_undercut_left"][:, 0],
-        end=next_undercut[:, 0],
+        center=center_arr,
+        start=base_start,
+        end=next_base_end,
         ccw=True,
     )
 
-    radius_tip: float = -9999
-    start_angle_tip: float = -9999
-    sweep_angle_tip: float = -9999
-
+    radius_tip: float = 0.0
+    start_angle_tip: float = 0.0
+    sweep_angle_tip: float = 0.0
     if not inv_intersect:
         _, radius_tip, start_angle_tip, sweep_angle_tip = geometry.arc_from_endpoints(
-            center=np.array([center[0], center[1]]),
-            start=tooth_dict["points_inv_right"][:, -1],
-            end=tooth_dict["points_inv_left"][:, -1],
+            center=center_arr,
+            start=inv_right[:, -1],
+            end=inv_left[:, -1],
             ccw=True,
         )
 
-        if arc_types == "points":
-            points_list.append(
-                _arc_points(
-                    radius_tip,
-                    start_angle_tip,
-                    start_angle_tip + sweep_angle_tip,
-                    center=center,
-                    unit="degree",
-                )
+    points_list: list[np.ndarray] = []
+    if has_undercut:
+        points_list.append(undercut_right)
+    points_list.append(inv_right)
+    if arc_types == "points" and not inv_intersect:
+        points_list.append(
+            _arc_points(
+                radius_tip,
+                start_angle_tip,
+                start_angle_tip + sweep_angle_tip,
+                center=center,
+                unit="degree",
             )
-
-    points_list += [
-        tooth_dict["points_inv_left"][:, ::-1],
-        tooth_dict["points_undercut_left"][:, ::-1],
-    ]
-
+        )
+    points_list.append(inv_left[:, ::-1])
+    if has_undercut:
+        points_list.append(undercut_left[:, ::-1])
     if arc_types == "points":
         points_list.append(
             _arc_points(
@@ -950,14 +944,12 @@ def gear_plot(
         direction="counterclockwise",
     )
 
-    if arc_types == "Arc":
-        ax = plot_points(ax, points_list, **kwargs)
-    else:
+    if arc_types == "points":
         ax = plot_points(ax, [np.hstack(points_list)], **kwargs)
-
-    if arc_types == "Arc":
+    else:
+        ax = plot_points(ax, points_list, **kwargs)
         for i in range(geardata.z):
-            rotation: float = 360 / geardata.z * i
+            rotation: float = np.degrees(tooth_pitch) * i
             ax.add_patch(
                 Arc(
                     center,
@@ -1061,25 +1053,26 @@ def profile_shift_plot(
         )
         zorder += 1
 
-        # right undercut
-        ax.plot(
-            td["points_undercut_right"][0, :],  # type: ignore
-            td["points_undercut_right"][1, :],  # type: ignore
-            color=color,
-            linewidth=lw,
-            zorder=zorder,
-        )
-        zorder += 1
+        if td["has_undercut"]:
+            # right undercut
+            ax.plot(
+                td["points_undercut_right"][0, :],  # type: ignore
+                td["points_undercut_right"][1, :],  # type: ignore
+                color=color,
+                linewidth=lw,
+                zorder=zorder,
+            )
+            zorder += 1
 
-        # left undercut
-        ax.plot(
-            td["points_undercut_left"][0, :],  # type: ignore
-            td["points_undercut_left"][1, :],  # type: ignore
-            color=color,
-            linewidth=lw,
-            zorder=zorder,
-        )
-        zorder += 1
+            # left undercut
+            ax.plot(
+                td["points_undercut_left"][0, :],  # type: ignore
+                td["points_undercut_left"][1, :],  # type: ignore
+                color=color,
+                linewidth=lw,
+                zorder=zorder,
+            )
+            zorder += 1
 
         # addendum arc connecting involute tips
         angle_right: float = np.degrees(

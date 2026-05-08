@@ -39,6 +39,13 @@ dev = [
     "ipython",
 ]
 
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --strict-markers"
+
 [project.urls]
 Homepage = "https://github.com/lwidm/cq_gears"
 Repository = "https://github.com/lwidm/cq_gears"

@@ -23,7 +23,7 @@ from cq_gears import (
 )
 
 # ================================================================================
-# Refernce gear instances
+# Reference gear instances
 # -> Small, fixed inputs
 # -> Use these as canonical "A typical X gear" in tests.
 # ================================================================================

@@ -3,6 +3,7 @@
 import numpy as np
 import pytest
 from dataclasses import FrozenInstanceError
+from typing import get_args
 
 from cq_gears import (
     GearData,
@@ -22,8 +23,79 @@ from cq_gears import (
     make_worm_gear_data,
     make_crossed_helical_gear_data,
     make_hypoid_gear_data,
-    GearData,
 )
+
+from cq_gears.core import (
+    is_helical,
+    is_internal,
+    GearDataConcrete,
+    implemented_gear_types,
+)
+
+# ============================================================
+# Registry invariants
+#
+# These tests catch the most common "I added a new gear type
+# but forgot to update X" mistakes.
+# ============================================================
+
+
+class TestRegistryInvariants:
+    def test_gear_data_concrete_covers_registry(self):
+        """
+        Every class registered with @register_gear_type must appear
+        in the GearDataConcrete union, and vice versa.
+        """
+        registered: set[type] = set(implemented_gear_types())
+        in_union: set[type] = set(get_args(GearDataConcrete))
+
+        missing_from_union: set[type] = registered - in_union
+        unregistered_in_union: set[type] = in_union - registered
+
+        assert not missing_from_union, (
+            f"GearDataConcrete is missing registered classes: "
+            f"{sorted(c.__name__ for c in missing_from_union)}. "
+            f"Add them to the union in core.py."
+        )
+        assert not unregistered_in_union, (
+            f"GearDataConcrete contains unregistered classes: "
+            f"{sorted(c.__name__ for c in unregistered_in_union)}. "
+            f"Either decorate the class with @register_gear_type "
+            f"or remove it from the union."
+        )
+
+    def test_any_gear_fixture_covers_registry(
+        self, spur, helical, internal_spur, internal_helical
+    ):
+        """
+        Every registered gear type must have a fixture so it appears
+        in 'any_gear'-parametrized tests.
+
+        If a new registered type doesn't show up here, this test fails
+        with a clear message pointing at the missing fixture.
+        """
+        fixture_classes: set[type] = {
+            type(spur),
+            type(helical),
+            type(internal_spur),
+            type(internal_helical),
+        }
+        registered: set[type] = set(implemented_gear_types())
+
+        missing_from_fixtures: set[type] = registered - fixture_classes
+        missing_from_registered: set[type] = fixture_classes - registered
+        assert not missing_from_fixtures, (
+            f"Per-type fixture missing in conftest.py for: "
+            f"{sorted(c.__name__ for c in missing_from_fixtures)}. "
+            f"Add a fixture and update both the function signature "
+            f"of this test AND the `any_gear` params list."
+        )
+        assert not missing_from_registered, (
+            f"Per-type fixture in conftest.py does not appear to be registered: "
+            f"{sorted(c.__name__ for c in missing_from_registered)}. "
+            f"Either register gear data type it or remove it from 'any_gear' fixture"
+        )
+
 
 # ================================================================================
 # Protocol conformance
@@ -211,3 +283,58 @@ class TestUnimplementedStubs:
     def test_stub_dataclass_is_importable(self, stub_class):
         # Class exists and can at least be referenced
         assert stub_class.__name__.endswith("GearData")
+
+
+# ================================================================================
+# Dispatch helpers
+# ================================================================================
+
+
+class TestDispatchHelpers:
+    @pytest.mark.parametrize(
+        "fixture_name, expected",
+        [
+            ("spur", False),
+            ("helical", True),
+            ("internal_spur", False),
+            ("internal_helical", True),
+        ],
+        ids=["spur", "helical", "internal_spur", "internal_helical"],
+    )
+    def test_is_helical(self, request, fixture_name, expected) -> None:
+        gear: GearData = request.getfixturevalue(fixture_name)
+        assert is_helical(gear) is expected
+
+    @pytest.mark.parametrize(
+        "fixture_name, expected",
+        [
+            ("spur", False),
+            ("helical", False),
+            ("internal_spur", True),
+            ("internal_helical", True),
+        ],
+        ids=["spur", "helical", "internal_spur", "internal_helical"],
+    )
+    def test_is_internal(self, request, fixture_name, expected) -> None:
+        gear: GearData = request.getfixturevalue(fixture_name)
+        assert is_internal(gear) is expected
+
+    def test_is_internal_and_is_helical_are_independent(
+        self, spur, helical, internal_spur, internal_helical
+    ):
+        """The two flags vary independently across the four gear types."""
+        # fmt: off
+        truth_table: dict[tuple[bool, bool], str] = {
+            (is_internal(spur),             is_helical(spur)):              "spur",
+            (is_internal(helical),          is_helical(helical)):           "helical",
+            (is_internal(internal_spur),    is_helical(internal_spur)):     "internal_spur",
+            (is_internal(internal_helical), is_helical(internal_helical)):  "internal_helical",
+        }
+        # fmt: on
+        # All four (internal, helical) combinations must occur exactly once
+        assert set(truth_table.keys()) == {
+            (False, False),
+            (False, True),
+            (True, False),
+            (True, True),
+        }

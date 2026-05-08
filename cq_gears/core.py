@@ -1,7 +1,19 @@
 import cadquery as cq
 import numpy as np
 from dataclasses import dataclass
-from typing import Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable, TypeAlias, TypeVar
+
+_GEAR_TYPE_REGISTRY: list[type] = []
+
+_GearClassT = TypeVar("_GearClassT", bound=type)
+def _register_gear_type(klass: _GearClassT) -> _GearClassT:
+    """Decorator that marks a gear data class as implemented"""
+    _GEAR_TYPE_REGISTRY.append(klass)
+    return klass
+
+
+def implemented_gear_types() -> list[type]:
+    return _GEAR_TYPE_REGISTRY
 
 
 @runtime_checkable
@@ -60,13 +72,14 @@ class GearData(Protocol):
     df: float
 
 
+@_register_gear_type
 @dataclass(frozen=True, kw_only=True)
 class SpurGearData:
     """
     External spur gear data(beta = 0)
 
     Holds both user inputs and the derived geometry. Constructs via
-    make_spur_gear(...).
+    make_spur_gear_data(...).
 
     Direct construction requires all fields.
     """
@@ -148,6 +161,7 @@ def make_spur_gear_data(
     )
 
 
+@_register_gear_type
 @dataclass(frozen=True, kw_only=True)
 class HelicalGearData:
     """
@@ -256,6 +270,7 @@ def make_helical_gear_data(
     )
 
 
+@_register_gear_type
 @dataclass(frozen=True, kw_only=True)
 class InternalSpurGearData:
     """
@@ -345,6 +360,7 @@ def make_internal_spur_gear_data(
     )
 
 
+@_register_gear_type
 @dataclass(frozen=True, kw_only=True)
 class InternalHelicalGearData:
     """
@@ -472,7 +488,7 @@ class BevelGearData:
     ha_star: float
     c_star: float
     rho_f_star: float
-    # ===== Inputs - Bever gear specific =====
+    # ===== Inputs - Bevel gear specific =====
     # pitch cone angle [degrees] (DE: Teilkegelwinkel)
     delta: float
 
@@ -489,7 +505,7 @@ class BevelGearData:
     db: float
     da: float
     df: float
-    # ===== Derived - Bever gear specific =====
+    # ===== Derived - Bevel gear specific =====
     # pitch cone angle [radian] (DE: Teilkegelwinkel)
     delta_r: float
 
@@ -591,6 +607,31 @@ def make_hypoid_gear_data(
     """Construct a HypoidGearData. Not yet implemented."""
     raise NotImplementedError("Hypoid gears are not yet implemented.")
 
+
+# A union of every concrete gear data type. Use this as the parameter
+# type for dispatch helpers and any function that pattern-matches on
+# the concrete gear type
+GearDataConcrete: TypeAlias = (
+    SpurGearData | HelicalGearData | InternalSpurGearData | InternalHelicalGearData
+)
+
+
+def is_helical(gear: GearDataConcrete) -> bool:
+    match gear:
+        case HelicalGearData() | InternalHelicalGearData():
+            return True
+        case _:
+            return False
+
+
+def is_internal(gear: GearDataConcrete) -> bool:
+    match gear:
+        case InternalSpurGearData() | InternalHelicalGearData():
+            return True
+        case _:
+            return False
+
+
 @dataclass
 class Gear:
     data: GearData
@@ -602,71 +643,6 @@ class Gear:
 class GearList:
     gears: list[Gear]
     groups: list[set[int]]
-
-
-def compute_gear_data(
-    m_n: float,
-    z: int,
-    b: float,
-    x: float,
-    alpha_n: float,
-    beta: float,
-    delta: float,
-    ha_star: float,
-    c_star: float,
-    rho_f_star: float,
-) -> GearData:
-
-    alpha_n_r: float = np.radians(alpha_n)
-    beta_r: float = np.radians(beta)
-    delta_r: float = np.radians(delta)
-
-    alpha_t_r: float = np.arctan(np.tan(alpha_n_r) / np.cos(beta_r))
-    alpha_t: float = np.degrees(alpha_t_r)
-
-    m_t: float = m_n / np.cos(beta_r)
-    p: float = np.pi * m_t
-
-    beta_b_r: float = np.arctan(np.tan(beta_r) * np.cos(alpha_t_r))
-    beta_b: float = np.degrees(beta_b_r)
-
-    ha: float = (ha_star + x) * m_n
-    hf: float = (ha_star + c_star - x) * m_n
-    rho_f: float = abs(rho_f_star) * m_n
-
-    d: float = m_t * float(z)
-    db: float = d * np.cos(alpha_t_r)
-    df: float = d - 2 * hf
-    da: float = d + 2 * ha
-
-    return GearData(
-        m_n=m_n,
-        m_t=m_t,
-        z=z,
-        b=b,
-        x=x,
-        alpha_t=alpha_t,
-        alpha_t_r=alpha_t_r,
-        alpha_n=alpha_n,
-        alpha_n_r=alpha_n_r,
-        beta=beta,
-        beta_r=beta_r,
-        beta_b=beta_b,
-        beta_b_r=beta_b_r,
-        delta=delta,
-        delta_r=delta_r,
-        ha_star=ha_star,
-        c_star=c_star,
-        rho_f_star=rho_f_star,
-        ha=ha,
-        hf=hf,
-        rho_f=rho_f,
-        d=d,
-        db=db,
-        df=df,
-        da=da,
-        p=p,
-    )
 
 
 def _are_compatible(

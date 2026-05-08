@@ -456,11 +456,13 @@ def make_internal_helical_gear_data(
         beta_b_r=beta_b_r,
     )
 
+
 @dataclass(frozen=True, kw_only=True)
 class BevelGearData:
     """
     Bevel (conical) gear data (DE: Kegelräder). Not yet implemented.
     """
+
     # ===== Inputs =====
     m_n: float
     z: int
@@ -493,98 +495,101 @@ class BevelGearData:
 
 
 def make_bevel_gear_data(
-      *,
-      m_n: float,
-      z: int,
-      b: float,
-      delta: float,
-      x: float = 0.0,
-      alpha_n: float = 20.0,
-      ha_star: float = 1.0,
-      c_star: float = 0.25,
-      rho_f_star: float = 0.3,
-  ) -> BevelGearData:
-      """Construct a BevelGearData. Not yet implemented."""
-      raise NotImplementedError("Bevel gears are not yet implemented.")
+    *,
+    m_n: float,
+    z: int,
+    b: float,
+    delta: float,
+    x: float = 0.0,
+    alpha_n: float = 20.0,
+    ha_star: float = 1.0,
+    c_star: float = 0.25,
+    rho_f_star: float = 0.3,
+) -> BevelGearData:
+    """Construct a BevelGearData. Not yet implemented."""
+    raise NotImplementedError("Bevel gears are not yet implemented.")
 
 
 @dataclass(frozen=True, kw_only=True)
 class WormGearData:
-      """
-      Worm gear data (DE: Schneckenräder). Not yet implemented.
+    """
+    Worm gear data (DE: Schneckenräder). Not yet implemented.
 
-      TODO
-      """
-      pass
+    TODO
+    """
+
+    pass
 
 
 def make_worm_gear_data(
-      *,
-      m_n: float,
-      z: int,
-      b: float,
-      x: float = 0.0,
-      alpha_n: float = 20.0,
-      ha_star: float = 1.0,
-      c_star: float = 0.25,
-      rho_f_star: float = 0.3,
-  ) -> WormGearData:
-      """Construct a WormGearData. Not yet implemented."""
-      raise NotImplementedError("Worm gears are not yet implemented.")
+    *,
+    m_n: float,
+    z: int,
+    b: float,
+    x: float = 0.0,
+    alpha_n: float = 20.0,
+    ha_star: float = 1.0,
+    c_star: float = 0.25,
+    rho_f_star: float = 0.3,
+) -> WormGearData:
+    """Construct a WormGearData. Not yet implemented."""
+    raise NotImplementedError("Worm gears are not yet implemented.")
 
 
 @dataclass(frozen=True, kw_only=True)
 class CrossedHelicalGearData:
-      """
-      Crossed helical / screw / hyperboloid gear data
-      (DE: Schraubenverzahnung / Hyperboloidräder). Not yet implemented.
+    """
+    Crossed helical / screw / hyperboloid gear data
+    (DE: Schraubenverzahnung / Hyperboloidräder). Not yet implemented.
 
-      TODO
-      """
-      pass
+    TODO
+    """
+
+    pass
 
 
 def make_crossed_helical_gear_data(
-      *,
-      m_n: float,
-      z: int,
-      b: float,
-      beta: float,
-      x: float = 0.0,
-      alpha_n: float = 20.0,
-      ha_star: float = 1.0,
-      c_star: float = 0.25,
-      rho_f_star: float = 0.3,
-  ) -> CrossedHelicalGearData:
-      """Construct a CrossedHelicalGearData. Not yet implemented."""
-      raise NotImplementedError("Crossed helical gears are not yet implemented.")
+    *,
+    m_n: float,
+    z: int,
+    b: float,
+    beta: float,
+    x: float = 0.0,
+    alpha_n: float = 20.0,
+    ha_star: float = 1.0,
+    c_star: float = 0.25,
+    rho_f_star: float = 0.3,
+) -> CrossedHelicalGearData:
+    """Construct a CrossedHelicalGearData. Not yet implemented."""
+    raise NotImplementedError("Crossed helical gears are not yet implemented.")
 
 
 @dataclass(frozen=True, kw_only=True)
 class HypoidGearData:
-      """
-      Hypoid gear data (DE: Schraubenkegelräder / Hypoidräder).
-      Not yet implemented.
+    """
+    Hypoid gear data (DE: Schraubenkegelräder / Hypoidräder).
+    Not yet implemented.
 
-      TODO
-      """
-      pass
+    TODO
+    """
+
+    pass
 
 
 def make_hypoid_gear_data(
-      *,
-      m_n: float,
-      z: int,
-      b: float,
-      delta: float,
-      x: float = 0.0,
-      alpha_n: float = 20.0,
-      ha_star: float = 1.0,
-      c_star: float = 0.25,
-      rho_f_star: float = 0.3,
-  ) -> HypoidGearData:
-      """Construct a HypoidGearData. Not yet implemented."""
-      raise NotImplementedError("Hypoid gears are not yet implemented.")
+    *,
+    m_n: float,
+    z: int,
+    b: float,
+    delta: float,
+    x: float = 0.0,
+    alpha_n: float = 20.0,
+    ha_star: float = 1.0,
+    c_star: float = 0.25,
+    rho_f_star: float = 0.3,
+) -> HypoidGearData:
+    """Construct a HypoidGearData. Not yet implemented."""
+    raise NotImplementedError("Hypoid gears are not yet implemented.")
 
 @dataclass
 class Gear:

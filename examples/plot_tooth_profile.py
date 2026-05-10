@@ -6,14 +6,12 @@ from cq_gears import plotting
 
 output_dir: Path = Path("output")
 
-geardata: cq_gears.GearData = cq_gears.compute_gear_data(
+geardata: cq_gears.SpurGearData = cq_gears.make_spur_gear_data(
     m_n=1.0,
     z=8,
     b=1.0,
     x=0.0,
     alpha_n=20.0,
-    beta=0.0,
-    delta=90.0,
     ha_star=1.0,
     c_star=0.167,
     rho_f_star=0.3,

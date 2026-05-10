@@ -15,27 +15,23 @@ c_star: float = 0.167
 rho_f_star: float = 0.3
 x: float = 0.0
 
-geardata_ring: cq_gears.GearData = cq_gears.compute_gear_data(
+geardata_ring: cq_gears.SpurGearData = cq_gears.make_spur_gear_data(
     m_n=m_n,
     z=20,
     b=b,
     x=x,
     alpha_n=alpha_n,
-    beta=0.0,
-    delta=delta,
     ha_star=ha_star,
     c_star=c_star,
     rho_f_star=rho_f_star,
 )
 
-geardata_pinion: cq_gears.GearData = cq_gears.compute_gear_data(
+geardata_pinion: cq_gears.SpurGearData = cq_gears.make_spur_gear_data(
     m_n=m_n,
     z=10,
     b=b,
     x=x,
     alpha_n=alpha_n,
-    beta=5.0,
-    delta=delta,
     ha_star=ha_star,
     c_star=c_star,
     rho_f_star=rho_f_star,
@@ -53,15 +49,15 @@ def main() -> None:
     fig, ax = plt.subplots(figsize=(5, 5))
     cq_gears.plotting.plot_rolling_circle(
         ax,
-        geardata_ring.d,
-        geardata_pinion.d,
+        geardata_ring.dp,
+        geardata_pinion.dp,
         20.0 / 180 * 2 * np.pi,
         show_gears=show_gears,
         show_line=show_line,
         show_string=show_string,
         geardata_ring=geardata_ring,
         geardata_pinion=geardata_pinion,
-        phi_0=0.0
+        phi_0=0.0,
     )
     fig.savefig(output_dir / f"rolling_circle.png", dpi=300)
     plt.show()

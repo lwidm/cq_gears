@@ -1,44 +1,60 @@
 import cadquery as cq
 from typing import Literal
 
+
 from .core import (
     GearData,
-    find_compatible_groups,
-    _LegacyGear,
-    GearList,
+    HobbedGear,
     ParametricGear,
 )
-from .rack import create_rack_cutter_for_group
+from .rack_cutter import (
+    create_rack_cutter_for_group,
+    create_rack_cutter,
+    find_compatible_cutter_groups,
+)
 from .hobbing import simulate_gear_cutting
 from .parametric_gear import parametric_gear_workplane
 
 
-def initialize_gears(gear_data_list: list[GearData]) -> GearList:
-    gear_list: list[_LegacyGear] = []
-    for gear_data in gear_data_list:
-        gear_list.append(_LegacyGear(gear_data, cq.Workplane(), cq.Workplane()))
-    groups: list[set[int]] = find_compatible_groups(gear_data_list)
-
-    return GearList(gear_list, groups)
-
-
-def create_racks(gear_list: GearList) -> None:
-    for group in gear_list.groups:
-        gear_data_list: list[GearData] = [gear.data for gear in gear_list.gears]
-        rack: cq.Workplane = create_rack_cutter_for_group(gear_data_list, group)
-        for id in group:
-            gear_list.gears[id].rack = rack
-
-
-def cut_gears(
-    gear_list: GearList,
-    num_cut_positions: int,
+def build_hobbed_gear(
+    geardata: GearData,
+    n_cut_positions: int,
     visualize: Literal[None, "show", "step", "img"],
-) -> None:
-    for i, gear in enumerate(gear_list.gears):
-        gear_list.gears[i].workplane = simulate_gear_cutting(
-            gear, num_cut_positions, visualize, i
+    gear_index: int,
+) -> HobbedGear:
+    cutter: cq.Workplane = create_rack_cutter(geardata)
+    workplane: cq.Workplane = simulate_gear_cutting(
+        geardata, cutter, n_cut_positions, visualize, gear_index
+    )
+    return HobbedGear(data=geardata, workplane=workplane, cutter=cutter)
+
+
+def build_hobbed_gear_list(
+    geardata_list: list[GearData],
+    n_cut_positions: int,
+    visualize: Literal[None, "show", "step", "img"],
+) -> list[HobbedGear]:
+    groups: list[set[int]] = find_compatible_cutter_groups(geardata_list)
+    cutter_by_index: dict[int, cq.Workplane] = {}
+    for group in groups:
+        cutter: cq.Workplane = create_rack_cutter_for_group(geardata_list, set(group))
+        for idx in group:
+            cutter_by_index[idx] = cutter
+    workplane_list: list[cq.Workplane] = []
+    for idx, geardata in enumerate(geardata_list):
+        workplane_list.append(
+            simulate_gear_cutting(
+                geardata, cutter_by_index[idx], n_cut_positions, visualize, idx
+            )
         )
+    return [
+        HobbedGear(
+            data=geardata_list[idx],
+            workplane=workplane_list[idx],
+            cutter=cutter_by_index[idx],
+        )
+        for idx in range(len(geardata_list))
+    ]
 
 
 def build_parametric_gear(

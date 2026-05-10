@@ -4,28 +4,24 @@ from typing import Literal
 from pathlib import Path
 import pyvista as pv
 
-from .core import _LegacyGear
+from .core import GearData
 from .visualization import setup_visualization, visualize_step
 
 
 def simulate_gear_cutting(
-    gear: _LegacyGear,
-    num_cut_positions: int,
+    geardata: GearData,
+    cutter: cq.Workplane,
+    n_cut_positions: int,
     visualize: Literal[None, "show", "step", "img"],
     gear_index: int,
 ) -> cq.Workplane:
 
-    if gear.rack is None:
-        raise ValueError(
-            "Could not simulate gear cutting. No rack found in gear (None value)"
-        )
-    rack: cq.Workplane = gear.rack
 
-    m: float = gear.data.m_t
-    z: float = gear.data.z
-    b: float = gear.data.b
-    dp: float = gear.data.dp
-    p: float = gear.data.p
+    m: float = geardata.m_t
+    z: float = geardata.z
+    b: float = geardata.b
+    dp: float = geardata.dp
+    p: float = geardata.p
 
     r: float = dp / 2
     d_blank: float = dp + 3 * m
@@ -57,12 +53,12 @@ def simulate_gear_cutting(
         fixed_camera_position,
     )
 
-    for i in range(num_cut_positions):
-        t: float = i / (num_cut_positions)
+    for i in range(n_cut_positions):
+        t: float = i / (n_cut_positions)
         x_rack: float = p * z * (1 / 2 - t)
         theta: float = x_rack / r
 
-        positioned_rack: cq.Workplane = rack.translate((-x_rack, -r, 0.0)).rotate(
+        positioned_rack: cq.Workplane = cutter.translate((-x_rack, -r, 0.0)).rotate(
             (0, 0, 0), (0, 0, 1), np.degrees(theta)
         )
 

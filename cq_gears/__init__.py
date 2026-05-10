@@ -1,4 +1,4 @@
-from . import core, api, rack, hobbing, parametric_gear
+from . import core, api, rack_cutter, hobbing, parametric_gear
 from . import geometry, cq_bridge
 from . import plotting, visualization
 
@@ -23,12 +23,10 @@ from .core import (
     Gear,
     ParametricGear,
     HobbedGear,
-    _LegacyGear,
 )
 from .api import (
-    initialize_gears,
-    create_racks,
-    cut_gears,
+    build_hobbed_gear,
+    build_hobbed_gear_list,
     build_parametric_gear,
 )
 from .visualization import create_video
@@ -36,7 +34,7 @@ from .visualization import create_video
 __all__ = [
     "core",
     "api",
-    "rack",
+    "rack_cutter",
     "hobbing",
     "parametric_gear",
     "geometry",
@@ -63,9 +61,8 @@ __all__ = [
     "Gear",
     "ParametricGear",
     "HobbedGear",
-    "initialize_gears",
-    "create_racks",
-    "cut_gears",
+    "build_hobbed_gear",
+    "build_hobbed_gear_list",
     "build_parametric_gear",
     "create_video",
 ]

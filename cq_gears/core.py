@@ -7,6 +7,8 @@ _GEAR_TYPE_REGISTRY: list[type] = []
 _GEAR_SOLID_REGISTRY: list[type] = []
 
 _GearClassT = TypeVar("_GearClassT", bound=type)
+
+
 def _register_gear_type(klass: _GearClassT) -> _GearClassT:
     """Decorator that marks a gear data class as implemented"""
     _GEAR_TYPE_REGISTRY.append(klass)
@@ -15,6 +17,7 @@ def _register_gear_type(klass: _GearClassT) -> _GearClassT:
 
 def implemented_gear_types() -> list[type]:
     return _GEAR_TYPE_REGISTRY
+
 
 def _register_gear_solid(klass: _GearClassT) -> _GearClassT:
     """Decorator that marks a gear data class as implemented"""
@@ -40,66 +43,84 @@ class GearData(Protocol):
     # ===== User inputs =====
     # normal module (DE: Normalmodul)
     @property
-    def m_n(self)-> float: ...
+    def m_n(self) -> float: ...
+
     # number of teeth (DE: Zähnezahl)
     @property
-    def z(self)-> int: ...
+    def z(self) -> int: ...
+
     # face width (DE: Zahnbreite) - the axial/z-direction thickness
     @property
-    def b(self)-> float: ...
+    def b(self) -> float: ...
+
     # profile shift coefficient (DE: Profilverschiebung)
     @property
-    def x(self)-> float: ...
+    def x(self) -> float: ...
+
     # normal pressure angle [degrees] (DE: Normaleingriffswinkel [grad])
     @property
-    def alpha_n(self)-> float: ...
+    def alpha_n(self) -> float: ...
+
     # addendum coefficient (DE: Kopfhöhenfaktor)
     @property
-    def ha_star(self)-> float: ...
+    def ha_star(self) -> float: ...
+
     # clearance coefficient (DE: Kopfspielfaktor)
     @property
-    def c_star(self)-> float: ...
+    def c_star(self) -> float: ...
+
     # fillet radius coefficent (DE: Fussrundingsfaktor)
     @property
-    def rho_f_star(self)-> float: ...
+    def rho_f_star(self) -> float: ...
 
     # ===== Derived (universal across all gear types) =====
     # normal pressure angle [radian] (DE: Normaleingriffswinkel [radian])
     @property
-    def alpha_n_r(self)-> float: ...
+    def alpha_n_r(self) -> float: ...
+
     # transverse module (DE: Stirnmodul) - derived as m_n / cos(beta)
     @property
-    def m_t(self)-> float: ...
+    def m_t(self) -> float: ...
+
     # transverse pressure angle [degrees] (DE: Stirneingriffswinkel [grad])
     @property
-    def alpha_t(self)-> float: ...
+    def alpha_t(self) -> float: ...
+
     # transverse pressure angle [radian] (DE: Stirneingriffswinkel [radian])
     @property
-    def alpha_t_r(self)-> float: ...
+    def alpha_t_r(self) -> float: ...
+
     # pitch (DE: Teilung)
     @property
-    def p(self)-> float: ...
+    def p(self) -> float: ...
+
     # addendum (DE: Zahnkopfhöhe)
     @property
-    def ha(self)-> float: ...
+    def ha(self) -> float: ...
+
     # dedendum (DE: Zahnfusshöhe)
     @property
-    def hf(self)-> float: ...
+    def hf(self) -> float: ...
+
     # fillet radius at tip (DE: Fussrundung)
     @property
-    def rho_f(self)-> float: ...
+    def rho_f(self) -> float: ...
+
     # pitch diameter (DE: Teilkreisdurchmesser)
     @property
-    def dp(self)-> float: ...
+    def dp(self) -> float: ...
+
     # base diameter (DE: Grundkreisdurchmesser)
     @property
-    def db(self)-> float: ...
+    def db(self) -> float: ...
+
     # tip/addendum diameter (DE: Kopfkreisdurchmesser)
     @property
-    def da(self)-> float: ...
+    def da(self) -> float: ...
+
     # root diameter (DE: Fusskreisdurchmesser)
     @property
-    def df(self)-> float: ...
+    def df(self) -> float: ...
 
 
 @_register_gear_type
@@ -662,18 +683,6 @@ def is_internal(gear: GearDataConcrete) -> bool:
             return False
 
 
-@dataclass
-class _LegacyGear:
-    data: GearData
-    rack: cq.Workplane | None
-    workplane: cq.Workplane
-
-
-@dataclass
-class GearList:
-    gears: list[_LegacyGear]
-    groups: list[set[int]]
-
 @runtime_checkable
 class Gear(Protocol):
     """
@@ -685,70 +694,36 @@ class Gear(Protocol):
     """
 
     @property
-    def data(self)-> GearData: ...
+    def data(self) -> GearData: ...
     @property
-    def workplane(self)-> cq.Workplane: ...
+    def workplane(self) -> cq.Workplane: ...
+
 
 @_register_gear_solid
 @dataclass(frozen=True, kw_only=True)
-class ParametricGear():
+class ParametricGear:
     """
     A gear built from closed-form parametric equations: points
     along the involute and undercut curves, stiched into a sketch
     and extruded (or twist-extruded for helical)
     """
+
     data: GearData
     workplane: cq.Workplane
 
+
 @_register_gear_solid
 @dataclass(frozen=True, kw_only=True)
-class HobbedGear():
+class HobbedGear:
     """
     A gear built by simulating a rack (or shaper) cutter rolling
     on a cylindrical blank. Slower then parametric and approximated
     by short streight cuts, but mirrors how real gears are produced
     """
+
     data: GearData
     workplane: cq.Workplane
     cutter: cq.Workplane
 
+
 GearConcrete: TypeAlias = ParametricGear | HobbedGear
-
-def _are_compatible(
-    gear_data_a: GearData, gear_data_b: GearData, tolerance: float = 1e-6
-) -> bool:
-    return (
-        abs(gear_data_a.m_n - gear_data_b.m_n) < tolerance
-        and abs(gear_data_a.alpha_n - gear_data_b.alpha_n) < tolerance
-        and abs(abs(gear_data_a.beta) - abs(gear_data_b.beta)) < tolerance
-        and abs(gear_data_a.delta - gear_data_b.delta) < tolerance
-        and abs(gear_data_a.ha_star - gear_data_b.ha_star) < tolerance
-        and abs(gear_data_a.c_star - gear_data_b.c_star) < tolerance
-        and abs(gear_data_a.x - gear_data_b.x) < tolerance
-    )
-
-
-def find_compatible_groups(
-    gear_data_list: list[GearData], tolerance: float = 1e-6
-) -> list[set[int]]:
-    groups: list[set[int]] = []
-    used: set[int] = set()
-
-    for i, gear_data in enumerate(gear_data_list):
-        if i in used:
-            continue
-
-        group: set[int] = {i}
-        used.add(i)
-
-        for j in range(i + 1, len(gear_data_list)):
-            if j in used:
-                continue
-
-            if _are_compatible(gear_data, gear_data_list[j], tolerance):
-                group.add(j)
-                used.add(j)
-
-        groups.append(group)
-
-    return groups

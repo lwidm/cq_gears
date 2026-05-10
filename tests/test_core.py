@@ -38,7 +38,6 @@ from cq_gears.core import (
     implemented_gear_solids,
 )
 
-
 # ============================================================
 # Registry invariants
 #

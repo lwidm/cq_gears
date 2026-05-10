@@ -6,8 +6,6 @@ from . import cq_bridge
 from .core import (
     GearData,
     HelicalGearData,
-    InternalHelicalGearData,
-    InternalSpurGearData,
     SpurGearData,
 )
 

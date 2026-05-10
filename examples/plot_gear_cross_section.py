@@ -3,6 +3,7 @@ from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
 import cq_gears
+from cq_gears import plotting as cqg_plt
 
 m_n: float = 2.0
 b: float = 10.0
@@ -40,7 +41,7 @@ def main() -> None:
     ax: Axes
     fig, ax = plt.subplots(figsize=(10, 10))
     ax.set_aspect("equal")
-    ax = cq_gears.plotting.plot_gear_profile(
+    ax = cqg_plt.plot_gear_profile(
         ax,
         gear_data_1,
         (0.0, 0.0),
@@ -51,7 +52,7 @@ def main() -> None:
         linestyle="-.",
         color="black",
     )
-    ax = cq_gears.plotting.plot_gear_profile(
+    ax = cqg_plt.plot_gear_profile(
         ax,
         gear_data_2,
         (gear_data_1.dp / 2, 0.0),

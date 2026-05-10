@@ -2,7 +2,7 @@ import cq_gears
 from matplotlib import pyplot as plt
 from pathlib import Path
 
-from cq_gears import plotting
+from cq_gears import plotting as cqg_plt
 
 output_dir: Path = Path("output")
 
@@ -18,7 +18,7 @@ geardata: cq_gears.SpurGearData = cq_gears.make_spur_gear_data(
 )
 
 fig, ax = plt.subplots(figsize=(5, 5))
-plotting.plot_tooth_profile(ax=ax, geardata=geardata)
+cqg_plt.plot_tooth_profile(ax=ax, geardata=geardata)
 fig.savefig(output_dir / f"tooth.png", dpi=300)
 plt.show()
 plt.close(fig)

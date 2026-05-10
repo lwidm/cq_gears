@@ -2,7 +2,7 @@ from matplotlib import pyplot as plt
 from pathlib import Path
 import numpy as np
 
-from cq_gears import plotting
+from cq_gears import plotting as cqg_plt
 
 output_dir: Path = Path("output")
 
@@ -12,7 +12,7 @@ x_max: float = 1
 step: float = 0.1
 num: int = int(np.ceil((x_max - x_min) / step))
 x_vals: np.ndarray = np.linspace(x_min, x_max, num=num)
-plotting.plot_profile_shift_comparison(ax=ax, x_values=x_vals.tolist())
+cqg_plt.plot_profile_shift_comparison(ax=ax, x_values=x_vals.tolist())
 fig.savefig(output_dir / "profile_shift.png", dpi=300)
 plt.show()
 plt.close(fig)

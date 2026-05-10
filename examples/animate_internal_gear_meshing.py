@@ -5,6 +5,7 @@ from matplotlib.figure import Figure
 from pathlib import Path
 
 import cq_gears
+from cq_gears import plotting as cqg_plt
 
 m_n: float = 2.0
 b: float = 10.0
@@ -47,7 +48,7 @@ def main() -> None:
     fig: Figure
     ax: Axes
     fig, ax = plt.subplots(figsize=(5, 5))
-    cq_gears.plotting.plot_meshing_circles(
+    cqg_plt.plot_meshing_circles(
         ax,
         geardata_ring.dp,
         geardata_pinion.dp,
@@ -62,7 +63,7 @@ def main() -> None:
     fig.savefig(output_dir / f"rolling_circle.png", dpi=300)
     plt.show()
     plt.close(fig)
-    cq_gears.plotting.animate_meshing_circles(
+    cqg_plt.animate_meshing_circles(
         output_dir=output_dir,
         video_length=10,
         show_gears=show_gears,

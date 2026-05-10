@@ -29,7 +29,7 @@ print("=" * 60)
 # 1. Involute - Line Construction
 print("\n[1/6] Generating involute_line.png...")
 fig, ax = plt.subplots(figsize=(5, 5))
-cq_gears.plotting.involute_plot(
+cq_gears.plotting.plot_involute_construction(
     ax=ax, phi_0=0.0, phi=50, show_arrows=True, show_angle=True, type="line"
 )
 fig.savefig(output_dir / "involute_line.png", dpi=300, bbox_inches="tight")
@@ -37,7 +37,7 @@ plt.close(fig)
 print("Saved involute_line.png")
 
 print("[2/6] Generating involute_line.mp4...")
-cq_gears.plotting.create_involute_video(
+cq_gears.plotting.animate_involute_construction(
     output_dir=output_dir, video_length=10, type="line"
 )
 shutil.move(output_dir / "involute.mp4", output_dir / "involute_line.mp4")
@@ -46,7 +46,7 @@ print("Saved involute_line.mp4")
 # 2. Involute - String Construction
 print("[3/6] Generating involute_string.png...")
 fig, ax = plt.subplots(figsize=(5, 5))
-cq_gears.plotting.involute_plot(
+cq_gears.plotting.plot_involute_construction(
     ax=ax, phi_0=0.0, phi=50, show_arrows=True, show_angle=True, type="string"
 )
 fig.savefig(output_dir / "involute_string.png", dpi=300, bbox_inches="tight")
@@ -54,7 +54,7 @@ plt.close(fig)
 print("Saved involute_string.png")
 
 print("[4/6] Generating involute_string.mp4...")
-cq_gears.plotting.create_involute_video(
+cq_gears.plotting.animate_involute_construction(
     output_dir=output_dir, video_length=10, type="string"
 )
 shutil.move(output_dir / "involute.mp4", output_dir / "involute_string.mp4")
@@ -63,7 +63,7 @@ print("Saved involute_string.mp4")
 # 3. Undercut (Hypotrochoid)
 print("[5/6] Generating hypotroichoid.png...")
 fig, ax = plt.subplots(figsize=(5, 5))
-cq_gears.plotting.undercut_plot(
+cq_gears.plotting.plot_undercut_construction(
     ax=ax, phi_0=30.0, phi_undercut=-50, flank="right", show_arrows=True, show_line=True
 )
 fig.savefig(output_dir / "hypotroichoid.png", dpi=300, bbox_inches="tight")
@@ -71,7 +71,7 @@ plt.close(fig)
 print("Saved hypotroichoid.png")
 
 print("[6/6] Generating hypotroichoid.mp4...")
-cq_gears.plotting.create_undercut_video(output_dir=output_dir, video_length=10)
+cq_gears.plotting.animate_undercut_construction(output_dir=output_dir, video_length=10)
 shutil.move(output_dir / "undercut.mp4", output_dir / "hypotroichoid.mp4")
 print("Saved hypotroichoid.mp4")
 

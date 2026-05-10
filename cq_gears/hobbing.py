@@ -16,7 +16,6 @@ def simulate_gear_cutting(
     gear_index: int,
 ) -> cq.Workplane:
 
-
     m: float = geardata.m_t
     z: float = geardata.z
     b: float = geardata.b

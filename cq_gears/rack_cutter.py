@@ -8,7 +8,7 @@ from .core import (
 )
 
 
-def _create_single_rack_sketch(
+def _create_rack_cutter_sketch(
     geardata: GearData,
     z: int | None = None,
 ) -> cq.Sketch:
@@ -50,7 +50,7 @@ def create_rack_cutter(
 ) -> cq.Workplane:
     b_eff: float = geardata.b if b is None else b
 
-    rack_sketch = _create_single_rack_sketch(geardata, z)
+    rack_sketch = _create_rack_cutter_sketch(geardata, z)
 
     rack: cq.Workplane
     base: cq.Workplane = cq.Workplane("XY").placeSketch(rack_sketch)

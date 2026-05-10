@@ -40,11 +40,7 @@ def half_base_tooth_angle(
 ) -> float:
     dp_db: float = dp / db
     theta_dp: float = np.sqrt(dp_db**2 - 1)
-    return (
-        half_pitch_tooth_angle(m, x, dp, alpha_n_r)
-        + theta_dp
-        - np.arctan(theta_dp)
-    )
+    return half_pitch_tooth_angle(m, x, dp, alpha_n_r) + theta_dp - np.arctan(theta_dp)
 
 
 def involute(r: float, phi_r: np.ndarray) -> np.ndarray:
@@ -147,9 +143,7 @@ def arc_from_endpoints(
             f"start not a point! Expected point shape (2,), got {start.shape}"
         )
     if end.shape != (2,):
-        raise ValueError(
-            f"end not a point! Expected point shape (2,), got {end.shape}"
-        )
+        raise ValueError(f"end not a point! Expected point shape (2,), got {end.shape}")
 
     cx: float = center[0]
     cy: float = center[1]
@@ -157,9 +151,7 @@ def arc_from_endpoints(
     start_angle: float = np.degrees(np.arctan2(start[1] - cy, start[0] - cx))
     end_angle: float = np.degrees(np.arctan2(end[1] - cy, end[0] - cx))
     sweep: float = (
-        (end_angle - start_angle) % 360
-        if ccw
-        else -((start_angle - end_angle) % 360)
+        (end_angle - start_angle) % 360 if ccw else -((start_angle - end_angle) % 360)
     )
     return ((cx, cy), r, start_angle, sweep)
 

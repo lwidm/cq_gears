@@ -18,7 +18,7 @@ geardata: cq_gears.SpurGearData = cq_gears.make_spur_gear_data(
 )
 
 fig, ax = plt.subplots(figsize=(5, 5))
-plotting.tooth_plot(ax=ax, geardata=geardata)
+plotting.plot_tooth_profile(ax=ax, geardata=geardata)
 fig.savefig(output_dir / f"tooth.png", dpi=300)
 plt.show()
 plt.close(fig)

@@ -47,7 +47,7 @@ def main() -> None:
     fig: Figure
     ax: Axes
     fig, ax = plt.subplots(figsize=(5, 5))
-    cq_gears.plotting.plot_rolling_circle(
+    cq_gears.plotting.plot_meshing_circles(
         ax,
         geardata_ring.dp,
         geardata_pinion.dp,
@@ -62,7 +62,7 @@ def main() -> None:
     fig.savefig(output_dir / f"rolling_circle.png", dpi=300)
     plt.show()
     plt.close(fig)
-    cq_gears.plotting.create_rolling_circle_video(
+    cq_gears.plotting.animate_meshing_circles(
         output_dir=output_dir,
         video_length=10,
         show_gears=show_gears,

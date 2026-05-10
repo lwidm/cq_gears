@@ -12,8 +12,22 @@ from . import core
 from . import parametric_gear
 from .core import GearData, SpurGearData
 
+__all__ = [
+    # Static plots
+    "plot_involute_construction",
+    "plot_undercut_construction",
+    "plot_meshing_circles",
+    "plot_tooth_profile",
+    "plot_gear_profile",
+    "plot_profile_shift_comparison",
+    # Animations
+    "animate_involute_construction",
+    "animate_undercut_construction",
+    "animate_meshing_circles",
+]
 
-def ffmpeg_video(img_dir: Path, output_path: Path, name: str, framerate) -> None:
+
+def _ffmpeg_video(img_dir: Path, output_path: Path, name: str, framerate) -> None:
     subprocess.run(
         [
             "ffmpeg",
@@ -44,13 +58,13 @@ def ffmpeg_video(img_dir: Path, output_path: Path, name: str, framerate) -> None
     img_dir.rmdir()
 
 
-def plot_points(ax: Axes, points_list: list[np.ndarray], *args, **kwargs) -> Axes:
+def _plot_points(ax: Axes, points_list: list[np.ndarray], *args, **kwargs) -> Axes:
     for i in np.arange(len(points_list)):
         ax.plot(points_list[i][0], points_list[i][1], *args, **kwargs)
     return ax
 
 
-def add_background_rect(
+def _add_background_rect(
     ax: Axes,
     xlim: tuple[float, float],
     ylim: tuple[float, float],
@@ -133,7 +147,7 @@ def _arc_points(
     return np.vstack([x, y])
 
 
-def involute_plot_compute(
+def _compute_involute_plot_data(
     r: float,
     phi_0: float,
     phi: float,
@@ -199,7 +213,7 @@ def involute_plot_compute(
     return result
 
 
-def involute_plot(
+def plot_involute_construction(
     ax: Axes,
     phi_0: float,
     phi: float,
@@ -211,7 +225,7 @@ def involute_plot(
     lw: float = 3.0
     r: float = 1.0
 
-    involute_dict: dict[str, np.ndarray] = involute_plot_compute(
+    involute_dict: dict[str, np.ndarray] = _compute_involute_plot_data(
         r=r,
         phi_0=phi_0,
         phi=phi,
@@ -351,14 +365,14 @@ def involute_plot(
     ax.set_aspect("equal")
     ax.set_xlim(-1.5 * r, 3 * r)
     ax.set_ylim(-1.5 * r, 3 * r)
-    ax = add_background_rect(ax, (-1.5 * r, 3 * r), (-1.5 * r, 3 * r))
+    ax = _add_background_rect(ax, (-1.5 * r, 3 * r), (-1.5 * r, 3 * r))
     ax.set_position((0, 0, 1, 1))
     ax.set_axis_off()
 
     return ax
 
 
-def create_involute_video(
+def animate_involute_construction(
     output_dir: Path, video_length: float, type: Literal["line", "string"]
 ):
     temp_dir = output_dir / "involute"
@@ -377,7 +391,7 @@ def create_involute_video(
 
     for i, phi in enumerate(phi_arr):
         ax.clear()
-        involute_plot(
+        plot_involute_construction(
             ax=ax,
             phi_0=phi_min,
             phi=phi,
@@ -402,10 +416,10 @@ def create_involute_video(
     framerate = int(total_frames / video_length)
     output_path: Path = output_dir / "involute.mp4"
 
-    ffmpeg_video(temp_dir, output_path, "involute", framerate)
+    _ffmpeg_video(temp_dir, output_path, "involute", framerate)
 
 
-def undercut_plot_compute(
+def _compute_undercut_plot_data(
     phi_0: float,
     phi_undercut: float,
     flank: Literal["left", "right"],
@@ -445,7 +459,7 @@ def undercut_plot_compute(
         dp, df, alpha_t_r, phi_r_arr, flank
     )
 
-    undercut_inv_dict: dict[str, np.ndarray] = involute_plot_compute(
+    undercut_inv_dict: dict[str, np.ndarray] = _compute_involute_plot_data(
         r=dp / 2,
         phi_0=phi_0,
         phi=phi_undercut,
@@ -467,7 +481,7 @@ def undercut_plot_compute(
     return result
 
 
-def undercut_plot(
+def plot_undercut_construction(
     ax: Axes,
     phi_0: float,
     phi_undercut: float,
@@ -486,7 +500,7 @@ def undercut_plot(
     else:
         phi_inv = -30.0
 
-    undercut_dict: dict = undercut_plot_compute(
+    undercut_dict: dict = _compute_undercut_plot_data(
         phi_0, phi_undercut, flank, phi_inv, phi_undercut_max
     )
     involute_dict: dict[str, np.ndarray] = undercut_dict["undercut_inv_dict"]
@@ -631,14 +645,14 @@ def undercut_plot(
     ylim: tuple[float, float] = (-0.3 * geardata.da, 0.3 * geardata.da)
     ax.set_xlim(*xlim)
     ax.set_ylim(*ylim)
-    ax = add_background_rect(ax, xlim, ylim)
+    ax = _add_background_rect(ax, xlim, ylim)
     ax.set_position((0, 0, 1, 1))
     ax.set_axis_off()
 
     return ax
 
 
-def create_undercut_video(output_dir: Path, video_length: float):
+def animate_undercut_construction(output_dir: Path, video_length: float):
     temp_dir = output_dir / "undercut"
     temp_dir.mkdir(exist_ok=True)
 
@@ -653,7 +667,7 @@ def create_undercut_video(output_dir: Path, video_length: float):
 
     for i, phi in enumerate(phi_arr):
         ax.clear()
-        undercut_plot(
+        plot_undercut_construction(
             ax=ax,
             phi_0=phi_min,
             phi_undercut=phi,
@@ -678,10 +692,10 @@ def create_undercut_video(output_dir: Path, video_length: float):
     framerate = int(total_frames / video_length)
     output_path: Path = output_dir / "undercut.mp4"
 
-    ffmpeg_video(temp_dir, output_path, "undercut", framerate)
+    _ffmpeg_video(temp_dir, output_path, "undercut", framerate)
 
 
-def plot_rolling_circle(
+def plot_meshing_circles(
     ax: Axes,
     dp_ring: float,
     dp_pinion: float,
@@ -729,7 +743,7 @@ def plot_rolling_circle(
             geardata_pinion.dp,
             geardata_pinion.alpha_t_r,
         )
-        ax = gear_plot(
+        ax = plot_gear_profile(
             ax,
             geardata_pinion,
             (translate_x, translate_y),
@@ -749,7 +763,7 @@ def plot_rolling_circle(
     ylim: tuple[float, float] = (-lim, lim)
     ax.set_xlim(xlim)
     ax.set_ylim(ylim)
-    ax = add_background_rect(ax, xlim, ylim)
+    ax = _add_background_rect(ax, xlim, ylim)
 
     # internal_gear
     ax.plot(
@@ -786,7 +800,7 @@ def plot_rolling_circle(
             raise ValueError(
                 "if show_line or show_string is true geardata_ring and phi_0 must be non None"
             )
-        involute_dict = involute_plot_compute(
+        involute_dict = _compute_involute_plot_data(
             r=geardata_pinion.dp / 2,
             phi_0=np.degrees(phi_0),
             phi=np.degrees(phi),
@@ -861,7 +875,7 @@ def plot_rolling_circle(
     return ax
 
 
-def create_rolling_circle_video(
+def animate_meshing_circles(
     output_dir: Path,
     video_length: float,
     show_gears: bool,
@@ -887,7 +901,7 @@ def create_rolling_circle_video(
     for i, phi in enumerate(phi_arr):
         ax.clear()
         if geardata_ring is not None and geardata_pinion is not None:
-            ax = plot_rolling_circle(
+            ax = plot_meshing_circles(
                 ax,
                 geardata_ring.dp,
                 geardata_pinion.dp,
@@ -901,7 +915,7 @@ def create_rolling_circle_video(
                 phi_max=phi_max,
             )
         else:
-            ax = plot_rolling_circle(
+            ax = plot_meshing_circles(
                 ax,
                 3.0,
                 2.0,
@@ -930,10 +944,10 @@ def create_rolling_circle_video(
     framerate = int(total_frames / video_length)
     output_path: Path = output_dir / "rolling_circle.mp4"
 
-    ffmpeg_video(temp_dir, output_path, "rolling", framerate)
+    _ffmpeg_video(temp_dir, output_path, "rolling", framerate)
 
 
-def tooth_plot(
+def plot_tooth_profile(
     ax: Axes,
     geardata: GearData,
 ) -> Axes:
@@ -1026,14 +1040,14 @@ def tooth_plot(
     ylim: tuple[float, float] = (-0.3 * geardata.da, 0.3 * geardata.da)
     ax.set_xlim(*xlim)
     ax.set_ylim(*ylim)
-    ax = add_background_rect(ax, xlim, ylim)
+    ax = _add_background_rect(ax, xlim, ylim)
     ax.set_position((0, 0, 1, 1))
     ax.set_axis_off()
 
     return ax
 
 
-def gear_plot(
+def plot_gear_profile(
     ax: Axes,
     geardata: GearData,
     center: tuple[float, float],
@@ -1139,9 +1153,9 @@ def gear_plot(
     )
 
     if arc_types == "points":
-        ax = plot_points(ax, [np.hstack(points_list)], **kwargs)
+        ax = _plot_points(ax, [np.hstack(points_list)], **kwargs)
     else:
-        ax = plot_points(ax, points_list, **kwargs)
+        ax = _plot_points(ax, points_list, **kwargs)
         for i in range(geardata.z):
             tooth_offset_deg: float = np.degrees(tooth_pitch) * i
             ax.add_patch(
@@ -1171,7 +1185,7 @@ def gear_plot(
     return ax
 
 
-def profile_shift_plot(
+def plot_profile_shift_comparison(
     ax: Axes,
     x_values: list[float],
     m: float = 1.0,
@@ -1324,7 +1338,7 @@ def profile_shift_plot(
     ylim: tuple[float, float] = (-0.3 * da_max, 0.3 * da_max)
     ax.set_xlim(*xlim)
     ax.set_ylim(*ylim)
-    ax = add_background_rect(ax, xlim, ylim)
+    ax = _add_background_rect(ax, xlim, ylim)
     ax.set_position((0, 0, 1, 1))
     ax.set_axis_off()
 

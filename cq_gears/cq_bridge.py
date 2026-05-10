@@ -1,5 +1,6 @@
 import numpy as np
 from typing import NamedTuple
+import cadquery as cq
 
 from . import geometry
 

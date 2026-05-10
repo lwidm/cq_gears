@@ -10,7 +10,7 @@ from pathlib import Path
 from . import geometry
 from . import core
 from . import parametric_gear
-from .core import GearData
+from .core import GearData, SpurGearData
 
 
 def ffmpeg_video(img_dir: Path, output_path: Path, name: str, framerate) -> None:
@@ -411,22 +411,20 @@ def undercut_plot_compute(
     flank: Literal["left", "right"],
     phi_inv: float,
     phi_undercut_max: float | None = None,
-) -> dict[str, float | np.ndarray | GearData | dict]:
-    geardata: GearData = core.compute_gear_data(
+) -> dict[str, float | np.ndarray | SpurGearData | dict]:
+    geardata: SpurGearData = core.make_spur_gear_data(
         m_n=1.0,
         z=7,
         b=1.0,
         x=0.0,
         alpha_n=20.0,
-        beta=0.0,
-        delta=90.0,
         ha_star=1.0,
         c_star=0.167,
         rho_f_star=0.3,
     )
     df: float = geardata.df
     db: float = geardata.db
-    dp: float = geardata.d
+    dp: float = geardata.dp
     alpha_t_r: float = geardata.alpha_t_r
 
     if phi_undercut_max is None:
@@ -455,7 +453,7 @@ def undercut_plot_compute(
         phi_max=phi_undercut_max,
     )
 
-    result: dict[str, float | np.ndarray | GearData | dict] = {
+    result: dict[str, float | np.ndarray | SpurGearData | dict] = {
         "df": df,
         "db": db,
         "dp": dp,
@@ -728,7 +726,7 @@ def plot_rolling_circle(
         half_angle_at_pitch: float = geometry.half_pitch_tooth_angle(
             geardata_pinion.m_t,
             geardata_pinion.x,
-            geardata_pinion.d,
+            geardata_pinion.dp,
             geardata_pinion.alpha_t_r,
         )
         ax = gear_plot(
@@ -789,7 +787,7 @@ def plot_rolling_circle(
                 "if show_line or show_string is true geardata_ring and phi_0 must be non None"
             )
         involute_dict = involute_plot_compute(
-            r=geardata_pinion.d / 2,
+            r=geardata_pinion.dp / 2,
             phi_0=np.degrees(phi_0),
             phi=np.degrees(phi),
             rotate=-beta,
@@ -853,7 +851,7 @@ def plot_rolling_circle(
                     involute_dict["rolling_line_inv"][0, 0],
                     involute_dict["rolling_line_inv"][1, 0],
                 ),
-                geardata_pinion.d / 40,
+                geardata_pinion.dp / 40,
                 color="yellow",
                 alpha=1,
                 zorder=zorder,
@@ -891,8 +889,8 @@ def create_rolling_circle_video(
         if geardata_ring is not None and geardata_pinion is not None:
             ax = plot_rolling_circle(
                 ax,
-                geardata_ring.d,
-                geardata_pinion.d,
+                geardata_ring.dp,
+                geardata_pinion.dp,
                 phi,
                 show_gears=show_gears,
                 show_line=show_line,
@@ -959,7 +957,7 @@ def tooth_plot(
     zorder += 1
     pitch_circle = Circle(
         (0, 0),
-        geardata.d / 2,
+        geardata.dp / 2,
         color="gray",
         alpha=1,
         fill=False,
@@ -1183,15 +1181,13 @@ def profile_shift_plot(
     zorder: int = 100
 
     n_values: int = len(x_values)
-    geardatas: list[GearData] = [
-        core.compute_gear_data(
+    geardatas: list[SpurGearData] = [
+        core.make_spur_gear_data(
             m_n=m,
             z=z,
             b=1.0,
             x=x_val,
             alpha_n=20.0,
-            beta=0.0,
-            delta=90.0,
             ha_star=1.0,
             c_star=0.25,
             rho_f_star=0.3,

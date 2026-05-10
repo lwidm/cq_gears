@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 from dataclasses import FrozenInstanceError
 from typing import get_args
+import cadquery as cq
 
 from cq_gears import (
     GearData,
@@ -23,14 +24,20 @@ from cq_gears import (
     make_worm_gear_data,
     make_crossed_helical_gear_data,
     make_hypoid_gear_data,
+    Gear,
+    ParametricGear,
+    HobbedGear,
 )
 
 from cq_gears.core import (
     is_helical,
     is_internal,
     GearDataConcrete,
+    GearConcrete,
     implemented_gear_types,
+    implemented_gear_solids,
 )
+
 
 # ============================================================
 # Registry invariants
@@ -61,6 +68,29 @@ class TestRegistryInvariants:
             f"GearDataConcrete contains unregistered classes: "
             f"{sorted(c.__name__ for c in unregistered_in_union)}. "
             f"Either decorate the class with @register_gear_type "
+            f"or remove it from the union."
+        )
+
+    def test_gear_concrete_covers_registry(self):
+        """
+        Every class registered with @register_gear_solid must appear
+        in the GearConcrete union, and vice versa.
+        """
+        registered: set[type] = set(implemented_gear_solids())
+        in_union: set[type] = set(get_args(GearConcrete))
+
+        missing_from_union: set[type] = registered - in_union
+        unregistered_in_union: set[type] = in_union - registered
+
+        assert not missing_from_union, (
+            f"GearConcrete is missing registered classes: "
+            f"{sorted(c.__name__ for c in missing_from_union)}. "
+            f"Add them to the union in core.py."
+        )
+        assert not unregistered_in_union, (
+            f"GearConcrete contains unregistered classes: "
+            f"{sorted(c.__name__ for c in unregistered_in_union)}. "
+            f"Either decorate the class with @register_gear_solid "
             f"or remove it from the union."
         )
 
@@ -302,7 +332,7 @@ class TestDispatchHelpers:
         ids=["spur", "helical", "internal_spur", "internal_helical"],
     )
     def test_is_helical(self, request, fixture_name, expected) -> None:
-        gear: GearData = request.getfixturevalue(fixture_name)
+        gear: GearDataConcrete = request.getfixturevalue(fixture_name)
         assert is_helical(gear) is expected
 
     @pytest.mark.parametrize(
@@ -316,7 +346,7 @@ class TestDispatchHelpers:
         ids=["spur", "helical", "internal_spur", "internal_helical"],
     )
     def test_is_internal(self, request, fixture_name, expected) -> None:
-        gear: GearData = request.getfixturevalue(fixture_name)
+        gear: GearDataConcrete = request.getfixturevalue(fixture_name)
         assert is_internal(gear) is expected
 
     def test_is_internal_and_is_helical_are_independent(
@@ -338,3 +368,33 @@ class TestDispatchHelpers:
             (True, False),
             (True, True),
         }
+
+
+# ================================================================================
+# Constructed gear classes (Gear, ParametricGear, HobbedGear)
+# ================================================================================
+
+
+class TestGearClasses:
+    def test_parametric_gear_satisfies_gear_protocol(self, spur):
+        pg: ParametricGear = ParametricGear(data=spur, workplane=cq.Workplane())
+        assert isinstance(pg, Gear)
+
+    def test_hobbed_gear_satisfies_gear_protocol(self, spur):
+        pg: HobbedGear = HobbedGear(
+            data=spur, workplane=cq.Workplane(), cutter=cq.Workplane()
+        )
+        assert isinstance(pg, Gear)
+
+    # INFO : Not sure if it makes sense to have this frozen (though the data should be frozen)
+    def test_parmetric_gear_is_fozen(self, spur):
+        pg: ParametricGear = ParametricGear(data=spur, workplane=cq.Workplane())
+        with pytest.raises(FrozenInstanceError):
+            pg.workplane = cq.Workplane()  # type: ignore
+
+    def test_hobbed_gear_is_fozen(self, spur):
+        pg: HobbedGear = HobbedGear(
+            data=spur, workplane=cq.Workplane(), cutter=cq.Workplane()
+        )
+        with pytest.raises(FrozenInstanceError):
+            pg.workplane = cq.Workplane()  # type: ignore

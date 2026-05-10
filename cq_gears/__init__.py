@@ -21,8 +21,9 @@ from .core import (
     make_crossed_helical_gear_data,
     make_hypoid_gear_data,
     Gear,
-    GearList,
-    compute_gear_data,
+    ParametricGear,
+    HobbedGear,
+    _LegacyGear,
 )
 from .api import (
     initialize_gears,
@@ -59,6 +60,9 @@ __all__ = [
     "make_worm_gear_data",
     "make_crossed_helical_gear_data",
     "make_hypoid_gear_data",
+    "Gear",
+    "ParametricGear",
+    "HobbedGear",
     "initialize_gears",
     "create_racks",
     "cut_gears",

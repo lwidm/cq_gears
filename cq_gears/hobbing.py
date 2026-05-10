@@ -4,12 +4,12 @@ from typing import Literal
 from pathlib import Path
 import pyvista as pv
 
-from .core import Gear
+from .core import _LegacyGear
 from .visualization import setup_visualization, visualize_step
 
 
 def simulate_gear_cutting(
-    gear: Gear,
+    gear: _LegacyGear,
     num_cut_positions: int,
     visualize: Literal[None, "show", "step", "img"],
     gear_index: int,
@@ -24,11 +24,11 @@ def simulate_gear_cutting(
     m: float = gear.data.m_t
     z: float = gear.data.z
     b: float = gear.data.b
-    d: float = gear.data.d
+    dp: float = gear.data.dp
     p: float = gear.data.p
 
-    r: float = d / 2
-    d_blank: float = d + 3 * m
+    r: float = dp / 2
+    d_blank: float = dp + 3 * m
 
     gear_blank: cq.Workplane = (
         cq.Workplane("XY").circle(d_blank / 2).extrude(b / 2, both=True)

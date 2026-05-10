@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Protocol, runtime_checkable, TypeAlias, TypeVar
 
 _GEAR_TYPE_REGISTRY: list[type] = []
+_GEAR_SOLID_REGISTRY: list[type] = []
 
 _GearClassT = TypeVar("_GearClassT", bound=type)
 def _register_gear_type(klass: _GearClassT) -> _GearClassT:
@@ -14,6 +15,15 @@ def _register_gear_type(klass: _GearClassT) -> _GearClassT:
 
 def implemented_gear_types() -> list[type]:
     return _GEAR_TYPE_REGISTRY
+
+def _register_gear_solid(klass: _GearClassT) -> _GearClassT:
+    """Decorator that marks a gear data class as implemented"""
+    _GEAR_SOLID_REGISTRY.append(klass)
+    return klass
+
+
+def implemented_gear_solids() -> list[type]:
+    return _GEAR_SOLID_REGISTRY
 
 
 @runtime_checkable
@@ -29,47 +39,67 @@ class GearData(Protocol):
 
     # ===== User inputs =====
     # normal module (DE: Normalmodul)
-    m_n: float
+    @property
+    def m_n(self)-> float: ...
     # number of teeth (DE: Zähnezahl)
-    z: int
+    @property
+    def z(self)-> int: ...
     # face width (DE: Zahnbreite) - the axial/z-direction thickness
-    b: float
+    @property
+    def b(self)-> float: ...
     # profile shift coefficient (DE: Profilverschiebung)
-    x: float
+    @property
+    def x(self)-> float: ...
     # normal pressure angle [degrees] (DE: Normaleingriffswinkel [grad])
-    alpha_n: float
+    @property
+    def alpha_n(self)-> float: ...
     # addendum coefficient (DE: Kopfhöhenfaktor)
-    ha_star: float
+    @property
+    def ha_star(self)-> float: ...
     # clearance coefficient (DE: Kopfspielfaktor)
-    c_star: float
+    @property
+    def c_star(self)-> float: ...
     # fillet radius coefficent (DE: Fussrundingsfaktor)
-    rho_f_star: float
+    @property
+    def rho_f_star(self)-> float: ...
 
     # ===== Derived (universal across all gear types) =====
     # normal pressure angle [radian] (DE: Normaleingriffswinkel [radian])
-    alpha_n_r: float
+    @property
+    def alpha_n_r(self)-> float: ...
     # transverse module (DE: Stirnmodul) - derived as m_n / cos(beta)
-    m_t: float
+    @property
+    def m_t(self)-> float: ...
     # transverse pressure angle [degrees] (DE: Stirneingriffswinkel [grad])
-    alpha_t: float
+    @property
+    def alpha_t(self)-> float: ...
     # transverse pressure angle [radian] (DE: Stirneingriffswinkel [radian])
-    alpha_t_r: float
+    @property
+    def alpha_t_r(self)-> float: ...
     # pitch (DE: Teilung)
-    p: float
+    @property
+    def p(self)-> float: ...
     # addendum (DE: Zahnkopfhöhe)
-    ha: float
+    @property
+    def ha(self)-> float: ...
     # dedendum (DE: Zahnfusshöhe)
-    hf: float
+    @property
+    def hf(self)-> float: ...
     # fillet radius at tip (DE: Fussrundung)
-    rho_f: float
+    @property
+    def rho_f(self)-> float: ...
     # pitch diameter (DE: Teilkreisdurchmesser)
-    dp: float
+    @property
+    def dp(self)-> float: ...
     # base diameter (DE: Grundkreisdurchmesser)
-    db: float
+    @property
+    def db(self)-> float: ...
     # tip/addendum diameter (DE: Kopfkreisdurchmesser)
-    da: float
+    @property
+    def da(self)-> float: ...
     # root diameter (DE: Fusskreisdurchmesser)
-    df: float
+    @property
+    def df(self)-> float: ...
 
 
 @_register_gear_type
@@ -633,7 +663,7 @@ def is_internal(gear: GearDataConcrete) -> bool:
 
 
 @dataclass
-class Gear:
+class _LegacyGear:
     data: GearData
     rack: cq.Workplane | None
     workplane: cq.Workplane
@@ -641,9 +671,48 @@ class Gear:
 
 @dataclass
 class GearList:
-    gears: list[Gear]
+    gears: list[_LegacyGear]
     groups: list[set[int]]
 
+@runtime_checkable
+class Gear(Protocol):
+    """
+    Structural interface that every constructed gear must satisfy.
+
+    A "gear" here is a 3D solid (cq.Workplane) plus the data it was
+    built from. Operations that just need to read the workplane or
+    data should type-hint against this Protocol.
+    """
+
+    @property
+    def data(self)-> GearData: ...
+    @property
+    def workplane(self)-> cq.Workplane: ...
+
+@_register_gear_solid
+@dataclass(frozen=True, kw_only=True)
+class ParametricGear():
+    """
+    A gear built from closed-form parametric equations: points
+    along the involute and undercut curves, stiched into a sketch
+    and extruded (or twist-extruded for helical)
+    """
+    data: GearData
+    workplane: cq.Workplane
+
+@_register_gear_solid
+@dataclass(frozen=True, kw_only=True)
+class HobbedGear():
+    """
+    A gear built by simulating a rack (or shaper) cutter rolling
+    on a cylindrical blank. Slower then parametric and approximated
+    by short streight cuts, but mirrors how real gears are produced
+    """
+    data: GearData
+    workplane: cq.Workplane
+    cutter: cq.Workplane
+
+GearConcrete: TypeAlias = ParametricGear | HobbedGear
 
 def _are_compatible(
     gear_data_a: GearData, gear_data_b: GearData, tolerance: float = 1e-6

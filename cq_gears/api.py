@@ -1,16 +1,22 @@
 import cadquery as cq
 from typing import Literal
 
-from .core import GearData, Gear, GearList, find_compatible_groups
+from .core import (
+    GearData,
+    find_compatible_groups,
+    _LegacyGear,
+    GearList,
+    ParametricGear,
+)
 from .rack import create_rack_cutter_for_group
 from .hobbing import simulate_gear_cutting
 from .parametric_gear import parametric_gear_workplane
 
 
 def initialize_gears(gear_data_list: list[GearData]) -> GearList:
-    gear_list: list[Gear] = []
+    gear_list: list[_LegacyGear] = []
     for gear_data in gear_data_list:
-        gear_list.append(Gear(gear_data, cq.Workplane(), cq.Workplane()))
+        gear_list.append(_LegacyGear(gear_data, cq.Workplane(), cq.Workplane()))
     groups: list[set[int]] = find_compatible_groups(gear_data_list)
 
     return GearList(gear_list, groups)
@@ -34,14 +40,17 @@ def cut_gears(
             gear, num_cut_positions, visualize, i
         )
 
+
 def build_parametric_gear(
-        geardata: GearData,
-        n_spline_points: int,
-) -> Gear:
+    geardata: GearData,
+    n_spline_points: int,
+) -> ParametricGear:
     if n_spline_points < 3:
-        raise ValueError(f"n_spline_points must be greater than 3. Instead got {n_spline_points}")
+        raise ValueError(
+            f"n_spline_points must be greater than 3. Instead got {n_spline_points}"
+        )
 
     gear_workplane: cq.Workplane = parametric_gear_workplane(geardata, n_spline_points)
-    gear: Gear = Gear(geardata, None, gear_workplane)
+    gear: ParametricGear = ParametricGear(data=geardata, workplane=gear_workplane)
 
     return gear

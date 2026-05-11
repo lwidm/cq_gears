@@ -737,17 +737,11 @@ def plot_meshing_circles(
             raise ValueError(
                 "if show_gears is true geardata_ring and geardata_pinion must be non None"
             )
-        half_angle_at_pitch: float = geometry.half_pitch_tooth_angle(
-            geardata_pinion.m_t,
-            geardata_pinion.x,
-            geardata_pinion.dp,
-            geardata_pinion.alpha_t_r,
-        )
         ax = plot_gear_profile(
             ax,
             geardata_pinion,
             (translate_x, translate_y),
-            -beta + half_angle_at_pitch,
+            -beta + geardata_pinion.p / geardata_pinion.dp,
             200,
             "Arc",
             linewidth=lw,

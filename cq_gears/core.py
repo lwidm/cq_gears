@@ -69,10 +69,6 @@ class GearData(Protocol):
     @property
     def c_star(self) -> float: ...
 
-    # fillet radius coefficent (DE: Fussrundingsfaktor)
-    @property
-    def rho_f_star(self) -> float: ...
-
     # ===== Derived (universal across all gear types) =====
     # normal pressure angle [radian] (DE: Normaleingriffswinkel [radian])
     @property
@@ -101,10 +97,6 @@ class GearData(Protocol):
     # dedendum (DE: Zahnfusshöhe)
     @property
     def hf(self) -> float: ...
-
-    # fillet radius at tip (DE: Fussrundung)
-    @property
-    def rho_f(self) -> float: ...
 
     # pitch diameter (DE: Teilkreisdurchmesser)
     @property
@@ -143,7 +135,6 @@ class SpurGearData:
     alpha_n: float
     ha_star: float
     c_star: float
-    rho_f_star: float
 
     # ===== Derived =====
     alpha_n_r: float
@@ -153,7 +144,6 @@ class SpurGearData:
     p: float
     ha: float
     hf: float
-    rho_f: float
     dp: float
     db: float
     da: float
@@ -169,7 +159,6 @@ def make_spur_gear_data(
     alpha_n: float = 20,
     ha_star: float = 1.0,
     c_star: float = 0.25,
-    rho_f_star: float = 0.3,
 ) -> SpurGearData:
     """Constructs a SpurGearData from user inputs, computing all derived fields"""
 
@@ -182,13 +171,98 @@ def make_spur_gear_data(
     p: float = np.pi * m_t
     ha: float = (ha_star + x) * m_n
     hf: float = (ha_star + c_star - x) * m_n
-    rho_f: float = abs(rho_f_star) * m_n
     dp: float = m_t * float(z)
     db: float = dp * np.cos(alpha_t_r)
     da: float = dp + 2 * ha
     df: float = dp - 2 * hf
 
     return SpurGearData(
+        m_n=m_n,
+        z=z,
+        b=b,
+        x=x,
+        alpha_n=alpha_n,
+        ha_star=ha_star,
+        c_star=c_star,
+        alpha_n_r=alpha_n_r,
+        m_t=m_t,
+        alpha_t=alpha_t,
+        alpha_t_r=alpha_t_r,
+        p=p,
+        ha=ha,
+        hf=hf,
+        dp=dp,
+        db=db,
+        da=da,
+        df=df,
+    )
+
+
+@_register_gear_type
+@dataclass
+class RackGearData:
+    # ===== Inputs =====
+    m_n: float
+    z: int
+    b: float
+    x: float
+    alpha_n: float
+    ha_star: float
+    c_star: float
+    # ===== Derived - Rack specific =====
+    # Width of rail witouth its teeth
+    rail_width: float
+
+    # ===== Derived =====
+    alpha_n_r: float
+    m_t: float
+    alpha_t: float
+    alpha_t_r: float
+    p: float
+    ha: float
+    hf: float
+    dp: float
+    db: float
+    da: float
+    df: float
+    # ===== Derived - Rack specific =====
+    # fillet radius coefficent (DE: Fussrundingsfaktor)
+    rho_f_star: float
+    # fillet radius at tip (DE: Fussrundung)
+    rho_f: float
+
+
+def make_rack_gear_data(
+    *,
+    m_n: float,
+    z: int,
+    b: float,
+    rail_width: float,
+    x: float = 0.0,
+    alpha_n: float = 20,
+    ha_star: float = 1.0,
+    c_star: float = 0.25,
+    rho_f_star: float = 0.3,
+) -> RackGearData:
+    """Constructs a SpurGearData from user inputs, computing all derived fields"""
+
+    alpha_n_r: float = np.radians(alpha_n)
+    # Spur: transverse equals normal
+    m_t: float = m_n
+    alpha_t: float = alpha_n
+    alpha_t_r: float = alpha_n_r
+
+    p: float = np.pi * m_t
+    # BUG : c_star gets added to hf instead of ha for rack gears (I think ?)
+    ha: float = (ha_star + c_star + x) * m_n
+    hf: float = (ha_star - x) * m_n
+    rho_f: float = abs(rho_f_star) * m_n
+    dp: float = m_t * float(z)
+    db: float = dp * np.cos(alpha_t_r)
+    da: float = dp + 2 * ha
+    df: float = dp - 2 * hf
+
+    return RackGearData(
         m_n=m_n,
         z=z,
         b=b,
@@ -209,6 +283,7 @@ def make_spur_gear_data(
         db=db,
         da=da,
         df=df,
+        rail_width=rail_width,
     )
 
 

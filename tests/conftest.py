@@ -6,6 +6,7 @@ from cq_gears import (
     GearData,
     SpurGearData,
     HelicalGearData,
+    RackGearData,
     InternalSpurGearData,
     InternalHelicalGearData,
     # BevelGearData,
@@ -14,6 +15,7 @@ from cq_gears import (
     # HypoidGearData,
     make_spur_gear_data,
     make_helical_gear_data,
+    make_rack_gear_data,
     make_internal_spur_gear_data,
     make_internal_helical_gear_data,
     # make_bevel_gear_data,
@@ -38,6 +40,10 @@ def spur() -> SpurGearData:
 def helical() -> HelicalGearData:
     return make_helical_gear_data(m_n=1.0, z=20, b=10.0, beta=20.0)
 
+@pytest.fixture
+def rack() -> RackGearData:
+    return make_rack_gear_data(m_n=1.0, z=20, b=10.0, rail_width=0.2)
+
 
 @pytest.fixture
 def internal_spur() -> InternalSpurGearData:
@@ -50,8 +56,8 @@ def internal_helical() -> InternalHelicalGearData:
 
 
 @pytest.fixture(
-    params=["spur", "helical", "internal_spur", "internal_helical"],
-    ids=["spur", "helical", "internal_spur", "internal_helical"],
+    params=["spur", "helical", "rack", "internal_spur", "internal_helical"],
+    ids=["spur", "helical", "rack", "internal_spur", "internal_helical"],
 )
 def any_gear(request) -> GearData:
     """

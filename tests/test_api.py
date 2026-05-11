@@ -15,14 +15,14 @@ from cq_gears.core import SpurGearData
 
 
 class TestBuildParametricGear:
-    def test_returns_parametric_gear(self, spur):
+    def test_returns_parametric_gear(self, any_gear) -> None:
         pg: ParametricGear = cq_gears.build_parametric_gear(
-            geardata=spur, n_spline_points=200
+            geardata=any_gear, n_spline_points=200
         )
 
         assert isinstance(pg, ParametricGear)
         assert isinstance(pg, Gear)
-        assert pg.data is spur
+        assert pg.data is any_gear
         assert pg.workplane is not None
 
 
@@ -32,7 +32,7 @@ class TestBuildParametricGear:
 
 
 class TestBuildHobbedGear:
-    def test_spur_returns_hobbed_gear(self, spur):
+    def test_spur_returns_hobbed_gear(self, spur) -> None:
         hg: HobbedGear = cq_gears.build_hobbed_gear(
             geardata=spur,
             n_cut_positions=4,
@@ -45,7 +45,7 @@ class TestBuildHobbedGear:
         assert hg.workplane is not None
         assert hg.cutter is not None
 
-    def test_helical_returns_hobbed_gear(self, helical):
+    def test_helical_returns_hobbed_gear(self, helical) -> None:
         hg: HobbedGear = cq_gears.build_hobbed_gear(
             geardata=helical,
             n_cut_positions=4,
@@ -55,7 +55,7 @@ class TestBuildHobbedGear:
         assert isinstance(hg, HobbedGear)
         assert hg.data is helical
 
-    def test_internal_spur_raises(self, internal_spur):
+    def test_internal_spur_raises(self, internal_spur) -> None:
         with pytest.raises(NotImplementedError):
             cq_gears.build_hobbed_gear(
                 geardata=internal_spur,
@@ -64,7 +64,7 @@ class TestBuildHobbedGear:
                 gear_index=0,
             )
 
-    def test_internal_helical_raises(self, internal_helical):
+    def test_internal_helical_raises(self, internal_helical) -> None:
         with pytest.raises(NotImplementedError):
             cq_gears.build_hobbed_gear(
                 geardata=internal_helical,
@@ -80,7 +80,7 @@ class TestBuildHobbedGear:
 
 
 class TestBuildHobbedGearList:
-    def test_empty_list(self):
+    def test_empty_list(self) -> None:
         result: list[HobbedGear] = cq_gears.build_hobbed_gear_list(
             geardata_list=[],
             n_cut_positions=4,
@@ -88,7 +88,7 @@ class TestBuildHobbedGearList:
         )
         assert result == []
 
-    def test_single_gear(self, spur):
+    def test_single_gear(self, spur) -> None:
         result: list[HobbedGear] = cq_gears.build_hobbed_gear_list(
             geardata_list=[spur],
             n_cut_positions=4,
@@ -98,7 +98,7 @@ class TestBuildHobbedGearList:
         assert isinstance(result[0], HobbedGear)
         assert result[0].data is spur
 
-    def test_compatible_gears_share_cutter(self):
+    def test_compatible_gears_share_cutter(self) -> None:
         a: SpurGearData = make_spur_gear_data(m_n=1.0, z=20, b=10.0)
         b: SpurGearData = make_spur_gear_data(m_n=1.0, z=40, b=15.0)
 
@@ -110,7 +110,7 @@ class TestBuildHobbedGearList:
         assert len(result) == 2
         assert result[0].cutter is result[1].cutter
 
-    def test_incompatible_gears_get_separate_cutters(self):
+    def test_incompatible_gears_get_separate_cutters(self) -> None:
         a: SpurGearData = make_spur_gear_data(m_n=1.0, z=20, b=10.0)
         b: SpurGearData = make_spur_gear_data(m_n=2.0, z=20, b=10.0)  # different m_n
 
@@ -121,7 +121,7 @@ class TestBuildHobbedGearList:
         )
         assert result[0].cutter is not result[1].cutter
 
-    def test_order_preserved(self):
+    def test_order_preserved(self) -> None:
         """Output list aligns positionally with input list, regardless of grouping."""
         a: SpurGearData = make_spur_gear_data(m_n=1.0, z=20, b=10.0)
         b: SpurGearData = make_spur_gear_data(m_n=2.0, z=20, b=10.0)

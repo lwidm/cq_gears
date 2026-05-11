@@ -6,6 +6,7 @@ from . import cq_bridge
 from .core import (
     GearData,
     HelicalGearData,
+    RackGearData,
     SpurGearData,
 )
 
@@ -116,7 +117,7 @@ def compute_tooth_points(
     return result
 
 
-def _tooth_sketch(geardata: GearData, n_points: int) -> cq.Sketch:
+def _involute_tooth_sketch(geardata: GearData, n_points: int) -> cq.Sketch:
     tooth_compute_dict: dict[str, bool | np.ndarray] = compute_tooth_points(
         geardata, n_points
     )
@@ -191,24 +192,56 @@ def _tooth_sketch(geardata: GearData, n_points: int) -> cq.Sketch:
     return sketch.assemble()
 
 
-def parametric_gear_workplane(geardata: GearData, n_points: int) -> cq.Workplane:
+def _rack_tooth_sketch(geardata: RackGearData) -> cq.Sketch:
+    ha: float = geardata.ha
+    hf: float = geardata.hf
+    tip_w: float = geardata.p / 2 - 2 * np.tan(geardata.alpha_t_r) * ha
+    base_w: float = geardata.p / 2 + 2 * np.tan(geardata.alpha_t_r) * hf
 
-    tooth_sketch: cq.Sketch = _tooth_sketch(geardata, n_points)
+    return cq.Sketch().polygon(
+        [
+            (-ha, tip_w / 2),
+            (-ha, -tip_w / 2),
+            (hf, -base_w / 2),
+            (hf, base_w / 2),
+        ]
+    )
 
-    origin: cq.Workplane = cq.Workplane()
-    cylinder: cq.Workplane = origin.cylinder(geardata.b, geardata.df / 2.0, (0, 0, 1))
+
+def parametric_gear_workplane(
+    geardata: GearData, n_points: int | None = None
+) -> cq.Workplane:
+
+    origin: cq.Workplane = cq.Workplane("XY")
+
+    cylinder: cq.Workplane
+    tooth_sketch: cq.Sketch
     teeth: cq.Workplane
+    result: cq.Workplane
     match geardata:
         case SpurGearData():
+            if n_points is None:
+                raise ValueError(
+                    'SpurGearData needs a non None value for "n_points" since it constructs splines using parametric equations'
+                )
+            cylinder = origin.cylinder(geardata.b, geardata.df / 2.0, (0, 0, 1))
+            tooth_sketch = _involute_tooth_sketch(geardata, n_points)
             teeth = (
                 origin.polarArray(radius=0, startAngle=0, angle=360, count=geardata.z)
                 .placeSketch(tooth_sketch)
                 .extrude(geardata.b / 2, both=True)
             )
+            result = cylinder.union(teeth).clean()
         case HelicalGearData():
+            if n_points is None:
+                raise ValueError(
+                    'SpurGearData needs a non None value for "n_points" since it constructs splines using parametric equations'
+                )
             twist_deg = np.degrees(
                 2 * geardata.b * np.tan(geardata.beta_r) / geardata.dp
             )
+            cylinder = origin.cylinder(geardata.b, geardata.df / 2.0, (0, 0, 1))
+            tooth_sketch = _involute_tooth_sketch(geardata, n_points)
             teeth = (
                 origin.workplane(offset=-geardata.b / 2)
                 .polarArray(
@@ -217,9 +250,28 @@ def parametric_gear_workplane(geardata: GearData, n_points: int) -> cq.Workplane
                 .placeSketch(tooth_sketch)
                 .twistExtrude(geardata.b, twist_deg)
             )
+            result = cylinder.union(teeth).clean()
+        case RackGearData():
+            base_w: float = (
+                geardata.p / 2 + 2 * np.tan(geardata.alpha_t_r) * geardata.hf
+            )
+            rail: cq.Workplane = origin.workplane(
+                origin=(geardata.hf, -base_w / 2), offset=-geardata.b / 2
+            ).box(
+                geardata.rail_width,
+                geardata.p * float(geardata.z - 1) + base_w,
+                geardata.b,
+                centered=False,
+            )
+            tooth_sketch = _rack_tooth_sketch(geardata)
+            teeth = (
+                origin.rarray(0, geardata.p, 1, geardata.z, center=False)
+                .placeSketch(tooth_sketch)
+                .extrude(geardata.b / 2, both=True)
+            )
+            result = rail.union(teeth).clean()
         case _:
             raise NotImplementedError(
-                f'Currently only the following gear types are implemented: ["HelicalGear", "SpurGear"]. Got geardata of type: {type(geardata)}'
+                f'Currently only the following gear types are implemented: ["HelicalGear", "SpurGear", "RackGearData"]. Got geardata of type: {type(geardata)}'
             )
-    result: cq.Workplane = cylinder.union(teeth).clean()
     return result

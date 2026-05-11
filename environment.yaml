@@ -7,6 +7,7 @@ dependencies:
   - python=3.12
   - cadquery=master
   - cq-editor=master
+  - pytest
   - numpy
   - scipy
   - matplotlib

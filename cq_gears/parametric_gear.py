@@ -209,6 +209,60 @@ def _rack_tooth_sketch(geardata: GearData) -> cq.Sketch:
     )
 
 
+def _full_rack_section_sketch(
+    geardata: RackGearData | HelicalRackGearData,
+    *,
+    extra_teeth_per_side: int = 0,
+) -> cq.Sketch:
+    """
+    Full 2D cross-section of a parametric rack.
+
+    Origin convention: (0, 0) is the center of the first tooth, on the
+    pitch line (x = 0). Teeth tips at x = -ha; rail back at
+    x = +(hf + rail_width). Tooth array along +Y at pitch p, first
+    tooth at y = 0.
+
+    With extra_teeth_per_side > 0, extra teeth are added in BOTH +-Y
+    directions and the rail is extended to match. This is used when the
+    sketch will be swept along a tilted path and cropped afterward.
+    """
+    p: float = geardata.p
+    ha: float = geardata.ha
+    hf: float = geardata.hf
+    alpha_t: float = geardata.alpha_t
+    alpha_t_r: float = geardata.alpha_t_r
+    rho_f: float = geardata.rho_f
+    rail_width: float = geardata.rail_width
+
+    base_w: float = p / 2 + 2 * np.tan(alpha_t_r) * hf
+    n_teeth: int = geardata.z + 2 * extra_teeth_per_side
+
+    array_center_y: float = (geardata.z - 1) * p / 2
+    rail_y_length: float = (n_teeth - 1) * p + base_w
+
+    rail_x_center: float = hf + rail_width / 2
+    tooth_x_center: float = (hf - ha) / 2
+
+    sketch: cq.Sketch = (
+        cq.Sketch()
+        # Rail — centered on the tooth-array midpoint
+        .push([(rail_x_center, array_center_y)])
+        .rect(rail_width, rail_y_length)
+        # Teeth — rarray centers on the push point, so push to
+        # array_center_y rather than the first tooth's y
+        .push([(tooth_x_center, array_center_y)])
+        .rarray(1, p, 1, n_teeth)
+        .trapezoid(base_w, ha + hf, 90 - alpha_t, angle=90, mode="a")
+        .clean()
+        .reset()
+        # Round the interior corners (tooth-rail seam)
+        .vertices("not (<X or >X or <Y or >Y)")
+        .fillet(rho_f)
+        .clean()
+    )
+    return sketch
+
+
 def parametric_gear_workplane(
     geardata: GearData, n_points: int | None = None
 ) -> cq.Workplane:
@@ -277,37 +331,38 @@ def parametric_gear_workplane(
                 .fillet(geardata.rho_f)
             )
         case HelicalRackGearData():
+            half_b: float = geardata.b / 2
+            extra: int = max(
+                1, int(np.ceil(half_b * np.tan(geardata.beta_r) / geardata.p))
+            )
+            section: cq.Sketch = _full_rack_section_sketch(
+                geardata, extra_teeth_per_side=extra
+            )
+
+            y_offset: float = half_b * np.tan(geardata.beta_r)
+            sweep_path: cq.Workplane = (
+                cq.Workplane("YZ").moveTo(-y_offset, -half_b).lineTo(+y_offset, +half_b)
+            )
+
+            overshooting: cq.Workplane = origin.placeSketch(section).sweep(sweep_path)
+
             base_w: float = (
                 geardata.p / 2 + 2 * np.tan(geardata.alpha_t_r) * geardata.hf
             )
-            rail: cq.Workplane = origin.workplane(
-                origin=(geardata.hf, -base_w / 2), offset=-geardata.b / 2
-            ).box(
-                geardata.rail_width,
-                geardata.p * float(geardata.z - 1) + base_w,
-                geardata.b,
-                centered=False,
-            )
-            tooth_sketch = _rack_tooth_sketch(geardata)
-            y_offset: float = geardata.b / 2 * np.tan(geardata.beta_r)
-            sweep_path: cq.Workplane = (
-                cq.Workplane("YZ")
-                .moveTo(-y_offset, -geardata.b / 2)
-                .lineTo(+y_offset, +geardata.b / 2)
+            y_min: float = -base_w / 2
+            y_max: float = geardata.p * float(geardata.z - 1) + base_w / 2
+
+            crop_box: cq.Workplane = (
+                cq.Workplane("XY")
+                .center(0, (y_min + y_max) / 2)
+                .box(
+                    10 * (geardata.rail_width + geardata.ha),  # X — generous
+                    y_max - y_min,  # Y — exact desired length
+                    10 * geardata.b,  # Z — generous
+                )
             )
 
-            teeth = (
-                origin.rarray(0, geardata.p, 1, geardata.z, center=False)
-                .placeSketch(tooth_sketch)
-                .sweep(sweep_path)
-            )
-
-            result = (
-                rail.union(teeth)
-                .clean()
-                # .edges("not (<Y or >Y or <X or >X or #Z)")
-                # .fillet(geardata.rho_f)
-            )
+            result = overshooting.intersect(crop_box).clean()
         case _:
             raise NotImplementedError(
                 f'Currently only the following gear types are implemented: ["HelicalGear", "SpurGear", "RackGearData"]. Got geardata of type: {type(geardata)}'

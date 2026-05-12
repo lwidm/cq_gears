@@ -19,7 +19,6 @@ def _create_rack_cutter_sketch(
     ha: float = geardata.ha
     alpha_t: float = geardata.alpha_t
     alpha_t_r: float = geardata.alpha_t_r
-    rho_f: float = geardata.rho_f
 
     base_height: float = 3 * m_t
     rack_length: float = (z_eff + 4) * p
@@ -35,8 +34,6 @@ def _create_rack_cutter_sketch(
         .trapezoid(toothwidth_at_base, ha + hf, 90 - alpha_t, mode="a")
         .clean()
         .reset()
-        .vertices("not (<Y or >Y or <X or >X)")
-        .fillet(rho_f)
         .clean()
     )
 

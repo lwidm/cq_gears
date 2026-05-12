@@ -1,6 +1,7 @@
 """Fixtures shared accross all test files in tests/."""
 
 import pytest
+from typing import Callable, TypeVar
 
 from cq_gears import (
     GearData,
@@ -24,6 +25,14 @@ from cq_gears import (
     # make_hypoid_gear_data,
 )
 
+_GEAR_FIXTURE_NAMES: list[str] = []
+
+
+def _register_fixture(func: Callable) -> Callable:
+    _GEAR_FIXTURE_NAMES.append(func.__name__)
+    return pytest.fixture(func)
+
+
 # ================================================================================
 # Reference gear instances
 # -> Small, fixed inputs
@@ -31,16 +40,17 @@ from cq_gears import (
 # ================================================================================
 
 
-@pytest.fixture
+@_register_fixture
 def spur() -> SpurGearData:
     return make_spur_gear_data(m_n=1.0, z=20, b=10.0)
 
 
-@pytest.fixture
+@_register_fixture
 def helical() -> HelicalGearData:
     return make_helical_gear_data(m_n=1.0, z=20, b=10.0, beta=20.0)
 
-@pytest.fixture
+
+@_register_fixture
 def rack() -> RackGearData:
     return make_rack_gear_data(m_n=1.0, z=20, b=10.0, rail_width=0.2)
 
@@ -56,8 +66,8 @@ def internal_helical() -> InternalHelicalGearData:
 
 
 @pytest.fixture(
-    params=["spur", "helical", "rack", "internal_spur", "internal_helical"],
-    ids=["spur", "helical", "rack", "internal_spur", "internal_helical"],
+    params=_GEAR_FIXTURE_NAMES,
+    ids=_GEAR_FIXTURE_NAMES,
 )
 def any_gear(request) -> GearData:
     """
@@ -67,3 +77,12 @@ def any_gear(request) -> GearData:
     conformance, frozen-ness). The test body runs once  per gear type.
     """
     return request.getfixturevalue(request.param)
+
+
+@pytest.fixture
+def all_gear_fixtures(request) -> dict[str, object]:
+    """
+    Collection of every registered gear fixture, keyed by name. Use
+    for tests that compare ALL gears at once (registry coverage, etc.).
+    """
+    return {name: request.getfixturevalue(name) for name in _GEAR_FIXTURE_NAMES}

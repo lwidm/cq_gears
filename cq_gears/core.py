@@ -199,7 +199,7 @@ def make_spur_gear_data(
 
 
 @_register_gear_type
-@dataclass
+@dataclass(frozen=True, kw_only=True)
 class RackGearData:
     # ===== Inputs =====
     m_n: float
@@ -396,7 +396,6 @@ def make_helical_gear_data(
     )
 
 
-@_register_gear_type
 @dataclass(frozen=True, kw_only=True)
 class InternalSpurGearData:
     """
@@ -486,7 +485,6 @@ def make_internal_spur_gear_data(
     )
 
 
-@_register_gear_type
 @dataclass(frozen=True, kw_only=True)
 class InternalHelicalGearData:
     """
@@ -734,15 +732,7 @@ def make_hypoid_gear_data(
     raise NotImplementedError("Hypoid gears are not yet implemented.")
 
 
-# A union of every concrete gear data type. Use this as the parameter
-# type for dispatch helpers and any function that pattern-matches on
-# the concrete gear type
-GearDataConcrete: TypeAlias = (
-    SpurGearData | HelicalGearData | InternalSpurGearData | InternalHelicalGearData
-)
-
-
-def is_helical(gear: GearDataConcrete) -> bool:
+def is_helical(gear: GearData) -> bool:
     match gear:
         case HelicalGearData() | InternalHelicalGearData():
             return True
@@ -750,7 +740,7 @@ def is_helical(gear: GearDataConcrete) -> bool:
             return False
 
 
-def is_internal(gear: GearDataConcrete) -> bool:
+def is_internal(gear: GearData) -> bool:
     match gear:
         case InternalSpurGearData() | InternalHelicalGearData():
             return True
@@ -800,5 +790,3 @@ class HobbedGear:
     workplane: cq.Workplane
     cutter: cq.Workplane
 
-
-GearConcrete: TypeAlias = ParametricGear | HobbedGear

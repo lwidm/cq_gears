@@ -50,6 +50,61 @@ Finally, install the package in editable mode so you can modify the source:
 pip install -e .
 ```
 
+## Testing
+
+The test suite uses [pytest](https://pytest.org) and lives under `tests/`.
+
+### Installing test dependencies
+
+The conda environment file only contains the runtime dependencies. `pytest` and other development tools are not installed by `conda env create -f ./environment.yaml`. After the environment is created (or after a `pip install -e .` without dev extras), install the dev tools by re-running the editable install with the `[dev]` extras:
+
+```zsh
+pip install -e ".[dev]"
+```
+
+This pulls in `pytest` and the other development packages declared in `pyproject.toml`.
+
+### Test organization
+
+| File | Scope | Speed |
+|------|-------|-------|
+| `tests/test_core.py` | Gear data types (Protocols, factories, dispatch helpers, registries) | Fast — pure logic, no CadQuery |
+| `tests/test_rack_cutter.py` | Rack-cutter compatibility and grouping logic, cutter construction | Mixed (logic fast, construction slow) |
+| `tests/test_api.py` | End-to-end via `build_parametric_gear`, `build_hobbed_gear`, `build_hobbed_gear_list` | Slow — real CadQuery construction |
+
+Shared fixtures (canonical small gear instances per implemented gear type, plus the parametrized `any_gear` fixture) live in `tests/conftest.py`.
+
+### Running the tests
+
+From the repository root:
+
+```zsh
+# Run everything
+pytest
+
+# A single test file
+pytest tests/test_core.py
+
+# A specific test class or function
+pytest tests/test_core.py::TestSpurGearData
+pytest tests/test_core.py::TestSpurGearData::test_pitch_diameter
+
+# Substring match across test names (-k)
+pytest -k spur
+
+# Stop on first failure (useful while iterating)
+pytest -x
+
+# Verbose mode — each test name is printed
+pytest -v
+```
+
+To skip the slow CadQuery construction tests during development, run only the fast pure-data tests:
+
+```zsh
+pytest tests/test_core.py
+```
+
 ## Point array convention
 
 2D point sets in this codebase are stored as **column-stacked** `numpy` arrays of shape `(2, N)`:

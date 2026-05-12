@@ -269,7 +269,12 @@ def parametric_gear_workplane(
                 .placeSketch(tooth_sketch)
                 .extrude(geardata.b / 2, both=True)
             )
-            result = rail.union(teeth).clean()
+            result = (
+                rail.union(teeth)
+                .clean()
+                .edges("not (<Y or >Y or <X or >X or #Z)")
+                .fillet(geardata.rho_f)
+            )
         case _:
             raise NotImplementedError(
                 f'Currently only the following gear types are implemented: ["HelicalGear", "SpurGear", "RackGearData"]. Got geardata of type: {type(geardata)}'

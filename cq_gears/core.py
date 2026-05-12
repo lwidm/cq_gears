@@ -257,10 +257,10 @@ def make_rack_gear_data(
     ha: float = (ha_star + c_star + x) * m_n
     hf: float = (ha_star - x) * m_n
     rho_f: float = abs(rho_f_star) * m_n
-    dp: float = m_t * float(z)
-    db: float = dp * np.cos(alpha_t_r)
-    da: float = dp + 2 * ha
-    df: float = dp - 2 * hf
+    dp: float = np.inf
+    db: float = np.inf
+    da: float = np.inf
+    df: float = np.inf
 
     return RackGearData(
         m_n=m_n,
@@ -735,6 +735,13 @@ def make_hypoid_gear_data(
 def is_helical(gear: GearData) -> bool:
     match gear:
         case HelicalGearData() | InternalHelicalGearData():
+            return True
+        case _:
+            return False
+
+def is_rack(gear: GearData) -> bool:
+    match gear:
+        case RackGearData():
             return True
         case _:
             return False

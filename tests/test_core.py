@@ -8,6 +8,7 @@ import cadquery as cq
 from cq_gears import (
     GearData,
     SpurGearData,
+    RackGearData,
     HelicalGearData,
     InternalSpurGearData,
     InternalHelicalGearData,
@@ -17,6 +18,7 @@ from cq_gears import (
     HypoidGearData,
     make_spur_gear_data,
     make_helical_gear_data,
+    make_rack_gear_data,
     # make_internal_spur_gear_data,
     # make_internal_helical_gear_data,
     make_bevel_gear_data,
@@ -30,6 +32,7 @@ from cq_gears import (
 
 from cq_gears.core import (
     is_helical,
+    is_rack,
     is_internal,
     implemented_gear_types,
     implemented_gear_solids,
@@ -174,6 +177,35 @@ class TestHelicalGearData:
 
 
 # ================================================================================
+# RackGearData
+# ================================================================================
+class TestRackGearData:
+    def test_returns_correct_type(self, rack) -> None:
+        assert isinstance(rack, RackGearData)
+
+    def test_rail_width_stored(self, rack) -> None:
+        assert rack.rail_width == pytest.approx(0.2)
+
+    def test_inf_diameter(self, rack) -> None:
+        assert rack.dp == np.inf
+        assert rack.db == np.inf
+        assert rack.da == np.inf
+        assert rack.df == np.inf
+
+    def test_transverse_equals_normal(self, rack) -> None:
+        assert rack.m_t == rack.m_n
+        assert rack.alpha_t == rack.alpha_n
+        assert rack.alpha_t_r == rack.alpha_n_r
+
+    def test_default_alpha_n_is_20(self) -> None:
+        g: RackGearData = make_rack_gear_data(m_n=1.0, z=20, b=10.0, rail_width=0.2)
+        assert g.alpha_n == 20.0
+
+    def test_pitch_is_pi_times_module(self, rack) -> None:
+        assert rack.p == pytest.approx(np.pi * rack.m_t)
+
+
+# ================================================================================
 # InternalSpurGearData
 # ================================================================================
 
@@ -262,10 +294,11 @@ class TestDispatchHelpers:
         [
             ("spur", False),
             ("helical", True),
+            ("rack", False),
             ("internal_spur", False),
             ("internal_helical", True),
         ],
-        ids=["spur", "helical", "internal_spur", "internal_helical"],
+        ids=["spur", "helical", "rack", "internal_spur", "internal_helical"],
     )
     def test_is_helical(self, request, fixture_name, expected) -> None:
         gear: GearData = request.getfixturevalue(fixture_name)
@@ -276,33 +309,51 @@ class TestDispatchHelpers:
         [
             ("spur", False),
             ("helical", False),
+            ("rack", False),
             ("internal_spur", True),
             ("internal_helical", True),
         ],
-        ids=["spur", "helical", "internal_spur", "internal_helical"],
+        ids=["spur", "helical", "rack", "internal_spur", "internal_helical"],
     )
     def test_is_internal(self, request, fixture_name, expected) -> None:
         gear: GearData = request.getfixturevalue(fixture_name)
         assert is_internal(gear) is expected
 
+    @pytest.mark.parametrize(
+        "fixture_name, expected",
+        [
+            ("spur", False),
+            ("helical", False),
+            ("rack", True),
+            ("internal_spur", False),
+            ("internal_helical", False),
+        ],
+        ids=["spur", "helical", "rack", "internal_spur", "internal_helical"],
+    )
+    def test_is_rack(self, request, fixture_name, expected) -> None:
+        gear: GearData = request.getfixturevalue(fixture_name)
+        assert is_rack(gear) is expected
+
     def test_is_internal_and_is_helical_are_independent(
-        self, spur, helical, internal_spur, internal_helical
+        self, spur, helical, rack, internal_spur, internal_helical
     ) -> None:
         """The two flags vary independently across the four gear types."""
         # fmt: off
-        truth_table: dict[tuple[bool, bool], str] = {
-            (is_internal(spur),             is_helical(spur)):              "spur",
-            (is_internal(helical),          is_helical(helical)):           "helical",
-            (is_internal(internal_spur),    is_helical(internal_spur)):     "internal_spur",
-            (is_internal(internal_helical), is_helical(internal_helical)):  "internal_helical",
+        truth_table: dict[tuple[bool, bool, bool], str] = {
+            (is_internal(spur),             is_helical(spur),               is_rack(spur)):              "spur",
+            (is_internal(helical),          is_helical(helical),            is_rack(helical)):           "helical",
+            (is_internal(rack),             is_helical(rack),               is_rack(rack)):              "rack",
+            (is_internal(internal_spur),    is_helical(internal_spur),      is_rack(internal_spur)):     "internal_spur",
+            (is_internal(internal_helical), is_helical(internal_helical),   is_rack(internal_helical)):  "internal_helical",
         }
         # fmt: on
         # All four (internal, helical) combinations must occur exactly once
         assert set(truth_table.keys()) == {
-            (False, False),
-            (False, True),
-            (True, False),
-            (True, True),
+            (False, False, False),
+            (False, True, False),
+            (False, False, True),
+            (True, False, False),
+            (True, True, False),
         }
 
 

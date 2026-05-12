@@ -21,7 +21,6 @@ gear_data_1: cq_gears.HelicalGearData = cq_gears.make_helical_gear_data(
     beta=beta,
     ha_star=ha_star,
     c_star=c_star,
-    rho_f_star=rho_f_star,
 )
 
 gear_data_2: cq_gears.HelicalGearData = cq_gears.make_helical_gear_data(
@@ -33,7 +32,6 @@ gear_data_2: cq_gears.HelicalGearData = cq_gears.make_helical_gear_data(
     beta=beta,
     ha_star=ha_star,
     c_star=c_star,
-    rho_f_star=rho_f_star,
 )
 
 gear_list: list[cq_gears.HobbedGear] = cq_gears.build_hobbed_gear_list(

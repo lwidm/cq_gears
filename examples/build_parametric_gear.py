@@ -8,7 +8,6 @@ alpha_n: float = 20.0
 delta: float = 90.0
 ha_star: float = 1.0
 c_star: float = 0.167
-rho_f_star: float = 0.3
 
 gear_data_1: cq_gears.SpurGearData = cq_gears.make_spur_gear_data(
     m_n=m_n,
@@ -18,7 +17,6 @@ gear_data_1: cq_gears.SpurGearData = cq_gears.make_spur_gear_data(
     alpha_n=alpha_n,
     ha_star=ha_star,
     c_star=c_star,
-    rho_f_star=rho_f_star,
 )
 
 gear_data_2: cq_gears.HelicalGearData = cq_gears.make_helical_gear_data(
@@ -30,7 +28,6 @@ gear_data_2: cq_gears.HelicalGearData = cq_gears.make_helical_gear_data(
     beta=5.0,
     ha_star=ha_star,
     c_star=c_star,
-    rho_f_star=rho_f_star,
 )
 
 

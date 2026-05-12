@@ -5,9 +5,10 @@ from . import cq_bridge
 
 from .core import (
     GearData,
+    SpurGearData,
     HelicalGearData,
     RackGearData,
-    SpurGearData,
+    HelicalRackGearData,
 )
 
 
@@ -192,7 +193,7 @@ def _involute_tooth_sketch(geardata: GearData, n_points: int) -> cq.Sketch:
     return sketch.assemble()
 
 
-def _rack_tooth_sketch(geardata: RackGearData) -> cq.Sketch:
+def _rack_tooth_sketch(geardata: GearData) -> cq.Sketch:
     ha: float = geardata.ha
     hf: float = geardata.hf
     tip_w: float = geardata.p / 2 - 2 * np.tan(geardata.alpha_t_r) * ha
@@ -274,6 +275,38 @@ def parametric_gear_workplane(
                 .clean()
                 .edges("not (<Y or >Y or <X or >X or #Z)")
                 .fillet(geardata.rho_f)
+            )
+        case HelicalRackGearData():
+            base_w: float = (
+                geardata.p / 2 + 2 * np.tan(geardata.alpha_t_r) * geardata.hf
+            )
+            rail: cq.Workplane = origin.workplane(
+                origin=(geardata.hf, -base_w / 2), offset=-geardata.b / 2
+            ).box(
+                geardata.rail_width,
+                geardata.p * float(geardata.z - 1) + base_w,
+                geardata.b,
+                centered=False,
+            )
+            tooth_sketch = _rack_tooth_sketch(geardata)
+            y_offset: float = geardata.b / 2 * np.tan(geardata.beta_r)
+            sweep_path: cq.Workplane = (
+                cq.Workplane("YZ")
+                .moveTo(-y_offset, -geardata.b / 2)
+                .lineTo(+y_offset, +geardata.b / 2)
+            )
+
+            teeth = (
+                origin.rarray(0, geardata.p, 1, geardata.z, center=False)
+                .placeSketch(tooth_sketch)
+                .sweep(sweep_path)
+            )
+
+            result = (
+                rail.union(teeth)
+                .clean()
+                # .edges("not (<Y or >Y or <X or >X or #Z)")
+                # .fillet(geardata.rho_f)
             )
         case _:
             raise NotImplementedError(

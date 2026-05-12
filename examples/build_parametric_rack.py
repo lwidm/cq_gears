@@ -23,21 +23,22 @@ rack_data_1: cq_gears.RackGearData = cq_gears.make_rack_gear_data(
     rail_width=rail_width,
 )
 
-# gear_data_2: cq_gears.HelicalGearData = cq_gears.make_helical_gear_data(
-#     m_n=m_n,
-#     z=20,
-#     b=b,
-#     x=1.2,
-#     alpha_n=alpha_n,
-#     beta=5.0,
-#     ha_star=ha_star,
-#     c_star=c_star,
-#     rho_f_star=rho_f_star,
-# )
+rack_data_2: cq_gears.HelicalRackGearData = cq_gears.make_helical_rack_gear_data(
+    m_n=m_n,
+    z=20,
+    b=b,
+    x=0.0,
+    alpha_n=alpha_n,
+    beta=5.0,
+    ha_star=ha_star,
+    c_star=c_star,
+    rho_f_star=rho_f_star,
+    rail_width=rail_width,
+)
 
 
-gear1: cq_gears.ParametricGear = cq_gears.build_parametric_gear(rack_data_1, 200)
-# gear2: cq_gears.ParametricGear = cq_gears.build_parametric_gear(gear_data_2, 200)
+rack1: cq_gears.ParametricGear = cq_gears.build_parametric_gear(rack_data_1, 200)
+rack2: cq_gears.ParametricGear = cq_gears.build_parametric_gear(rack_data_2, 200)
 
-show(gear1.workplane)
-# show(gear2.workplane)
+show(rack1.workplane)
+show(rack2.workplane)

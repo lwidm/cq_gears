@@ -1,7 +1,7 @@
 import cadquery as cq
 import numpy as np
 from dataclasses import dataclass
-from typing import Protocol, runtime_checkable, TypeAlias, TypeVar
+from typing import Protocol, runtime_checkable, TypeVar
 
 _GEAR_TYPE_REGISTRY: list[type] = []
 _GEAR_SOLID_REGISTRY: list[type] = []
@@ -20,7 +20,7 @@ def implemented_gear_types() -> list[type]:
 
 
 def _register_gear_solid(klass: _GearClassT) -> _GearClassT:
-    """Decorator that marks a gear data class as implemented"""
+    """Decorator that marks a gear solid class as implemented"""
     _GEAR_SOLID_REGISTRY.append(klass)
     return klass
 
@@ -200,6 +200,109 @@ def make_spur_gear_data(
 
 @_register_gear_type
 @dataclass(frozen=True, kw_only=True)
+class HelicalGearData:
+    """
+    External helical gear data (beta > 0)
+
+    Same universal fields as SpurGearData, plus the helical-specific
+    inputs and derived fields (beta, beta_r, beta_b, beta_b_r)
+    """
+
+    # ===== Inputs =====
+    m_n: float
+    z: int
+    b: float
+    x: float
+    alpha_n: float
+    ha_star: float
+    c_star: float
+    # ===== Inputs - Helix specific =====
+    # helix angle at pitch circle [degrees] (DE: Schrägungswinkel am Teilkreis [raidan])
+    beta: float
+
+    # ===== Derived =====
+    alpha_n_r: float
+    m_t: float
+    alpha_t: float
+    alpha_t_r: float
+    p: float
+    ha: float
+    hf: float
+    dp: float
+    db: float
+    da: float
+    df: float
+    # ===== Derived - Helix specific =====
+    # helix angle at pitch circle [radian] (DE: Schrägungswinkel am Teilkreis [radian])
+    beta_r: float
+    # helix angle at base circle [degrees] (DE: Schrägungswinkel am Grundkreis [degrees])
+    beta_b: float
+    # helix angle at base circle [radian] (DE: Schrägungswinkel am Grundkreis [radian])
+    beta_b_r: float
+
+
+def make_helical_gear_data(
+    *,
+    m_n: float,
+    z: int,
+    b: float,
+    beta: float,
+    x: float = 0.0,
+    alpha_n: float = 20.0,
+    ha_star: float = 1.0,
+    c_star: float = 0.25,
+) -> HelicalGearData:
+    """Construct a HelicalGearData from user inputs, computing all derived fields."""
+
+    alpha_n_r: float = np.radians(alpha_n)
+    beta_r: float = np.radians(beta)
+
+    # Helical conversion (transverse derived from normal)
+    alpha_t_r: float = np.arctan(np.tan(alpha_n_r) / np.cos(beta_r))
+    alpha_t: float = np.degrees(alpha_t_r)
+    m_t: float = m_n / np.cos(beta_r)
+
+    # Base helix angle
+    beta_b_r: float = np.arctan(np.tan(beta_r) * np.cos(alpha_t_r))
+    beta_b: float = np.degrees(beta_b_r)
+
+    # Universal derived
+    p: float = np.pi * m_t
+    ha: float = (ha_star + x) * m_n
+    hf: float = (ha_star + c_star - x) * m_n
+    dp: float = m_t * z
+    db: float = dp * np.cos(alpha_t_r)
+    da: float = dp + 2 * ha
+    df: float = dp - 2 * hf
+
+    return HelicalGearData(
+        m_n=m_n,
+        z=z,
+        b=b,
+        beta=beta,
+        x=x,
+        alpha_n=alpha_n,
+        ha_star=ha_star,
+        c_star=c_star,
+        alpha_n_r=alpha_n_r,
+        m_t=m_t,
+        alpha_t=alpha_t,
+        alpha_t_r=alpha_t_r,
+        p=p,
+        ha=ha,
+        hf=hf,
+        dp=dp,
+        db=db,
+        da=da,
+        df=df,
+        beta_r=beta_r,
+        beta_b=beta_b,
+        beta_b_r=beta_b_r,
+    )
+
+
+@_register_gear_type
+@dataclass(frozen=True, kw_only=True)
 class RackGearData:
     # ===== Inputs =====
     m_n: float
@@ -209,7 +312,9 @@ class RackGearData:
     alpha_n: float
     ha_star: float
     c_star: float
-    # ===== Derived - Rack specific =====
+    # ===== Inputs - Rack specific =====
+    # fillet radius coefficent (DE: Fussrundingsfaktor)
+    rho_f_star: float
     # Width of rail witouth its teeth
     rail_width: float
 
@@ -226,8 +331,6 @@ class RackGearData:
     da: float
     df: float
     # ===== Derived - Rack specific =====
-    # fillet radius coefficent (DE: Fussrundingsfaktor)
-    rho_f_star: float
     # fillet radius at tip (DE: Fussrundung)
     rho_f: float
 
@@ -244,7 +347,6 @@ def make_rack_gear_data(
     c_star: float = 0.25,
     rho_f_star: float = 0.3,
 ) -> RackGearData:
-    """Constructs a SpurGearData from user inputs, computing all derived fields"""
 
     alpha_n_r: float = np.radians(alpha_n)
     # Spur: transverse equals normal
@@ -289,14 +391,7 @@ def make_rack_gear_data(
 
 @_register_gear_type
 @dataclass(frozen=True, kw_only=True)
-class HelicalGearData:
-    """
-    External helical gear data (beta > 0)
-
-    Same universal fields as SpurGearData, plus the helical-specific
-    inputs and derived fields (beta, beta_r, beta_b, beta_b_r)
-    """
-
+class HelicalRackGearData:
     # ===== Inputs =====
     m_n: float
     z: int
@@ -305,9 +400,12 @@ class HelicalGearData:
     alpha_n: float
     ha_star: float
     c_star: float
-    rho_f_star: float
     # ===== Inputs - Helix specific =====
-    # helix angle at pitch circle [degrees] (DE: Schrägungswinkel am Teilkreis [raidan])
+    # fillet radius coefficent (DE: Fussrundingsfaktor)
+    rho_f_star: float
+    # Width of rail witouth its teeth
+    rail_width: float
+    # helix angle at pitch circle [degrees] (DE: Schrägungswinkel am Teilkreis [degrees])
     beta: float
 
     # ===== Derived =====
@@ -318,12 +416,13 @@ class HelicalGearData:
     p: float
     ha: float
     hf: float
-    rho_f: float
     dp: float
     db: float
     da: float
     df: float
     # ===== Derived - Helix specific =====
+    # fillet radius at tip (DE: Fussrundung)
+    rho_f: float
     # helix angle at pitch circle [radian] (DE: Schrägungswinkel am Teilkreis [radian])
     beta_r: float
     # helix angle at base circle [degrees] (DE: Schrägungswinkel am Grundkreis [degrees])
@@ -332,19 +431,19 @@ class HelicalGearData:
     beta_b_r: float
 
 
-def make_helical_gear_data(
+def make_helical_rack_gear_data(
     *,
     m_n: float,
     z: int,
     b: float,
     beta: float,
+    rail_width: float,
     x: float = 0.0,
     alpha_n: float = 20.0,
     ha_star: float = 1.0,
     c_star: float = 0.25,
     rho_f_star: float = 0.3,
-) -> HelicalGearData:
-    """Construct a HelicalGearData from user inputs, computing all derived fields."""
+) -> HelicalRackGearData:
 
     alpha_n_r: float = np.radians(alpha_n)
     beta_r: float = np.radians(beta)
@@ -363,12 +462,12 @@ def make_helical_gear_data(
     ha: float = (ha_star + x) * m_n
     hf: float = (ha_star + c_star - x) * m_n
     rho_f: float = abs(rho_f_star) * m_n
-    dp: float = m_t * z
-    db: float = dp * np.cos(alpha_t_r)
-    da: float = dp + 2 * ha
-    df: float = dp - 2 * hf
+    dp: float = np.inf
+    db: float = np.inf
+    da: float = np.inf
+    df: float = np.inf
 
-    return HelicalGearData(
+    return HelicalRackGearData(
         m_n=m_n,
         z=z,
         b=b,
@@ -393,6 +492,7 @@ def make_helical_gear_data(
         beta_r=beta_r,
         beta_b=beta_b,
         beta_b_r=beta_b_r,
+        rail_width=rail_width,
     )
 
 
@@ -413,7 +513,6 @@ class InternalSpurGearData:
     alpha_n: float
     ha_star: float
     c_star: float
-    rho_f_star: float
 
     # ===== Derived =====
     alpha_n_r: float
@@ -423,7 +522,6 @@ class InternalSpurGearData:
     p: float
     ha: float
     hf: float
-    rho_f: float
     dp: float
     db: float
     da: float
@@ -439,7 +537,6 @@ def make_internal_spur_gear_data(
     alpha_n: float = 20.0,
     ha_star: float = 1.0,
     c_star: float = 0.25,
-    rho_f_star: float = 0.3,
 ) -> InternalSpurGearData:
     """Construct an InternalSpurGearData from user inputs, computing all derived fields."""
     # BUG : unverified math (just intuition for now)
@@ -453,7 +550,6 @@ def make_internal_spur_gear_data(
     p: float = np.pi * m_t
     ha: float = (ha_star + x) * m_n
     hf: float = (ha_star + c_star - x) * m_n
-    rho_f: float = abs(rho_f_star) * m_n
     dp: float = m_t * z
     db: float = dp * np.cos(alpha_t_r)
 
@@ -469,7 +565,6 @@ def make_internal_spur_gear_data(
         alpha_n=alpha_n,
         ha_star=ha_star,
         c_star=c_star,
-        rho_f_star=rho_f_star,
         alpha_n_r=alpha_n_r,
         m_t=m_t,
         alpha_t=alpha_t,
@@ -477,7 +572,6 @@ def make_internal_spur_gear_data(
         p=p,
         ha=ha,
         hf=hf,
-        rho_f=rho_f,
         dp=dp,
         db=db,
         da=da,
@@ -503,7 +597,6 @@ class InternalHelicalGearData:
     alpha_n: float
     ha_star: float
     c_star: float
-    rho_f_star: float
     # ===== Inputs - Helix specific =====
     # helix angle at pitch circle [degrees] (DE: Schrägungswinkel am Teilkreis [grad])
     beta: float
@@ -516,7 +609,6 @@ class InternalHelicalGearData:
     p: float
     ha: float
     hf: float
-    rho_f: float
     dp: float
     db: float
     da: float
@@ -540,7 +632,6 @@ def make_internal_helical_gear_data(
     alpha_n: float = 20.0,
     ha_star: float = 1.0,
     c_star: float = 0.25,
-    rho_f_star: float = 0.3,
 ) -> InternalHelicalGearData:
     """Construct an InternalHelicalGearData from user inputs, computing all derived fields."""
     # BUG : unverified math (just intuition for now)
@@ -561,7 +652,6 @@ def make_internal_helical_gear_data(
     p: float = np.pi * m_t
     ha: float = (ha_star + x) * m_n
     hf: float = (ha_star + c_star - x) * m_n
-    rho_f: float = abs(rho_f_star) * m_n
     dp: float = m_t * z
     db: float = dp * np.cos(alpha_t_r)
 
@@ -578,7 +668,6 @@ def make_internal_helical_gear_data(
         alpha_n=alpha_n,
         ha_star=ha_star,
         c_star=c_star,
-        rho_f_star=rho_f_star,
         alpha_n_r=alpha_n_r,
         m_t=m_t,
         alpha_t=alpha_t,
@@ -586,7 +675,6 @@ def make_internal_helical_gear_data(
         p=p,
         ha=ha,
         hf=hf,
-        rho_f=rho_f,
         dp=dp,
         db=db,
         da=da,
@@ -611,7 +699,6 @@ class BevelGearData:
     alpha_n: float
     ha_star: float
     c_star: float
-    rho_f_star: float
     # ===== Inputs - Bevel gear specific =====
     # pitch cone angle [degrees] (DE: Teilkegelwinkel)
     delta: float
@@ -624,7 +711,6 @@ class BevelGearData:
     p: float
     ha: float
     hf: float
-    rho_f: float
     dp: float
     db: float
     da: float
@@ -644,7 +730,6 @@ def make_bevel_gear_data(
     alpha_n: float = 20.0,
     ha_star: float = 1.0,
     c_star: float = 0.25,
-    rho_f_star: float = 0.3,
 ) -> BevelGearData:
     """Construct a BevelGearData. Not yet implemented."""
     raise NotImplementedError("Bevel gears are not yet implemented.")
@@ -670,7 +755,6 @@ def make_worm_gear_data(
     alpha_n: float = 20.0,
     ha_star: float = 1.0,
     c_star: float = 0.25,
-    rho_f_star: float = 0.3,
 ) -> WormGearData:
     """Construct a WormGearData. Not yet implemented."""
     raise NotImplementedError("Worm gears are not yet implemented.")
@@ -698,7 +782,6 @@ def make_crossed_helical_gear_data(
     alpha_n: float = 20.0,
     ha_star: float = 1.0,
     c_star: float = 0.25,
-    rho_f_star: float = 0.3,
 ) -> CrossedHelicalGearData:
     """Construct a CrossedHelicalGearData. Not yet implemented."""
     raise NotImplementedError("Crossed helical gears are not yet implemented.")
@@ -726,7 +809,6 @@ def make_hypoid_gear_data(
     alpha_n: float = 20.0,
     ha_star: float = 1.0,
     c_star: float = 0.25,
-    rho_f_star: float = 0.3,
 ) -> HypoidGearData:
     """Construct a HypoidGearData. Not yet implemented."""
     raise NotImplementedError("Hypoid gears are not yet implemented.")
@@ -734,14 +816,15 @@ def make_hypoid_gear_data(
 
 def is_helical(gear: GearData) -> bool:
     match gear:
-        case HelicalGearData() | InternalHelicalGearData():
+        case HelicalGearData() | HelicalRackGearData() | InternalHelicalGearData():
             return True
         case _:
             return False
 
+
 def is_rack(gear: GearData) -> bool:
     match gear:
-        case RackGearData():
+        case RackGearData() | HelicalRackGearData():
             return True
         case _:
             return False
@@ -796,4 +879,3 @@ class HobbedGear:
     data: GearData
     workplane: cq.Workplane
     cutter: cq.Workplane
-

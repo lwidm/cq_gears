@@ -8,8 +8,9 @@ import cadquery as cq
 from cq_gears import (
     GearData,
     SpurGearData,
-    RackGearData,
     HelicalGearData,
+    RackGearData,
+    HelicalRackGearData,
     InternalSpurGearData,
     InternalHelicalGearData,
     BevelGearData,
@@ -19,6 +20,7 @@ from cq_gears import (
     make_spur_gear_data,
     make_helical_gear_data,
     make_rack_gear_data,
+    make_helical_rack_gear_data,
     # make_internal_spur_gear_data,
     # make_internal_helical_gear_data,
     make_bevel_gear_data,
@@ -166,8 +168,8 @@ class TestHelicalGearData:
 
     def test_spur_limit(self) -> None:
         """beta -> 0 should reproduce spur geometry."""
-        g_h = make_helical_gear_data(m_n=1.0, z=20, b=10.0, beta=1e-12)
-        g_s = make_spur_gear_data(m_n=1.0, z=20, b=10.0)
+        g_h: HelicalGearData = make_helical_gear_data(m_n=1.0, z=20, b=10.0, beta=1e-12)
+        g_s: SpurGearData = make_spur_gear_data(m_n=1.0, z=20, b=10.0)
         assert g_h.m_t == pytest.approx(g_s.m_t)
         assert g_h.alpha_t == pytest.approx(g_s.alpha_t)
         assert g_h.dp == pytest.approx(g_s.dp)
@@ -203,6 +205,66 @@ class TestRackGearData:
 
     def test_pitch_is_pi_times_module(self, rack) -> None:
         assert rack.p == pytest.approx(np.pi * rack.m_t)
+
+
+# ================================================================================
+# HelicalRackGearData
+# ================================================================================
+class TestHelicalRackGearData:
+    def test_returns_correct_type(self, helical_rack) -> None:
+        assert isinstance(helical_rack, HelicalRackGearData)
+
+    def test_rail_width_stored(self, helical_rack) -> None:
+        assert helical_rack.rail_width == pytest.approx(0.2)
+
+    def test_inf_diameter(self, helical_rack) -> None:
+        assert helical_rack.dp == np.inf
+        assert helical_rack.db == np.inf
+        assert helical_rack.da == np.inf
+        assert helical_rack.df == np.inf
+
+    def test_alpha_t_helical_conversion(self, helical_rack) -> None:
+        # tan(alpha_t) = tan(alpha_n) / cos(beta)
+        expected = np.degrees(
+            np.atan(np.tan(np.radians(20.0)) / np.cos(np.radians(20.0)))
+        )
+        assert helical_rack.alpha_t == pytest.approx(expected)
+
+    def test_m_t_helical_conversion(self, helical_rack) -> None:
+        # m_t = m_n / cos(beta)
+        expected = 1.0 / np.cos(np.radians(20.0))
+        assert helical_rack.m_t == pytest.approx(expected)
+
+    def test_beta_b_helical_conversion(self, helical_rack) -> None:
+        # tan(beta_b) = tan(beta) * cos(alpha_t)
+        expected = np.degrees(
+            np.atan(np.tan(np.radians(20.0)) * np.cos(np.radians(helical_rack.alpha_t)))
+        )
+        assert helical_rack.beta_b == pytest.approx(expected)
+
+    def test_transverse_module_larger_than_normal(self, helical_rack) -> None:
+        assert helical_rack.m_t > helical_rack.m_n
+
+    def test_transverse_pressure_angle_larger_than_normal(self, helical_rack) -> None:
+        assert helical_rack.alpha_t > helical_rack.alpha_n
+
+    def test_base_helix_angle_smaller_than_pitch_helix_angle(
+        self, helical_rack
+    ) -> None:
+        assert helical_rack.beta_b < helical_rack.beta
+
+    def test_rack_spur_limit(self) -> None:
+        """beta -> 0 should reproduce spur rack geometry."""
+        g_h: HelicalRackGearData = make_helical_rack_gear_data(
+            m_n=1.0, z=20, b=10.0, beta=1e-12, rail_width=0.2
+        )
+        g_s: RackGearData = make_rack_gear_data(m_n=1.0, z=20, b=10.0, rail_width=0.2)
+        assert g_h.m_t == pytest.approx(g_s.m_t)
+        assert g_h.alpha_t == pytest.approx(g_s.alpha_t)
+        assert g_h.dp == pytest.approx(g_s.dp)
+        assert g_h.db == pytest.approx(g_s.db)
+        assert g_h.da == pytest.approx(g_s.da)
+        assert g_h.df == pytest.approx(g_s.df)
 
 
 # ================================================================================
@@ -295,10 +357,18 @@ class TestDispatchHelpers:
             ("spur", False),
             ("helical", True),
             ("rack", False),
+            ("helical_rack", True),
             ("internal_spur", False),
             ("internal_helical", True),
         ],
-        ids=["spur", "helical", "rack", "internal_spur", "internal_helical"],
+        ids=[
+            "spur",
+            "helical",
+            "rack",
+            "helical_rack",
+            "internal_spur",
+            "internal_helical",
+        ],
     )
     def test_is_helical(self, request, fixture_name, expected) -> None:
         gear: GearData = request.getfixturevalue(fixture_name)
@@ -310,10 +380,18 @@ class TestDispatchHelpers:
             ("spur", False),
             ("helical", False),
             ("rack", False),
+            ("helical_rack", False),
             ("internal_spur", True),
             ("internal_helical", True),
         ],
-        ids=["spur", "helical", "rack", "internal_spur", "internal_helical"],
+        ids=[
+            "spur",
+            "helical",
+            "rack",
+            "helical_rack",
+            "internal_spur",
+            "internal_helical",
+        ],
     )
     def test_is_internal(self, request, fixture_name, expected) -> None:
         gear: GearData = request.getfixturevalue(fixture_name)
@@ -325,17 +403,25 @@ class TestDispatchHelpers:
             ("spur", False),
             ("helical", False),
             ("rack", True),
+            ("helical_rack", True),
             ("internal_spur", False),
             ("internal_helical", False),
         ],
-        ids=["spur", "helical", "rack", "internal_spur", "internal_helical"],
+        ids=[
+            "spur",
+            "helical",
+            "rack",
+            "helical_rack",
+            "internal_spur",
+            "internal_helical",
+        ],
     )
     def test_is_rack(self, request, fixture_name, expected) -> None:
         gear: GearData = request.getfixturevalue(fixture_name)
         assert is_rack(gear) is expected
 
     def test_is_internal_and_is_helical_are_independent(
-        self, spur, helical, rack, internal_spur, internal_helical
+        self, spur, helical, rack, helical_rack, internal_spur, internal_helical
     ) -> None:
         """The two flags vary independently across the four gear types."""
         # fmt: off
@@ -343,6 +429,7 @@ class TestDispatchHelpers:
             (is_internal(spur),             is_helical(spur),               is_rack(spur)):              "spur",
             (is_internal(helical),          is_helical(helical),            is_rack(helical)):           "helical",
             (is_internal(rack),             is_helical(rack),               is_rack(rack)):              "rack",
+            (is_internal(helical_rack),     is_helical(helical_rack),       is_rack(helical_rack)):      "helical_rack",
             (is_internal(internal_spur),    is_helical(internal_spur),      is_rack(internal_spur)):     "internal_spur",
             (is_internal(internal_helical), is_helical(internal_helical),   is_rack(internal_helical)):  "internal_helical",
         }
@@ -352,6 +439,7 @@ class TestDispatchHelpers:
             (False, False, False),
             (False, True, False),
             (False, False, True),
+            (False, True, True),
             (True, False, False),
             (True, True, False),
         }

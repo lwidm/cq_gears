@@ -143,6 +143,14 @@ class TestCreateRackCutter:
         assert isinstance(cutter, cq.Workplane)
         assert cutter.val() is not None
 
+    def test_rack_raises_not_implemented(self, rack) -> None:
+        with pytest.raises(NotImplementedError):
+            create_rack_cutter(rack)
+
+    def test_helical_rack_raises_not_implemented(self, helical_rack) -> None:
+        with pytest.raises(NotImplementedError):
+            create_rack_cutter(helical_rack)
+
     def test_internal_spur_raises_not_implemented(self, internal_spur) -> None:
         with pytest.raises(NotImplementedError):
             create_rack_cutter(internal_spur)

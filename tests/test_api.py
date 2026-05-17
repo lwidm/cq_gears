@@ -55,6 +55,24 @@ class TestBuildHobbedGear:
         assert isinstance(hg, HobbedGear)
         assert hg.data is helical
 
+    def test_rack_raises(self, rack) -> None:
+        with pytest.raises(NotImplementedError):
+            cq_gears.build_hobbed_gear(
+                geardata=rack,
+                n_cut_positions=4,
+                visualize=None,
+                gear_index=0,
+            )
+
+    def test_helical_rack_raises(self, helical_rack) -> None:
+        with pytest.raises(NotImplementedError):
+            cq_gears.build_hobbed_gear(
+                geardata=helical_rack,
+                n_cut_positions=4,
+                visualize=None,
+                gear_index=0,
+            )
+
     def test_internal_spur_raises(self, internal_spur) -> None:
         with pytest.raises(NotImplementedError):
             cq_gears.build_hobbed_gear(

@@ -10,7 +10,7 @@ from pathlib import Path
 from . import geometry
 from . import core
 from . import parametric_gear
-from .core import GearData, SpurGearData
+from .core import GearData, HelicalGearData, SpurGearData, RackGearData
 
 __all__ = [
     # Static plots
@@ -1041,9 +1041,170 @@ def plot_tooth_profile(
     return ax
 
 
+def plot_rack_profile(
+    ax: Axes,
+    rack_geardata: RackGearData,
+    arc_type: Literal["Arc", "points"],
+    tooth_offset: float,
+    **kwargs,
+) -> Axes:
+    z: int = rack_geardata.z
+    ha: float = rack_geardata.ha
+    hf: float = rack_geardata.hf
+    p: float = rack_geardata.p
+    rail_w: float = rack_geardata.rail_width
+    rho_f: float = rack_geardata.rho_f
+    alpha: float = rack_geardata.alpha_t_r
+
+    plot_array: np.ndarray
+
+    if z < 2:
+        raise ValueError(
+            f"needs at least 2 teeth to plot rack profile. Instead got {z} teeth"
+        )
+
+    y_shift: float = -tooth_offset * p
+
+    tip_w: float = p / 2 - 2 * np.tan(alpha) * ha
+    base_w: float = p / 2 + 2 * np.tan(alpha) * hf
+
+    beta: float = (np.pi / 2 + alpha) / 2
+    gamma: float = np.pi / 2 - alpha
+    d: float = rho_f / np.tan(beta)
+    e: float = d * np.sin(alpha)
+
+    a_x: float = hf
+    a_y: float = d + base_w / 2
+    b_x: float = -(d * np.cos(alpha)) + hf
+    b_y: float = -(d * np.sin(alpha)) + base_w / 2
+    c_x: float = hf - rho_f
+    c_y: float = d + base_w / 2
+
+    arc_enter_t1: float = np.degrees(0)
+    arc_enter_t2: float = np.degrees(gamma)
+    arc_exit_t1: float = np.degrees(-gamma)
+    arc_exit_t2: float = np.degrees(0)
+
+    points_list: list[np.ndarray] = []
+
+    # --- Helpers ---
+
+    def add_arc_patch(y_center: float, t1: float, t2: float) -> None:
+        ax.add_patch(
+            Arc(
+                (c_x, c_y + y_center + y_shift),
+                2 * rho_f,
+                2 * rho_f,
+                theta1=t1,
+                theta2=t2,
+                **kwargs,
+            )
+        )
+
+    def fillet_points(
+        angle_start: float, angle_end: float, y_center: float
+    ) -> np.ndarray:
+        return _arc_points(
+            rho_f,
+            angle_start,
+            angle_end,
+            center=(c_x, c_y + y_center),
+            dir="counterclockwise",
+            unit="radian",
+        )
+
+    def make_tip(y_offset: float) -> np.ndarray:
+        return np.asarray(
+            [
+                [-ha, -ha],
+                [-tip_w / 2, tip_w / 2],
+            ]
+        ) + np.asarray([[0], [y_offset]])
+
+    def append_enter_fillet(
+        tooth_number: int, points_list: list[np.ndarray], ax: Axes
+    ) -> tuple[Axes, list[np.ndarray]]:
+        fillet_center_offset: float = p * tooth_number - base_w - 2 * d
+        fillet_tooth_offset: float = p * tooth_number - base_w + 2 * e
+        if arc_type == "points":
+            points_list.append(fillet_points(0, gamma, fillet_center_offset))
+        else:
+            points_list.append(np.asarray([[a_x], [a_y + fillet_center_offset]]))
+            plot_array = np.hstack(points_list)
+            plot_array[1, :] += y_shift
+            points_list = []
+            ax = _plot_points(ax, [plot_array], **kwargs)
+            add_arc_patch(fillet_center_offset, arc_enter_t1, arc_enter_t2)
+            points_list.append(np.asarray([[b_x], [b_y + fillet_tooth_offset]]))
+
+        return ax, points_list
+
+    def append_exit_fillet(
+        tooth_number: float, points_list: list[np.ndarray], ax: Axes
+    ) -> tuple[Axes, list[np.ndarray]]:
+        fillet_center_offset: float = p * tooth_number
+        fillet_tooth_offset: float = p * tooth_number
+        if arc_type == "points":
+            points_list.append(fillet_points(-gamma, 0, fillet_center_offset))
+        else:
+            points_list.append(np.asarray([[b_x], [b_y + fillet_tooth_offset]]))
+            plot_array = np.hstack(points_list)
+            plot_array[1, :] += y_shift
+            points_list = []
+            ax = _plot_points(ax, [plot_array], **kwargs)
+            add_arc_patch(fillet_center_offset, arc_exit_t1, arc_exit_t2)
+            points_list.append(np.asarray([[a_x], [a_y + fillet_center_offset]]))
+
+        return ax, points_list
+
+    # --- Profile construction ---
+
+    first_tooth: np.ndarray = np.asarray(
+        [
+            [hf + rail_w, hf, -ha, -ha],
+            [-base_w / 2, -base_w / 2, -tip_w / 2, tip_w / 2],
+        ]
+    )
+
+    points_list.append(first_tooth)
+    ax, points_list = append_exit_fillet(0, points_list, ax)
+
+    for i in range(1, z - 1):
+        ax, points_list = append_enter_fillet(i, points_list, ax)
+        points_list.append(make_tip(p * i))
+        ax, points_list = append_exit_fillet(i, points_list, ax)
+
+    ax, points_list = append_enter_fillet(z-1, points_list, ax)
+
+    last_tooth: np.ndarray = np.asarray(
+        [
+            [-ha, -ha, hf, hf + rail_w],
+            [-tip_w / 2, tip_w / 2, base_w / 2, base_w / 2],
+        ]
+    ) + np.asarray([[0], [p * (z - 1)]])
+
+    points_list.append(last_tooth)
+
+    points_list.append(
+        np.asarray(
+            [
+                [hf + rail_w, hf + rail_w],
+                [base_w / 2 + p * (z - 1), -base_w / 2],
+            ]
+        )
+    )
+
+    plot_array = np.hstack(points_list)
+    plot_array[1, :] += y_shift
+
+    ax = _plot_points(ax, [plot_array], **kwargs)
+
+    return ax
+
+
 def plot_gear_profile(
     ax: Axes,
-    geardata: GearData,
+    geardata: SpurGearData | HelicalGearData,
     center: tuple[float, float],
     rotation: float,
     n_points: int,

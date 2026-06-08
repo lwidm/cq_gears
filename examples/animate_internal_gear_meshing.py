@@ -24,7 +24,6 @@ geardata_ring: cq_gears.SpurGearData = cq_gears.make_spur_gear_data(
     alpha_n=alpha_n,
     ha_star=ha_star,
     c_star=c_star,
-    rho_f_star=rho_f_star,
 )
 
 geardata_pinion: cq_gears.SpurGearData = cq_gears.make_spur_gear_data(
@@ -35,13 +34,13 @@ geardata_pinion: cq_gears.SpurGearData = cq_gears.make_spur_gear_data(
     alpha_n=alpha_n,
     ha_star=ha_star,
     c_star=c_star,
-    rho_f_star=rho_f_star,
 )
 
 
 def main() -> None:
     output_dir: Path = Path("output")
     show_gears: bool = True
+    show_rack: bool = True
     show_line: bool = True
     show_string: bool = False
 
@@ -54,6 +53,7 @@ def main() -> None:
         geardata_pinion.dp,
         20.0 / 180 * 2 * np.pi,
         show_gears=show_gears,
+        show_rack=show_rack,
         show_line=show_line,
         show_string=show_string,
         geardata_ring=geardata_ring,
@@ -67,6 +67,7 @@ def main() -> None:
         output_dir=output_dir,
         video_length=10,
         show_gears=show_gears,
+        show_rack=show_rack,
         show_line=show_line,
         show_string=show_string,
         geardata_ring=geardata_ring,

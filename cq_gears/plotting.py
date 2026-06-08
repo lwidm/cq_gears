@@ -10,7 +10,13 @@ from pathlib import Path
 from . import geometry
 from . import core
 from . import parametric_gear
-from .core import GearData, HelicalGearData, SpurGearData, RackGearData
+from .core import (
+    GearData,
+    HelicalGearData,
+    SpurGearData,
+    RackGearData,
+    make_rack_gear_data,
+)
 
 __all__ = [
     # Static plots
@@ -700,6 +706,7 @@ def plot_meshing_circles(
     dp_pinion: float,
     phi: float,
     show_gears: bool,
+    show_rack: bool,
     show_line: bool,
     show_string: bool,
     *,
@@ -749,6 +756,44 @@ def plot_meshing_circles(
             zorder=zorder,
         )
         zorder += 1
+
+    if show_rack:
+        if geardata_ring is None or geardata_pinion is None:
+            raise ValueError(
+                "if show_rack is true geardata_ring and geardata_pinion must be non None"
+            )
+        rack_geardata: RackGearData = make_rack_gear_data(
+            m_n=geardata_pinion.m_n,
+            z=20,
+            b=geardata_pinion.b,
+            rail_width=geardata_pinion.m_n / 2,
+            x=-geardata_pinion.x,
+            alpha_n=geardata_pinion.alpha_n,
+            ha_star=geardata_pinion.ha_star,
+            c_star=geardata_pinion.c_star,
+            rho_f_star=0.3,
+        )
+        transforms: list[
+            tuple[Literal["rotate"], float]
+            | tuple[Literal["translate"], tuple[float, float]]
+        ] = [
+            ("translate", (geardata_pinion.dp / 2, 0)),
+            ("rotate", -phi),
+            ("translate", (geardata_ring.dp / 2 - geardata_pinion.dp / 2, 0)),
+            ("rotate", (phi*geardata_pinion.dp/geardata_ring.dp)),
+        ]
+
+        plot_rack_profile(
+            ax=ax,
+            rack_geardata=rack_geardata,
+            arc_type="points",
+            tooth_offset=0,
+            transforms=transforms,
+            linewidth=lw,
+            linestyle="-",
+            color="white",
+            zorder=zorder,
+        )
 
     ax.set_aspect("equal")
     lim = dp_ring / 2 + 1
@@ -865,6 +910,7 @@ def plot_meshing_circles(
             )
             ax.add_patch(circle)
             zorder += 1
+
     return ax
 
 
@@ -872,6 +918,7 @@ def animate_meshing_circles(
     output_dir: Path,
     video_length: float,
     show_gears: bool,
+    show_rack: bool,
     show_line: bool,
     show_string: bool,
     geardata_ring: GearData | None = None,
@@ -900,6 +947,7 @@ def animate_meshing_circles(
                 geardata_pinion.dp,
                 phi,
                 show_gears=show_gears,
+                show_rack=show_rack,
                 show_line=show_line,
                 show_string=show_string,
                 geardata_ring=geardata_ring,
@@ -914,6 +962,7 @@ def animate_meshing_circles(
                 2.0,
                 phi,
                 show_gears=False,
+                show_rack=show_rack,
                 show_line=show_line,
                 show_string=show_string,
                 geardata_ring=None,

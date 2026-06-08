@@ -14,7 +14,6 @@ geardata: cq_gears.SpurGearData = cq_gears.make_spur_gear_data(
     alpha_n=20.0,
     ha_star=1.0,
     c_star=0.167,
-    rho_f_star=0.3,
 )
 
 fig, ax = plt.subplots(figsize=(5, 5))

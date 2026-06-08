@@ -87,7 +87,7 @@ def main() -> None:
     transforms_rtr: Transform = [
         ("rotate", np.radians(20)),
         ("translate", (10.0, -3.0)),
-        ("rotate", np.radians(-40)),
+        ("rotate", np.radians(-20)),
     ]
 
     ax = cqg_plt.plot_rack_profile(

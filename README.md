@@ -2,6 +2,10 @@
 
 Parametric involute gear generation for [CadQuery](https://github.com/CadQuery/cadquery), built around analytical curve equations rather than boolean cuts. Follows DIN / ISO 21771 conventions.
 
+## TODO
+- the tooth shift in the rack plotting doesnt work anymore. It needs to be converted to a translate in the transform that happens at the very start
+- The rolling of the rack in the meshing animation does not work anymore
+
 ## Overview
 
 `cq_gears` produces high-precision involute gear solids in CadQuery. Two construction methods are available:

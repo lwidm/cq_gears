@@ -434,7 +434,6 @@ def _compute_undercut_plot_data(
         alpha_n=20.0,
         ha_star=1.0,
         c_star=0.167,
-        rho_f_star=0.3,
     )
     df: float = geardata.df
     db: float = geardata.db
@@ -705,7 +704,7 @@ def plot_meshing_circles(
     show_string: bool,
     *,
     geardata_ring: GearData | None = None,
-    geardata_pinion: GearData | None = None,
+    geardata_pinion: SpurGearData | HelicalGearData | None = None,
     phi_0: float | None = None,
     phi_max: float | None = None,
 ) -> Axes:
@@ -876,7 +875,7 @@ def animate_meshing_circles(
     show_line: bool,
     show_string: bool,
     geardata_ring: GearData | None = None,
-    geardata_pinion: GearData | None = None,
+    geardata_pinion: SpurGearData | HelicalGearData | None = None,
 ):
     temp_dir = output_dir / "internal_rolling_circles"
     temp_dir.mkdir(exist_ok=True)
@@ -1423,7 +1422,6 @@ def plot_profile_shift_comparison(
             alpha_n=20.0,
             ha_star=1.0,
             c_star=0.25,
-            rho_f_star=0.3,
         )
         for x_val in x_values
     ]

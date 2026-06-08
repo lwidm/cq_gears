@@ -181,7 +181,7 @@ def translate(points: np.ndarray, translation: tuple[float, float]) -> np.ndarra
 
 
 def translate_list(
-    points_list: np.ndarray, translation: tuple[float, float]
+    points_list: list[np.ndarray], translation: tuple[float, float]
 ) -> list[np.ndarray]:
     translated: list[np.ndarray] = []
     for points in points_list:

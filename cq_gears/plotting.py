@@ -1046,6 +1046,13 @@ def plot_rack_profile(
     rack_geardata: RackGearData,
     arc_type: Literal["Arc", "points"],
     tooth_offset: float,
+    transforms: (
+        list[
+            tuple[Literal["rotate"], float]
+            | tuple[Literal["translate"], tuple[float, float]]
+        ]
+        | None
+    ),
     **kwargs,
 ) -> Axes:
     z: int = rack_geardata.z
@@ -1056,6 +1063,8 @@ def plot_rack_profile(
     rho_f: float = rack_geardata.rho_f
     alpha: float = rack_geardata.alpha_t_r
 
+    arc_patches: list[tuple[np.ndarray, float, float]] = []
+    line_segments: list[np.ndarray] = []
     plot_array: np.ndarray
 
     if z < 2:
@@ -1090,16 +1099,8 @@ def plot_rack_profile(
     # --- Helpers ---
 
     def add_arc_patch(y_center: float, t1: float, t2: float) -> None:
-        ax.add_patch(
-            Arc(
-                (c_x, c_y + y_center + y_shift),
-                2 * rho_f,
-                2 * rho_f,
-                theta1=t1,
-                theta2=t2,
-                **kwargs,
-            )
-        )
+        center: np.ndarray = np.array([[c_x], [c_y + y_center + y_shift]])
+        arc_patches.append((center, t1, t2))
 
     def fillet_points(
         angle_start: float, angle_end: float, y_center: float
@@ -1130,13 +1131,12 @@ def plot_rack_profile(
             points_list.append(fillet_points(0, gamma, fillet_center_offset))
         else:
             points_list.append(np.asarray([[a_x], [a_y + fillet_center_offset]]))
-            plot_array = np.hstack(points_list)
-            plot_array[1, :] += y_shift
+            segment = np.hstack(points_list)
+            segment[1, :] += y_shift
+            line_segments.append(segment)
             points_list = []
-            ax = _plot_points(ax, [plot_array], **kwargs)
             add_arc_patch(fillet_center_offset, arc_enter_t1, arc_enter_t2)
             points_list.append(np.asarray([[b_x], [b_y + fillet_tooth_offset]]))
-
         return ax, points_list
 
     def append_exit_fillet(
@@ -1148,13 +1148,12 @@ def plot_rack_profile(
             points_list.append(fillet_points(-gamma, 0, fillet_center_offset))
         else:
             points_list.append(np.asarray([[b_x], [b_y + fillet_tooth_offset]]))
-            plot_array = np.hstack(points_list)
-            plot_array[1, :] += y_shift
+            segment = np.hstack(points_list)
+            segment[1, :] += y_shift
+            line_segments.append(segment)
             points_list = []
-            ax = _plot_points(ax, [plot_array], **kwargs)
             add_arc_patch(fillet_center_offset, arc_exit_t1, arc_exit_t2)
             points_list.append(np.asarray([[a_x], [a_y + fillet_center_offset]]))
-
         return ax, points_list
 
     # --- Profile construction ---
@@ -1174,7 +1173,7 @@ def plot_rack_profile(
         points_list.append(make_tip(p * i))
         ax, points_list = append_exit_fillet(i, points_list, ax)
 
-    ax, points_list = append_enter_fillet(z-1, points_list, ax)
+    ax, points_list = append_enter_fillet(z - 1, points_list, ax)
 
     last_tooth: np.ndarray = np.asarray(
         [
@@ -1184,7 +1183,6 @@ def plot_rack_profile(
     ) + np.asarray([[0], [p * (z - 1)]])
 
     points_list.append(last_tooth)
-
     points_list.append(
         np.asarray(
             [
@@ -1197,7 +1195,73 @@ def plot_rack_profile(
     plot_array = np.hstack(points_list)
     plot_array[1, :] += y_shift
 
-    ax = _plot_points(ax, [plot_array], **kwargs)
+    # --- Apply transforms and plot ---
+
+    if arc_type == "points":
+        if transforms:
+            for transform_type, value in transforms:
+                match transform_type:
+                    case "rotate":
+                        assert isinstance(
+                            value, float
+                        ), f'rotate needs a single float: ("rotate", angle)'
+                        plot_array = geometry.rotate(plot_array, value)
+                    case "translate":
+                        assert isinstance(
+                            value, tuple
+                        ), f'translate needs a float tuple: ("translate", (dx, dy))'
+                        plot_array = geometry.translate(plot_array, value)
+        ax = _plot_points(ax, [plot_array], **kwargs)
+
+    else:  # arc_type == "Arc"
+        # flush the final segment
+        if points_list:
+            segment = np.hstack(points_list)
+            segment[1, :] += y_shift
+            line_segments.append(segment)
+
+        if transforms:
+            for transform_type, value in transforms:
+                match transform_type:
+                    case "rotate":
+                        assert isinstance(
+                            value, float
+                        ), f'rotate needs a single float: ("rotate", angle)'
+                        line_segments = geometry.rotate_list(line_segments, value)
+                    case "translate":
+                        assert isinstance(
+                            value, tuple
+                        ), f'translate needs a float tuple: ("translate", (dx, dy))'
+                        line_segments = geometry.translate_list(line_segments, value)
+
+        ax = _plot_points(ax, line_segments, **kwargs)
+
+        for center, t1, t2 in arc_patches:
+            if transforms:
+                for transform_type, value in transforms:
+                    match transform_type:
+                        case "rotate":
+                            assert isinstance(
+                                value, float
+                            ), f'rotate needs a single float: ("rotate", angle)'
+                            center = geometry.rotate(center, value)
+                            t1 += np.degrees(value)
+                            t2 += np.degrees(value)
+                        case "translate":
+                            assert isinstance(
+                                value, tuple
+                            ), f'translate needs a float tuple: ("translate", (dx, dy))'
+                            center = geometry.translate(center, value)
+            ax.add_patch(
+                Arc(
+                    (center[0, 0], center[1, 0]),
+                    2 * rho_f,
+                    2 * rho_f,
+                    theta1=t1,
+                    theta2=t2,
+                    **kwargs,
+                )
+            )
 
     return ax
 

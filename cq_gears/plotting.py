@@ -777,10 +777,10 @@ def plot_meshing_circles(
             tuple[Literal["rotate"], float]
             | tuple[Literal["translate"], tuple[float, float]]
         ] = [
-            ("translate", (geardata_pinion.dp / 2, 0)),
-            ("rotate", -phi),
+            ("translate", (geardata_pinion.dp / 2, 0.0)),
+            ("translate", (0.0, -geardata_pinion.dp / 2 * phi)),
             ("translate", (geardata_ring.dp / 2 - geardata_pinion.dp / 2, 0)),
-            ("rotate", (phi*geardata_pinion.dp/geardata_ring.dp)),
+            ("rotate", (phi * geardata_pinion.dp / geardata_ring.dp)),
         ]
 
         plot_rack_profile(
